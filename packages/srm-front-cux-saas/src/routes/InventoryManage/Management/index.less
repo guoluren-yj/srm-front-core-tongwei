@@ -1,0 +1,22 @@
+.contentStyle {
+  background-color: #f4f5f7;
+  padding: 0 16px 0 0;
+
+  :global {
+    .c7n-card {
+      margin-bottom: 8px;
+    }
+    .titleTag {
+      height: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .titleTag::before {
+      content: '|';
+      background: #36c2cf;
+      color: #36c2cf;
+      margin-right: 8px;
+    }
+  }
+}

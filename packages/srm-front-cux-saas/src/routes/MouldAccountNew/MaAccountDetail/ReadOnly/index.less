@@ -1,0 +1,93 @@
+.sprm-new-detail-content {
+  :global {
+    overflow-y: auto;
+    padding: 0 0;
+    background-color: #fff;
+
+    .c7n-collapse {
+      & > .c7n-collapse-item {
+        padding: 0 20px;
+        & > .c7n-collapse-header {
+          padding: 20px 0;
+          font-size: 16px;
+          font-weight: 600;
+          h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: inline-block;
+          }
+        }
+        & > .c7n-collapse-content {
+          padding: 0 0 20px 0;
+          & > .c7n-collapse-content-box {
+            padding: 0;
+          }
+        }
+        &:not(:last-child) {
+          position: relative;
+          padding-bottom: 8px;
+          &::after {
+            content: '';
+            bottom: 0;
+            height: 8px;
+            left: -20px;
+            right: -20px;
+            position: absolute;
+            background-color: #f4f5f7;
+          }
+        }
+      }
+      & > .c7n-collapse-item-active {
+        & > .c7n-collapse-header {
+          padding-bottom: 16px;
+        }
+      }
+    }
+
+    .detail-list {
+      tr.ant-table-row {
+        td.status {
+          img {
+            height: 16px;
+            width: 12px;
+            min-width: 12px;
+            margin-right: 5px;
+            margin-top: -3px;
+          }
+        }
+      }
+    }
+    .right-table {
+      width: 58.34%;
+      position: relative;
+      margin-left: 12px;
+      .arrow {
+        width: 48px;
+        height: 26px;
+        position: absolute;
+        left: -31px;
+        top: 66px;
+        z-index: 10;
+      }
+    }
+  }
+}
+.mould-card {
+  :global {
+    padding-top: 20px;
+    .c7n-card > .c7n-card-head {
+      border: none;
+      .c7n-card-head-title {
+        font-size: 14px;
+        line-height: 22px;
+      }
+    }
+    .c7n-card > .c7n-card-body {
+      padding: 0;
+    }
+  }
+}
+.sprm_fixed_header {
+  height: calc(100vh - 136px) !important;
+  overflow-y: auto;
+}

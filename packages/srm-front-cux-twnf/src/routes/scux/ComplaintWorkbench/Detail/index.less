@@ -1,0 +1,40 @@
+@import '~hzero-front/lib/srm-variables.less';
+
+.detail-container {
+  :global {
+    overflow-y: auto;
+
+    .c7n-tabs-bar {
+      margin-top: 8px;
+    }
+
+    .c7n-collapse {
+      &>.c7n-collapse-item {
+        padding: 20px;
+        background-color: #fff;
+        margin: 8px 16px 0 16px;
+        overflow: initial;
+
+        &>.c7n-collapse-header {
+          padding: 0;
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        &>.c7n-collapse-content {
+          padding: 0;
+
+          &>.c7n-collapse-content-box {
+            padding: 0;
+          }
+        }
+      }
+
+      &>.c7n-collapse-item-active {
+        &>.c7n-collapse-header {
+          padding-bottom: 16px;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+/*
+ * 我收到的订单详情样式
+ * @date: 2019-04-22
+ * @author: HB <bin.huang02@hand-china.com>
+ * @version: 0.0.1
+ * @copyright Copyright (c) 2018, Hand
+ */
+.received-send-order-detail {
+  :global {
+    .right-table {
+      width: 58.34%;
+      position: relative;
+      margin-left: 12px;
+      .arrow {
+        width: 48px;
+        height: 26px;
+        position: absolute;
+        left: -31px;
+        top: 66px;
+        z-index: 10;
+      }
+    }
+  }
+}
+.no-padding {
+  padding: 0 !important;
+  :global {
+    .ant-table-wrapper .ant-table table .ant-table-tbody > tr > td {
+      padding: 0 !important;
+    }
+  }
+}
+
+.date > span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.date > div:not(:last-child) {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.date {
+  :global {
+    .ant-form-item-control,
+    .has-success {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ant-row,
+    .ant-form-item {
+      margin-bottom: 0px !important;
+      height: 54px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+.planType {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.planType:not(:last-child) {
+  border-bottom: 1px solid #e8e8e8;
+}

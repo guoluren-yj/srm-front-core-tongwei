@@ -1,0 +1,108 @@
+// 基础样式文件
+@import '~srm-front-boot/lib/utils/style/basic.less';
+
+.rfx-card-item-title {
+  color: #000;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  margin-bottom: 16px;
+}
+
+// tag颜色渲染
+.warning-tag {
+  color: @color-waning !important;
+  background-color: @color-waning-percent10;
+  margin-bottom: 1px;
+}
+
+.notice-tag {
+  color: @color-waning !important;
+  background-color: @color-waning-percent10;
+  margin-bottom: 1px;
+}
+
+.danger-tag {
+  color: @color-danger !important;
+  background-color: @color-danger-percent10;
+  margin-bottom: 1px;
+}
+
+.success-tag {
+  color: @color-success !important;
+  background-color: @color-success-percent10;
+  margin-bottom: 1px;
+}
+
+.detailModal {
+  :global {
+    .c7n-pro-modal-body {
+      padding: 0 !important;
+    }
+  }
+}
+
+.maListTabs {
+  :global {
+    .c7n-tabs-tab {
+      color: #000;
+      > span {
+        color: #000;
+        opacity: 0.65;
+      }
+      &:hover {
+        color: #000;
+      }
+    }
+    .c7n-tabs-tab-active {
+      color: #29bece;
+      > span {
+        color: #29bece;
+        opacity: 1;
+      }
+      &:hover {
+        color: #29bece;
+      }
+    }
+  }
+}
+
+.rightTabs {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+  border: 2px solid rgba(0, 0, 0, 0);
+  min-width: 92px;
+  :global {
+    div {
+      padding: 3px 8px;
+      color: rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+    .active {
+      color: rgba(0, 0, 0, 0.8);
+      background: #fff;
+      box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.15);
+      border-radius: 2px;
+      font-weight: 600;
+    }
+  }
+}
+
+.sprm-col-btn {
+  margin-right: 16px;
+  margin-left: 0 !important;
+}
+.sprm-col-btn:last-child {
+  margin-right: 0;
+}
+
+.mould-col-btn {
+  > .c7n-pro-btn {
+    vertical-align: 30px !important;
+  }
+}

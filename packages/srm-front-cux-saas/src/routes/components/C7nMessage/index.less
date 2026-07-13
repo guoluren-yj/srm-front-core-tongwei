@@ -1,0 +1,48 @@
+.order-workspace-messageBoard {
+  :global {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    .c7n-list-split {
+      overflow: auto;
+      height: 550px;
+    }
+
+    .wrapper-button-tab {
+      height: 180px;
+      flex-shrink: 0;
+      width: 100%;
+    }
+    .c7n-pro-textarea-wrapper {
+      width: 100%;
+      .c7n-pro-textarea {
+        border: none;
+        width: 100%;
+        height: 100%;
+        resize: none;
+        &:focus {
+          border: none;
+          outline: none;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}
+
+.content-list-item {
+  :global {
+    .c7n-list-item-meta-content {
+      order: -10;
+      text-align: right;
+      margin-right: 0.16rem;
+    }
+  }
+}
+
+.modal-content-empty {
+  :global {
+    margin-top: 20%;
+    text-align: center;
+  }
+}
