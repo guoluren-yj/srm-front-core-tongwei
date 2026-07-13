@@ -1,0 +1,35 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 开发配置指南
+
+## 代码规范配置
+
+1. ESLint 配置
+   - [.eslintrc.js](mdc:.eslintrc.js) - ESLint 规则配置
+   - [.eslintignore](mdc:.eslintignore) - ESLint 忽略文件配置
+
+2. Prettier 配置
+   - [.prettierrc](mdc:.prettierrc) - Prettier 格式化规则
+   - [.prettierignore](mdc:.prettierignore) - Prettier 忽略文件配置
+
+3. 编辑器配置
+   - [.editorconfig](mdc:.editorconfig) - 编辑器通用配置
+   - [.vscode/](mdc:.vscode) - VS Code 特定配置
+
+## 构建配置
+
+1. 基础配置
+   - [.babelrc.js](mdc:.babelrc.js) - Babel 转译配置
+   - [jsconfig.json](mdc:jsconfig.json) - JavaScript 项目配置
+
+2. HZERO 框架配置
+   - [.hzerorc.js](mdc:.hzerorc.js) - HZERO 特定配置
+
+## 版本控制
+
+- [.gitignore](mdc:.gitignore) - Git 忽略文件配置
+- [.npmignore](mdc:.npmignore) - NPM 发布忽略文件配置
+- [.gitlab-ci.yml](mdc:.gitlab-ci.yml) - GitLab CI/CD 配置

@@ -1,0 +1,33 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 源代码结构指南
+
+## 目录结构说明
+
+- [src/components/](mdc:src/components) - 可复用的 React 组件
+- [src/routes/](mdc:src/routes) - 页面级组件
+- [src/models/](mdc:src/models) - 数据模型和状态管理
+- [src/services/](mdc:src/services) - API 接口服务
+- [src/utils/](mdc:src/utils) - 工具函数
+- [src/assets/](mdc:src/assets) - 静态资源文件
+- [src/config/](mdc:src/config) - 配置文件
+- [src/customize/](mdc:src/customize) - 自定义配置和组件
+- [src/overwrite/](mdc:src/overwrite) - 重写的组件和配置
+
+## 开发规范
+
+1. 组件开发
+   - 页面组件放在 routes 目录下
+   - 可复用组件放在 components 目录下
+   - 组件使用 PascalCase 命名
+
+2. 服务开发
+   - API 接口定义在 services 目录下
+   - 按功能模块划分服务文件
+
+3. 工具函数
+   - 通用工具函数放在 utils 目录下
+   - 工具函数应该是纯函数
