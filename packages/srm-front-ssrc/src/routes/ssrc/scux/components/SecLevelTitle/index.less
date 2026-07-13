@@ -1,0 +1,43 @@
+@import '~hzero-front/lib/srm-variables.less';
+
+.ssrc-second-level {
+  margin: 32px 0 16px;
+  display: flex;
+  align-items: center;
+  // &:first-child {
+  //   margin-top: 16px;
+  // }
+  .ssrc-second-level-title {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  :global {
+    .c7n-divider {
+      background-color: @primary-color;
+      color: @primary-color;
+      width: 0.03rem;
+      height: 0.12rem;
+      margin: 0 0.08rem 0 0;
+    }
+  }
+}
+
+.ssrc-top-level {
+  &-container {
+    position: relative;
+  };
+  &-content::before {
+    content: ''; /* 伪元素必须有内容才能显示，但这里可以设置为空 */
+    position: absolute; /* 绝对定位 */
+    top: 50%; /* 竖线在垂直方向上居中 */
+    left: 0; /* 竖线紧靠容器的左边缘 */
+    width: 2px; /* 竖线的宽度 */
+    height: 60%; /* 竖线的高度，与容器相同 */
+    background-color: @primary-color; /* 竖线的颜色 */
+    color: @primary-color;
+    transform: translateY(-50%); /* 确保竖线在垂直方向上完全居中 */
+  };
+  &-title {
+    padding-left: 8px;
+  }
+}

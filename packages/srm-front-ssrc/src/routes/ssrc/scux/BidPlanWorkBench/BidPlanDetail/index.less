@@ -1,0 +1,54 @@
+.scux-bid-plan-detail-wrapper {
+  height: 100%;
+  :global {
+    .c7n-spin-nested-loading,
+    .c7n-spin-container {
+      height: 100%;
+    }
+  }
+  .scux-bid-plan-detail-content {
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    .scux-bid-plan-detail-tabs {
+      margin-top: 0.2rem;
+    }
+    :global {
+      .c7n-card {
+        .c7n-card-head {
+          padding: 0 0;
+          border-bottom: 0;
+          .c7n-card-head-title {
+            padding-top: 0.2rem;
+          }
+        }
+        .c7n-card-body {
+          padding: 0;
+          padding-top: 0;
+        }
+      }
+      .c7n-card:not(:last-child) {
+        margin-bottom: 8px;
+      }
+      .c7n-card:last-child {
+        flex-grow: 1;
+      }
+    }
+  }
+  &-no-header {
+    height: calc(100vh - 225px);
+    .scux-bid-plan-detail-content-wrapper {
+      margin-top: 0 !important;
+      height: 100%;
+    }
+    .scux-bid-plan-detail-content {
+      padding-top: 0;
+    }
+  }
+}
+.scux-bid-plan-detail-content-wrapper {
+  background-color: #fff;
+  margin: 8px;
+  height: calc(100% - 65px);
+  overflow-y: auto;
+}

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8635f677-b796-4d2b-a2ef-107c1627f884" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/IncomingInspectionQuery/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/IncomingInspectionQuery/index.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="false" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <favorite-branches>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="release-1.14.0" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </favorite-branches>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature-pur-29803" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="1XkACacLjaBJGozTCJYwjcCeElH" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "feature-pur-32259",
+    "last_opened_file_path": "D:/Workspaces/my-app",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.stylelint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.stylelint": "D:\\Workspaces\\srm-front-sqam\\node_modules\\stylelint",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "ts.external.directory.path": "D:\\Workspaces\\srm-front-sqam\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RebelAgentSelection">
+    <selection>jr</selection>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\leranPractive\lichao-code\gitShowMoudle\srm-front-sqam\src\services" />
+      <recent name="D:\leranPractive\lichao-code\gitShowMoudle\srm-front-sqam\src\models" />
+      <recent name="D:\leranPractive\lichao-code\gitShowMoudle\srm-front-sqam\src\routes" />
+    </key>
+  </component>
+  <component name="RestServicesNavigator">
+    <treeState>
+      <expand />
+      <select />
+    </treeState>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8635f677-b796-4d2b-a2ef-107c1627f884" name="Default Changelist" comment="" />
+      <created>1575270769086</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1575270769086</updated>
+      <workItem from="1575270770332" duration="242000" />
+      <workItem from="1581579611456" duration="4130000" />
+      <workItem from="1581598505961" duration="5359000" />
+      <workItem from="1582686007440" duration="556000" />
+      <workItem from="1586066662788" duration="1498000" />
+      <workItem from="1586068196485" duration="3136000" />
+      <workItem from="1586140392220" duration="8564000" />
+      <workItem from="1586156608207" duration="1236000" />
+      <workItem from="1586244974689" duration="1320000" />
+      <workItem from="1586437773583" duration="1242000" />
+      <workItem from="1586478053435" duration="648000" />
+      <workItem from="1609124667866" duration="2162000" />
+      <workItem from="1618798294950" duration="1354000" />
+      <workItem from="1618821535506" duration="591000" />
+      <workItem from="1618823909576" duration="1845000" />
+      <workItem from="1623311548711" duration="3141000" />
+      <workItem from="1623834756802" duration="2000000" />
+      <workItem from="1704958501626" duration="8770000" />
+      <workItem from="1705285017202" duration="5152000" />
+      <workItem from="1706004900767" duration="4579000" />
+    </task>
+    <task id="LOCAL-00001" summary="[feature-srm-66904]  配置判断接口传参修改">
+      <created>1623309203501</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1623309203501</updated>
+    </task>
+    <task id="LOCAL-00002" summary="本地启动配置  浏览器控制台输入&quot;pkgversion&quot; 获取猪齿鱼版本修改配置文件">
+      <created>1623309267548</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1623309267548</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="feature-pur-29803" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="release-1.16.0" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="feature-pur-29803" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="idea 后面删除" />
+    <MESSAGE value="[feature-srm-66904]  配置判断接口传参修改" />
+    <MESSAGE value="本地启动配置  浏览器控制台输入&quot;pkgversion&quot; 获取猪齿鱼版本修改配置文件" />
+    <option name="LAST_COMMIT_MESSAGE" value="本地启动配置  浏览器控制台输入&quot;pkgversion&quot; 获取猪齿鱼版本修改配置文件" />
+  </component>
+</project>
