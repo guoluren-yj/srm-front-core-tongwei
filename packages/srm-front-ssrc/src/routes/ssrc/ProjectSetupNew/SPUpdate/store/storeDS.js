@@ -137,6 +137,13 @@ const getPurAndOrgFields = (payload) => {
       },
     },
     {
+      label: intl.get('ssrc.projectSetup.model.projectSetup.position').d('岗位'),
+      name: 'attributeVarchar12',
+      lovCode: 'SCUX_TWNF_LOV_POSITION',
+      textField: 'positionName',
+      valueField: 'positionId',
+    },
+    {
       label: intl
         .get('ssrc.projectSetup.model.spChange.purOrganizationAndStaff.purOrganizationName')
         .d('采购组织'),

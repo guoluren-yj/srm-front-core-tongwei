@@ -26,7 +26,7 @@ import style from './index.less';
 const organizationId = getCurrentOrganizationId();
 
 function Content(props = {}) {
-  const { quotationTemplateId, editorFlag, lovDs } = props || {};
+  const { quotationTemplateId, editorFlag, lovDs, hideSelectTemplate } = props || {};
   const tableDsRef = useRef({});
   const headerRef = useRef({});
 
@@ -329,7 +329,7 @@ function Content(props = {}) {
 
   return (
     <Spin spinning={queryLoading}>
-      {!!editorFlag && lovDs ? (
+      {!!editorFlag && lovDs && !hideSelectTemplate ? (
         <Lov
           dataSet={lovDs}
           mode="button"

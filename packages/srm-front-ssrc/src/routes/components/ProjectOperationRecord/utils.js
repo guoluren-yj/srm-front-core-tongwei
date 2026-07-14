@@ -121,6 +121,7 @@ const getProcessOperationAction = (record) => {
     sourceProjectNum,
     processSystemCode,
     sourceProjectTitle,
+    processedRemark,
     sourceCategoryMeaning,
     projectLineSectionName,
     processOperationMeaning,
@@ -131,20 +132,29 @@ const getProcessOperationAction = (record) => {
 
   const realNameTitle = projectLineSectionName
     ? `{realName} ({loginName}) ${intl
-        .get('ssrc.common.view.message.base')
-        .d('基于标段')} {projectLineSectionName} `
+      .get('ssrc.common.view.message.base')
+      .d('基于标段')} {projectLineSectionName} `
     : `{realName} ({loginName}) `;
-  const rfxTitle = `【 ${
-    sourceCategoryMeaning
-      ? `${
-          sourceCategory.indexOf('BID') > -1
-            ? intl.get('ssrc.common.view.message.bid').d('招标书')
-            : sourceCategoryMeaning
-        }:`
+
+  let rfxTitle = `【 ${sourceCategoryMeaning
+    ? `${sourceCategory.indexOf('BID') > -1
+      ? intl.get('ssrc.common.view.message.bid').d('招标书')
+      : sourceCategoryMeaning
+    }:`
+    : ''
+    }  ${sourceFlag ? sourceNum : sourceProjectNum}  ${sourceTitleFlag ? `- ${sourceFlag ? sourceTitle : sourceProjectTitle}` : ''
+    } 】`;
+
+  if (sourceNode === 'SOURCE_PREPARE') {
+    rfxTitle = `【 ${sourceCategoryMeaning
+      ? `${sourceCategory.indexOf('BID') > -1
+        ? intl.get('ssrc.common.view.message.bid').d('招标书')
+        : sourceCategoryMeaning
+      }:`
       : ''
-  }  ${sourceFlag ? sourceNum : sourceProjectNum}  ${
-    sourceTitleFlag ? `- ${sourceFlag ? sourceTitle : sourceProjectTitle}` : ''
-  } 】`;
+      }  ${sourceFlag ? sourceNum : sourceProjectNum}  ${`- ${processedRemark}`
+      } 】`;
+  }
 
   const processOperationActionMap = {
     CREATE: [

@@ -154,6 +154,7 @@ const PageHeader: React.FC<any> = () => {
       tableOtherParams={{
         postType: "ACTION",
         techFileId,
+        actionType: "TECH_FILE",
       }}
       operateTransportParams={{
         method: "POST",

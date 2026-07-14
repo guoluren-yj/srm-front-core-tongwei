@@ -21,6 +21,7 @@ const TenderListSection = () => {
   // 打开明细维护弹框
   const handleOpenDetail = (record) => {
     const bidCatalogSectionId = record.get('bidCatalogSectionId');
+    const sectionName = record.get('sectionName');
     if (!baseInfoDs) return;
     Modal.open({
       title: editorFlag ? intl.get('ssrc.tenderDetail.view.title.detailEdit').d('明细维护') : intl.get('ssrc.tenderDetail.view.title.viewDetail').d('明细查看'),
@@ -28,11 +29,11 @@ const TenderListSection = () => {
       destroyOnClose: true,
       closable: true,
       style: {
-        width: 800,
+        width: 850,
       },
       okButton: false,
       cancelText: intl.get('hzero.common.button.close').d('关闭'),
-      children: <DetailMaintenance baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} />,
+      children: <DetailMaintenance baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} sectionName={sectionName} />,
     });
   };
 
@@ -47,8 +48,16 @@ const TenderListSection = () => {
         editor: editorFlag,
       },
       {
+        name: 'itemName',
+        editor: editorFlag,
+      },
+      {
+        name: 'remark',
+        editor: editorFlag,
+      },
+      {
         name: 'detailRender',
-        header: intl.get('scux.tenderDetail.modal.tenderDetail.detailRender').d('明细'),
+        header: intl.get('scux.tenderDetail.modal.tenderDetail.detailRender').d('明细维护'),
         renderer: ({ record }) => {
           return record?.get('bidCatalogSectionId') ? (
             <Button funcType={FuncType.link} wait={500} onClick={() => handleOpenDetail(record)}>

@@ -5,12 +5,28 @@ import { ButtonColor } from "choerodon-ui/pro/lib/button/enum";
 import { Header } from 'components/Page';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
-import { getResponse } from 'utils/utils';
+import { getResponse, getCurrentOrganizationId } from 'utils/utils';
+import OperationRecordCux from 'srm-front-boot/lib/components/OperationRecordCux';
+import { SRM_MARMOT } from 'srm-front-boot/lib/utils/config';
 
 import {
   tenderListBillCommonApi,
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
+
+// 操作记录icon
+const statusIconTypes = [
+  {
+    value: 'CREATE',
+    PUBLISHED: '新建',
+    icon: 'add',
+  },
+  {
+    value: 'SUBMIT',
+    PUBLISHED: '提交',
+    icon: 'check',
+  },
+];
 
 const PageHeader: React.FC<any> = () => {
   const {
@@ -22,6 +38,7 @@ const PageHeader: React.FC<any> = () => {
     initData = () => {},
     pageLoading,
     setPageLoading = () => {},
+    bidCatalogId,
     history,
   } = useStore();
 
@@ -111,6 +128,26 @@ const PageHeader: React.FC<any> = () => {
     });
   };
 
+  // 操作记录
+  const operationBtn = useMemo(() => [
+    <OperationRecordCux
+      method="POST"
+      btnIcon=""
+      btnType="button"
+      modalContentType="tabs"
+      tableUrl={`${SRM_MARMOT}/v1/${getCurrentOrganizationId()}/marmot-api/v8iakAicH6oqZZdRutibdBmeGpSic9wlxicU2YbsJ0UQiaBVM`}
+      tableOtherParams={{
+        postType: "ACTION",
+        sourceId: bidCatalogId,
+        actionType: "BID_CATALOG",
+      }}
+      operateTransportParams={{
+        method: "POST",
+      }}
+      statusIconTypes={statusIconTypes}
+    />,
+  ], [bidCatalogId]);
+
   // 标题
   const pageTitle = useMemo(() => {
     if (editorFlag) {
@@ -132,11 +169,12 @@ const PageHeader: React.FC<any> = () => {
           <Button icon="save" wait={1000} onClick={handleSave} disabled={pageLoading}>
             {intl.get('hzero.common.button.save').d('保存')}
           </Button>
-          <Button icon="delete" wait={1000} onClick={handleDelete} disabled={pageLoading}>
+          {/* <Button icon="delete" wait={1000} onClick={handleDelete} disabled={pageLoading}>
             {intl.get('hzero.common.button.delete').d('删除')}
-          </Button>
+          </Button> */}
+          {operationBtn}
         </>
-      ) : null}
+      ) : operationBtn}
     </Header>
   );
 };

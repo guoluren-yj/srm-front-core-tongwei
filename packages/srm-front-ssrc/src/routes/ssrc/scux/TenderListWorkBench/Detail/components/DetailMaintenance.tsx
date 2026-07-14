@@ -17,11 +17,12 @@ interface DetailMaintenanceProps {
   bidCatalogSectionId: string;
   baseInfoDs: DataSet;
   editorFlag: boolean;
+  sectionName?: string;
 };
 
 const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
 
-  const { bidCatalogSectionId, baseInfoDs, editorFlag } = props;
+  const { bidCatalogSectionId, baseInfoDs, editorFlag, sectionName } = props;
   // 明细维护 ds
   const detailMaintenanceDs = useDataSet(() => detailMaintenanceDS({ baseInfoDs }), []);
 
@@ -47,6 +48,7 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
       quotationTemplateId,
       lovDs,
       editorFlag,
+      hideSelectTemplate: true,
     };
     if (quotationTemplateId && lovDs.current) {
       lovDs.current.set('quotationTemplateId', quotationTemplateId);
@@ -75,8 +77,12 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
       },
       {
         name: 'itemName',
-        editor: editorFlag,
+        // editor: editorFlag,
         width: 130,
+      },
+      {
+        name: 'itemCategoryLov',
+        editor: editorFlag,
       },
       {
         name: 'uomId',
@@ -86,16 +92,20 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
         name: 'quantity',
         editor: editorFlag,
       },
+      // {
+      //   name: 'taxId',
+      //   editor: editorFlag,
+      // },
       {
-        name: 'taxId',
+        name: 'quotationTemplateIdLov',
         editor: editorFlag,
       },
       {
         name: 'detail',
-        header: intl.get('scux.tenderDetail.model.twnf.tenderDetail.detailList').d('明细清单'),
+        header: intl.get('scux.tenderDetail.model.twnf.tenderDetail.detailList').d('报价明细'),
         renderer: ({ record }) => (
           <Button funcType={FuncType.link} wait={1000} onClick={() => handleOpenDetail(record)}>
-            {editorFlag ? intl.get('scux.tenderDetail.model.twnf.tenderDetail.inventoryEdit').d('清单维护') : intl.get('scux.tenderDetail.model.twnf.tenderDetail.viewDetailList').d('清单查看')}
+            {intl.get('scux.tenderDetail.model.twnf.tenderDetail.viewDetailList').d('查看')}
           </Button>
         ),
       },
@@ -146,7 +156,9 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
   // 表格按钮
   const buttons: any[] = useMemo(() => {
     return editorFlag ? [
-      'add',
+      ['add', {
+        onClick: () => detailMaintenanceDs.create({ itemName: sectionName }, 0),
+      }],
       ['delete', {
         icon: 'delete_sweep',
         onClick: handleDelete,
@@ -155,7 +167,7 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
         {intl.get('hzero.common.button.save').d('保存')}
       </Button>,
     ] : [];
-  }, [handleDelete, handleSaveLine]);
+  }, [handleDelete, handleSaveLine, sectionName, detailMaintenanceDs]);
 
   return (
     <Table

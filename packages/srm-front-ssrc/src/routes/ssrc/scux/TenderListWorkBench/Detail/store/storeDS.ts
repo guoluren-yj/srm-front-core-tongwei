@@ -1,4 +1,4 @@
-import { FieldType } from 'choerodon-ui/dataset/data-set/enum';
+import { FieldType, FieldIgnore } from 'choerodon-ui/dataset/data-set/enum';
 import type { DataSetProps } from 'choerodon-ui/dataset/data-set/DataSet';
 import { DataSetSelection } from 'choerodon-ui/dataset/data-set/enum';
 
@@ -6,6 +6,7 @@ import intl from "utils/intl";
 import { getCurrentOrganizationId } from 'utils/utils';
 import { SRM_SSRC } from "srm-front-boot/lib/utils/config";
 import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
+const organizationId = getCurrentOrganizationId();
 
 // 技术文件 - 头ds
 const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
@@ -86,6 +87,14 @@ const tenderListSectionDS = ({ bidCatalogId, baseInfoDs }): DataSetProps => {
         name: 'sectionName',
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.sectionName`).d('标段名称'),
         required: true,
+      },
+      {
+        name: 'itemName',
+        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.itemName`).d('项目名称'),
+      },
+      {
+        name: 'remark',
+        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.remark`).d('备注'),
       },
     ],
     transport: {
@@ -227,8 +236,50 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
       },
       {
         name: 'itemName',
-        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('项目名称（描述）'),
+        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('招标项目描述'),
         required: true,
+      },
+      {
+        label: intl.get('small.common.model.itemCategory').d('物料分类'),
+        name: 'itemCategoryLov',
+        type: FieldType.object,
+        ignore: FieldIgnore.always,
+        textField: 'categoryName',
+        valueField: 'categoryCode',
+        // lovCode: 'SMDM.ITEM_CATEGORY_BY_ITEM_ID',
+        lovCode: 'SMDM.CATEGORY.LEVEL_CONTROL_TREE',
+        dynamicProps: {
+          lovPara: () => ({
+            tenantId: organizationId,
+            businessObjectCode: 'SRM_C_SRM_AGREEMENT',
+            enabledFlag: 1,
+            hzeroUIFlag: 0,
+          }),
+        },
+        optionsProps: {
+          // 根据业务规则 - 品类值集选择范围， 判断数据是否能选中
+          record: {
+            dynamicProps: {
+              // 预定义不能启用禁用（头上按钮）
+              selectable: (record) => record.get('isCheck') !== false,
+            },
+          },
+        },
+      },
+      {
+        name: 'itemCategoryId',
+        type: FieldType.string,
+        bind: 'itemCategoryLov.categoryId',
+      },
+      {
+        name: 'itemCategoryCode',
+        type: FieldType.string,
+        bind: 'itemCategoryLov.categoryCode',
+      },
+      {
+        name: 'itemCategoryName',
+        type: FieldType.string,
+        bind: 'itemCategoryLov.categoryName',
       },
       {
         name: 'uomId',
@@ -252,29 +303,50 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
         required: true,
         type: FieldType.number,
       },
-      {
-        name: 'taxId',
-        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.taxRate').d('税率'),
-        required: true,
-        type: FieldType.object,
-        lovCode: 'SMDM.TAX',
-        transformRequest: (value) => value?.taxId,
-        transformResponse: (value, data) => {
-          return value ? { taxId: value, taxRate: data.taxRate } : null;
-        },
-      },
-      {
-        name: 'taxRate',
-        bind: 'taxId.taxRate',
-      },
+      // {
+      //   name: 'taxId',
+      //   label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.taxRate').d('税率'),
+      //   required: true,
+      //   type: FieldType.object,
+      //   lovCode: 'SMDM.TAX',
+      //   transformRequest: (value) => value?.taxId,
+      //   transformResponse: (value, data) => {
+      //     return value ? { taxId: value, taxRate: data.taxRate } : null;
+      //   },
+      // },
+      // {
+      //   name: 'taxRate',
+      //   bind: 'taxId.taxRate',
+      // },
       {
         name: 'remark',
         label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.remark').d('备注'),
       },
       {
+        label: intl.get(`ssrc.inquiryHall.model.inquiryHall.quotationTemplate`).d('报价模板'),
+        name: 'quotationTemplateIdLov',
+        type: FieldType.object,
+        ignore: FieldIgnore.always,
+        lovCode: 'SSRC.QUOTATION_TEMPLATE',
+        textField: 'templateName',
+        valueField: 'quotationTemplateId',
+        dynamicProps: {
+          lovPara() {
+            return {
+              tenantId: organizationId,
+            };
+          },
+        },
+      },
+      {
         name: 'quotationTemplateId',
-        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.quotationTemplate').d('报价模板'),
         type: FieldType.string,
+        bind: 'quotationTemplateIdLov.templateId',
+      },
+      {
+        name: 'templateName',
+        type: FieldType.string,
+        bind: 'quotationTemplateIdLov.templateName',
       },
     ],
     transport: {
