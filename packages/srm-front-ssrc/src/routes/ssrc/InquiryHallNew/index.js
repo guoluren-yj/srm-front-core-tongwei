@@ -1739,9 +1739,9 @@ class InquiryHall extends React.Component {
 
   // 投标确认
   openCuxBidConfirmNode = (record) => {
-    const { rfxHeaderId, attributeVarchar20, openEnabledFlag } =
-      record.get(['rfxHeaderId', 'attributeVarchar20', 'openEnabledFlag']) || {};
-    if (attributeVarchar20 === 'BIDCONFIRM' || Number(openEnabledFlag) !== 1) return null;
+    const { rfxHeaderId, attributeVarchar20, openEnabledFlag, rfxStatus } =
+      record.get(['rfxHeaderId', 'attributeVarchar20', 'openEnabledFlag', 'rfxStatus']) || {};
+    if (attributeVarchar20 === 'BIDCONFIRM' || Number(openEnabledFlag) !== 1 || rfxStatus !== 'OPEN_BID_PENDING') return null;
     return (
       <div>
         <a
