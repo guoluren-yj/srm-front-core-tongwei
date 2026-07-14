@@ -21,6 +21,7 @@ import {
   releaseInterFace,
   deleteSupplierLines,
   fetchQualificationInfo,
+  querySourceProjects,
 } from '@/services/projectSetupService';
 
 import {
@@ -152,6 +153,11 @@ const Page = () => {
       ];
 
       await Promise.all(list);
+      // 刷新招标节点数据
+      const bidPlanNodeRes = await querySourceProjects(sourceProjectId);
+      if (bidPlanNodeRes && !bidPlanNodeRes.failed) {
+        bidPlanNodeDs.loadData(bidPlanNodeRes || []);
+      }
       handleSetOperateLoading(false);
     } catch (e) {
       handleSetOperateLoading(false);
