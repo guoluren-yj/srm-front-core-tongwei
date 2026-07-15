@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Button, DataSet } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
-import { TableAutoHeightType } from 'choerodon-ui/pro/lib/table/enum';
+import { getTableFixSelfAdaptStyle } from '@/utils/utils';
 import { omit } from 'lodash';
 import querystring from 'querystring';
 
@@ -71,10 +71,10 @@ const Index: React.FC<any> = (props) => {
   // 跳转招标计划明细页面
   const handleJumpBidPlanDetail = (record) => {
     if (!record) return;
-    const { sourceProjectId, rfxHeaderId } = record.get(['sourceProjectId', 'rfxHeaderId']);
+    const { sourceProjectId } = record.get(['sourceProjectId', 'rfxHeaderId']);
     if (!sourceProjectId) return;
     history.push({
-      pathname: `/scux/ssrc/bid-plan-workbench/bid-full-process-detail/${sourceProjectId}/${rfxHeaderId || -1}`,
+      pathname: `/ssrc/new-project-setup/detail/${sourceProjectId}`,
     });
   };
 
@@ -180,44 +180,46 @@ const Index: React.FC<any> = (props) => {
         </Button>
       </Header>
       <Content>
-        <FilterBarTable
-          key={tableKey}
-          columns={getColumns()}
-          dataSet={allDs}
-          border={false}
-          cacheState
-          filterBarConfig={{
-            cacheKey: 'cux_all_technicalDocumentsWorkBench_list',
-            autoQuery: true,
-            left: {
-              render: (ds) => {
-                if (ds && (!ds.getField('multiProjectNumOrTitle') || !ds.getField('multiProjectNumOrTitle')?.get('transformRequest'))) {
-                  ds.addField('multiProjectNumOrTitle', {
-                    transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
-                      }
-                      return '';
-                    },
-                  });
-                };
-                return (
-                  <MultipleTextSplitInput
-                    name="multiProjectNumOrTitle"
-                    dataSet={ds}
-                    placeholder={intl
-                      .get('scux.technicalDocumentsWorkBench.view.placeholder.multiProjectNumOrTitle')
-                      .d('招标计划单号，招标名称，技术文件编号')}
-                    style={{ width: '3rem' }}
-                  />
-                );
+        <div style={getTableFixSelfAdaptStyle(true)?.wrapperCalcHeight}>
+          <FilterBarTable
+            key={tableKey}
+            columns={getColumns()}
+            dataSet={allDs}
+            border={false}
+            cacheState
+            filterBarConfig={{
+              cacheKey: 'cux_all_technicalDocumentsWorkBench_list',
+              autoQuery: true,
+              left: {
+                render: (ds) => {
+                  if (ds && (!ds.getField('multiProjectNumOrTitle') || !ds.getField('multiProjectNumOrTitle')?.get('transformRequest'))) {
+                    ds.addField('multiProjectNumOrTitle', {
+                      transformRequest: (value) => {
+                        if (value) {
+                          return value.join(',');
+                        }
+                        return '';
+                      },
+                    });
+                  };
+                  return (
+                    <MultipleTextSplitInput
+                      name="multiProjectNumOrTitle"
+                      dataSet={ds}
+                      placeholder={intl
+                        .get('scux.technicalDocumentsWorkBench.view.placeholder.multiProjectNumOrTitle')
+                        .d('招标计划单号，招标名称，技术文件编号')}
+                      style={{ width: '3rem' }}
+                    />
+                  );
+                },
               },
-            },
-          }}
-          customizable
-          customizedCode={customizedCode}
-          autoHeight={{ type: TableAutoHeightType.maxHeight, diff: -50 }}
-        />
+            }}
+            customizable
+            customizedCode={customizedCode}
+            style={getTableFixSelfAdaptStyle(true)?.searchBarTableMaxHeight}
+          />
+        </div>
       </Content>
     </>
   );

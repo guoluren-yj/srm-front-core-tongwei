@@ -88,7 +88,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
 
   // 页面编辑标识
   const editorFlag = useMemo(() => {
-    return ['NEW'].includes(techFileStatus) && pathname.includes('/scux/ssrc/technical-documents-workbench/tech-update');
+    return ['NEW', 'APPROVED'].includes(techFileStatus) && pathname.includes('/scux/ssrc/technical-documents-workbench/tech-update');
   }, [techFileStatus, pathname]);
 
   // bid明细页面

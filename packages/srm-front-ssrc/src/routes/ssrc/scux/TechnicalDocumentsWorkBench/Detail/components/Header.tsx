@@ -153,7 +153,7 @@ const PageHeader: React.FC<any> = () => {
       tableUrl={`${SRM_MARMOT}/v1/${getCurrentOrganizationId()}/marmot-api/v8iakAicH6oqZZdRutibdBmeGpSic9wlxicU2YbsJ0UQiaBVM`}
       tableOtherParams={{
         postType: "ACTION",
-        techFileId,
+        sourceId: techFileId,
         actionType: "TECH_FILE",
       }}
       operateTransportParams={{

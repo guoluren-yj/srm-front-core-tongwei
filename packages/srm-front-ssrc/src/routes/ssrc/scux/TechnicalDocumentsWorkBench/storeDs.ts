@@ -62,7 +62,7 @@ function getQueryFields({ queryTab = '' } = {}) {
 
 const tableDataSet = ({ queryTab }): DataSetProps => {
   return {
-    primaryKey: 'sourceProjectId',
+    primaryKey: 'techFileId',
     autoQuery: true,
     selection: DataSetSelection.multiple,
     pageSize: 50,

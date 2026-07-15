@@ -19,7 +19,7 @@ const { TabPane } = Tabs;
 
 const handleToTenderDetail = (history: any, record: any) => {
   history.push({
-    pathname: `/scux/ssrc/bid-plan-workbench/bid-full-process-detail/${record.get('sourceProjectId')}/${record.get('rfxHeaderId') || -1}`,
+    pathname: `/ssrc/new-project-setup/detail/${record.get('sourceProjectId')}`,
   });
 };
 

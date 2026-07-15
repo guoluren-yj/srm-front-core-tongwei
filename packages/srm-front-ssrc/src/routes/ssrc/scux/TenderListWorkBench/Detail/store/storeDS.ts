@@ -90,6 +90,7 @@ const tenderListSectionDS = ({ bidCatalogId, baseInfoDs }): DataSetProps => {
       },
       {
         name: 'itemName',
+        required: true,
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.itemName`).d('项目名称'),
       },
       {
@@ -240,8 +241,9 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
         required: true,
       },
       {
-        label: intl.get('small.common.model.itemCategory').d('物料分类'),
+        label: intl.get('small.common.model.itemCategory').d('物料类别'),
         name: 'itemCategoryLov',
+        required: true,
         type: FieldType.object,
         ignore: FieldIgnore.always,
         textField: 'categoryName',
