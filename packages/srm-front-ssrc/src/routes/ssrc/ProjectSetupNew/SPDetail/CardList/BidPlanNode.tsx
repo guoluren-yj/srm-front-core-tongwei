@@ -83,14 +83,15 @@ const bidPlanNodeDS = (): DataSetProps => {
 
 interface BidPlanNodeProps {
   sourceProjectId: string;
+  dataVersion?: string;
 }
 
-const BidPlanNode = ({ sourceProjectId }: BidPlanNodeProps) => {
+const BidPlanNode = ({ sourceProjectId, dataVersion }: BidPlanNodeProps) => {
 
   const bidPlanNodeDs = useDataSet(() => bidPlanNodeDS(), []);
 
   useEffect(() => {
-    querySourceProjects(sourceProjectId).then((res: any) => {
+    querySourceProjects(sourceProjectId, dataVersion).then((res: any) => {
       if (res && !res.failed) {
         bidPlanNodeDs.loadData(res || []);
       }

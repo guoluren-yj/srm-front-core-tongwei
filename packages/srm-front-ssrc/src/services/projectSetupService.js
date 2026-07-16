@@ -536,9 +536,9 @@ export async function queryProgressNew(body) {
   );
 }
 
-export async function querySourceProjects(sourceProjectId) {
+export async function querySourceProjects(sourceProjectId, dataVersion) {
   return request(
-    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/1zbbDrfhFX1MFmTrmEm7icKzJaprdD8f2RdpHo6n3d9Y?sourceProjectId=${sourceProjectId}`,
+    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/1zbbDrfhFX1MFmTrmEm7icKzJaprdD8f2RdpHo6n3d9Y?sourceProjectId=${sourceProjectId}${dataVersion ? `&dataVersion=${dataVersion}` : ''}`,
     {
       method: 'GET',
     }

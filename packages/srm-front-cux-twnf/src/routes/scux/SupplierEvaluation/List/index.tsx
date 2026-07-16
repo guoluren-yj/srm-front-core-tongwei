@@ -9,11 +9,10 @@ import { observer } from 'mobx-react-lite';
 import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { downloadFileByAxios } from 'hzero-front/lib/services/api';
-import { filterNullValueObject, getResponse } from 'hzero-front/lib/utils/utils';
+import { filterNullValueObject } from 'hzero-front/lib/utils/utils';
 
 import { TABS, tableDs, prefix, getTabValue, TabKeyType } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
-import { createSupplierEvaluation } from '../../../../services/scux/supplierEvaluationServices';
 
 const { TabPane } = Tabs;
 
@@ -44,30 +43,11 @@ const handleToEdit = (history: any, record: any) => {
   }));
 };
 
-const handleToPublishEdit = (history: any, record: any) => {
-  const nominationStatus  = record.get('nominationStatus');
-  const type = nominationStatus  === 'TO_BE_RELEASED' ? 'unreleasedReadOnly' : 'edit';
-  handleToDetail(history, stringify({
-    nominationHeaderId: record?.get('nominationHeaderId'),
-    type,
-  }));
-};
-
-const handleCreateSupplierEntry = async (history: any, record: any) => {
-  const result = await createSupplierEvaluation(record.toData());
-  if (getResponse(result)) {
-    handleToDetail(history, stringify({
-      nominationHeaderId: result.nominationHeaderId,
-      type: 'edit',
-    }));
-  }
-};
-
 const SupplierEvaluationList = ({ history }: any) => {
-  const [tabKey, setTabKey] = useState<TabKeyType>('MAINTAIN');
-  const [maintainDS, evaluateDS, publishDS, allDS] = useMemo(() => TABS.map(t => new DataSet(tableDs(t.key))), []);
+  const [tabKey, setTabKey] = useState<TabKeyType>('EVALUATE');
+  const dsList = useMemo(() => TABS.map(t => new DataSet(tableDs(t.key))), []);
 
-  const dsMap = useMemo(() => ({ MAINTAIN: maintainDS, EVALUATE: evaluateDS, PUBLISH: publishDS, ALL: allDS }), [maintainDS, evaluateDS, publishDS, allDS]);
+  const dsMap = useMemo(() => Object.fromEntries(TABS.map((t, i) => [t.key, dsList[i]])), [dsList]);
   const tableDS = useMemo(() => dsMap[tabKey], [dsMap, tabKey]);
 
   useEffect(() => {
@@ -106,18 +86,6 @@ const SupplierEvaluationList = ({ history }: any) => {
       { name: 'creationDate', width: 150 },
     ];
 
-    if (tabKey === 'MAINTAIN') {
-      return [
-        { name: 'nominationStatusMeaning', width: 100, renderer: () => intl.get(`${prefix}.nominationStatusMeaning.waitMaintain`).d('待维护') },
-        { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },
-        { name: 'sourceProjectName', width: 200 },
-        { name: 'companyName', width: 150 },
-        { name: 'templateName', width: 150 },
-        { name: 'bidDirectorName', width: 120 },
-        { name: 'creationDate', width: 150 },
-      ];
-    }
-
     if (tabKey === 'EVALUATE') {
       return [
         { name: 'nominationStatusMeaning', width: 100 },
@@ -127,30 +95,7 @@ const SupplierEvaluationList = ({ history }: any) => {
           width: 100,
           renderer: ({ record }: any) => (
             <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
-              {intl.get(`${prefix}.button.edit`).d('编辑')}
-            </Button>
-          ),
-        },
-        { name: 'nominationNum', width: 160, renderer: renderNominationNum },
-        { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },
-        { name: 'sourceProjectName', width: 200 },
-        { name: 'companyName', width: 150 },
-        { name: 'templateName', width: 150 },
-        { name: 'bidDirectorName', width: 120 },
-        { name: 'creationDate', width: 150 },
-      ];
-    }
-
-    if (tabKey === 'PUBLISH') {
-      return [
-        { name: 'nominationStatusMeaning', width: 100 },
-        {
-          name: 'action',
-          title: intl.get(`${prefix}.field.action`).d('操作'),
-          width: 100,
-          renderer: ({ record }: any) => (
-            <Button funcType={FuncType.flat} onClick={() => handleToPublishEdit(history, record)}>
-              {intl.get(`${prefix}.button.edit`).d('编辑')}
+              {intl.get(`${prefix}.button.review`).d('评审')}
             </Button>
           ),
         },
@@ -195,20 +140,6 @@ const SupplierEvaluationList = ({ history }: any) => {
 
   const getButtonConfigs = (selected: any[]) => {
     const buttonConfigs = {
-      MAINTAIN: [
-        {
-          name: 'create',
-          child: intl.get('hzero.common.button.create').d('新建'),
-          btnProps: {
-            color: 'primary',
-            icon: 'add',
-            disabled: selected.length !== 1,
-            onClick: () => {
-              handleCreateSupplierEntry(history, selected[0]);
-            },
-          },
-        },
-      ],
       ALL: [
         {
           name: 'newExport',

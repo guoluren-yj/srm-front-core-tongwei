@@ -54,6 +54,24 @@ const Index: React.FC<any> = (props) => {
     });
   };
 
+  // 变更
+  const handleChange = async (record) => {
+    const { sourceProjectId, techFileId } = record.get(['techFileId', 'sourceProjectId']);
+    if (!sourceProjectId || !techFileId) return;
+    const res = await technicalDocumentsApi({
+      postType: 'CHANGE',
+      techFileId,
+    });
+    if (getResponse(res)) {
+      history.push({
+        pathname: `/scux/ssrc/technical-documents-workbench/tech-update/${techFileId}`,
+        search: querystring.stringify({
+          sourceProjectId,
+        }),
+      });
+    }
+  };
+
   // 列表按钮
   const getListButtons = ({ record }) => {
     const techFileStatus = record.get('techFileStatus');
@@ -62,9 +80,19 @@ const Index: React.FC<any> = (props) => {
       wait: 500,
     };
     return [
-      ['NEW', 'APPROVED'].includes(techFileStatus) && (
+      techFileStatus === 'NEW' && (
         <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.edit').d('编辑')}
+        </Button>
+      ),
+      techFileStatus === 'APPROVED' && (
+        <Button {...commonButtonsProps} onClick={() => handleChange(record)}>
+          {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
+        </Button>
+      ),
+      techFileStatus === 'CHANGING' && (
+        <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
+          {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
         </Button>
       ),
     ].filter(Boolean);

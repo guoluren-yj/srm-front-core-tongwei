@@ -7,7 +7,7 @@ import { DataSetSelection, FieldType } from 'choerodon-ui/pro/lib/data-set/enum'
 export const prefix = 'scux.supplierEvaluation';
 
 // 页签类型
-export type TabKeyType = 'MAINTAIN' | 'EVALUATE' | 'PUBLISH' | 'ALL';
+export type TabKeyType = 'EVALUATE' | 'ALL';
 
 const organizationId = getCurrentOrganizationId();
 
@@ -22,17 +22,6 @@ export const TABS: Array<{
   queryData: object
 }> = [
     {
-      key: 'MAINTAIN',
-      name: intl.get(`${prefix}.tab.maintain`).d('待维护'),
-      primaryKey: 'sourceProjectId',
-      url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
-      customizedCode: 'SCUX.SUPPLIER_EVALUATION.MAINTAIN',
-      searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_MAINTAIN',
-      queryData: {
-        queryType: 'UN_CREATE'
-      }
-    },
-    {
       key: 'EVALUATE',
       name: intl.get(`${prefix}.tab.evaluate`).d('待评审'),
       primaryKey: 'nominationHeaderId',
@@ -41,17 +30,6 @@ export const TABS: Array<{
       searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_EVALUATE',
       queryData: {
         queryType: 'UN_REVIEW'
-      }
-    },
-    {
-      key: 'PUBLISH',
-      name: intl.get(`${prefix}.tab.publish`).d('待发布'),
-      primaryKey: 'nominationHeaderId',
-      url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
-      customizedCode: 'SCUX.SUPPLIER_EVALUATION.PUBLISH',
-      searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_PUBLISH',
-      queryData: {
-        queryType: 'UN_RELEASE'
       }
     },
     {
@@ -74,20 +52,13 @@ export const getTabValue = (key: TabKeyType, target?: string) => {
 };
 
 export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
-  selection: tabKey === 'MAINTAIN' ? DataSetSelection.single : DataSetSelection.multiple,
+  selection: tabKey === 'ALL' ? DataSetSelection.multiple : undefined,
   autoQuery: false,
   cacheSelection: true,
   primaryKey: getTabValue(tabKey, 'primaryKey'),
   pageSize: 20,
   queryFields: [
-    tabKey === 'MAINTAIN' && {
-      name: 'numOrTitle',
-      label: intl.get(`${prefix}.field.numOrTitle`).d('招标计划单号、招标名称'),
-      type: FieldType.string,
-      display: true,
-      merge: true,
-    },
-    tabKey !== 'MAINTAIN' && {
+    {
       name: 'numOrTitle',
       label: intl.get(`${prefix}.field.numOrTitle1`).d('入围单编号、招标名称'),
       type: FieldType.string,
