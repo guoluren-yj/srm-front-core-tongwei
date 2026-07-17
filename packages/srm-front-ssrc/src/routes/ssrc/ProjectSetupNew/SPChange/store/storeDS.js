@@ -99,16 +99,18 @@ const bidPlanNodeDS = () => {
         name: 'userInCharge',
         label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.userInCharge`).d('负责人'),
         type: "object",
-        lovCode: 'HIAM.TENANT.ACCOUNT',
+        lovCode: 'SCUX.HPFM.TW.BATCH.EMPLOYEE',
         required: true,
         multiple: true,
-        transformRequest: (value) => (isArray(value) ? value.map(v => v.userId).join(',') : value),
+        valueField: 'employeeId',
+        textField: 'name',
+        transformRequest: (value) => (isArray(value) ? value.map(v => v.employeeId).join(',') : value),
         transformResponse(value, object) {
           const valueArr = value ? value.split(',') : null;
           const valueMeaningArr = value ? (object.userInChargeMeaning || '').split(',') : null;
           return valueArr ? valueArr.map((v, i) => ({
-            userId: Number(v),
-            userName: valueMeaningArr[i] || v,
+            employeeId: Number(v),
+            name: valueMeaningArr[i] || v,
           })) : null;
         },
       },
