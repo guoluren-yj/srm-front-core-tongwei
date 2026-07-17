@@ -19,7 +19,7 @@ import styles from './index.less';
 
 const { Panel } = Collapse;
 
-export const openFinanceReviewModal = async (record: any, type?: string, dataSet?: any) => {
+export const openFinanceReviewModal = async (record: any, type?: string, dataSet?: any, basicInfoDs?: any) => {
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
   let modal;
@@ -27,9 +27,15 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
   const resultDs = new DataSet(financeReviewResultDS(nominationHeaderId, nominationSupLineId));
 
   infoDs.bind(resultDs, 'children');
-  
+
   await resultDs.query();
   const isReadOnly = type === 'unreleasedReadOnly' || resultDs.current?.get('reviewStatus') === '2';
+
+  const supplierName = record.get('supplierCompanyName') || '';
+  const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';
+  const reviewTypeField = basicInfoDs?.getField('reviewType');
+  const reviewTypeText = reviewTypeCode ? (reviewTypeField?.getText(reviewTypeCode) || reviewTypeCode) : '';
+  const title = `财务入围评审${reviewTypeText ? ` - ${reviewTypeText}` : ''}${supplierName ? ` - ${supplierName}` : ''}`;
 
   const infoColumns = [
     { name: 'year', editor: !isReadOnly, width: 100 },
@@ -85,7 +91,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
   modal = Modal.open({
     key: Modal.key(),
     drawer: true,
-    title: intl.get(`${prefix}.view.financeReview`).d('财务入围评审'),
+    title,
     style: { width: 1080 },
     closeable: true,
     children: (

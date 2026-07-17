@@ -1,7 +1,7 @@
 import request from 'hzero-front/lib/utils/request';
 import { getCurrentOrganizationId } from 'hzero-front/lib/utils/utils';
-import { SRM_MARMOT } from 'srm-front-boot/lib/utils/config';
-  
+import { SRM_MARMOT, SRM_SSLM } from 'srm-front-boot/lib/utils/config';
+
 const organizationId = getCurrentOrganizationId();
 
 export function createSupplierEvaluation(body: any) {
@@ -36,9 +36,23 @@ export function supplierEvaluationDetailPostApi(body: any, operationType) {
 
 // 风险扫描
 export function supplierRiskScanApi(body: any) {
- return request(`/ssrc/v1/${organizationId}/monitor/riskScan-validate`, {
+ return request(`${SRM_SSLM}/v1/${organizationId}/monitor/riskScan-validate`, {
     method: 'POST',
     body,
+  });
+}
+
+export function queryRiskMonitorType(params?: any) {
+  return request(`${SRM_SSLM}/v1/${organizationId}/monitor/opened-service-query`, {
+    method: 'GET',
+    query: params,
+  });
+}
+
+export function riskEmbedPage(params: any) {
+  return request(`${SRM_SSLM}/v1/${organizationId}/monitor/query-monitor-enterprise`, {
+    method: 'GET',
+    query: params,
   });
 }
 

@@ -25,11 +25,12 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'nominationStatusMeaning', _type: 'TextField', disabled: true },
       { name: 'creationDate', _type: 'DateTimePicker', disabled: true },
       { name: 'createdByName', _type: 'TextField', disabled: true },
+      { name: 'technicalPersonName', _type: 'TextField', disabled: true },
       { name: 'financePersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'supManagerPersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'functionalHeadUserLov', _type: 'Lov', disabled: readOnly },
+      { name: 'positionLov', _type: 'Lov', disabled: readOnly },
       showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: !showApprovalNote, colSpan: 3 },
-      { name: 'reviewType', _type: 'Select', disabled: readOnly },
       { name: 'caseRequirementCount', _type: 'NumberField', disabled: readOnly },
       { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 2, disabled: readOnly },
       { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment' }

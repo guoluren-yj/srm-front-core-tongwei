@@ -15,10 +15,14 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
   paging: false,
   fields: [
     { name: 'companyName', type: FieldType.string, label: intl.get(`${prefix}.field.companyName`).d('公司') },
+    { name: 'sourceProjectNum', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectNum`).d('招标计划单号') },
     { name: 'sourceProjectName', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectName`).d('招标名称') },
     { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('招标经理') },
     { name: 'technicalPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
-    
+    { name: 'technologyUserFlag', type: FieldType.string },
+    { name: 'businessUserFlag', type: FieldType.string },
+    { name: 'financeUserFlag', type: FieldType.string },
+
     // 评审详情数据集
     { name: 'nominationNum', type: FieldType.string, label: intl.get(`${prefix}.field.nominationNum`).d('入围单编号') },
     { name: 'nominationStatusMeaning', type: FieldType.string, label: intl.get(`${prefix}.field.nominationStatusMeaning`).d('状态'), lookupCode: 'SCUX_TWNF_NOMINATION_STATUS' },
@@ -33,17 +37,20 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
     { name: 'functionalHeadUserLov', type: FieldType.object, lovCode: 'HIAM.TENANT.USER', label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), required: true, ignore: FieldIgnore.always, },
     { name: 'functionalHeadUser', bind: 'functionalHeadUserLov.id' },
     { name: 'functionalHeadUserName', bind: 'functionalHeadUserLov.realName' },
+    { name: 'positionLov', type: FieldType.object, lovCode: 'SCUX_TWNF_LOV_POSITION', label: '岗位', ignore: FieldIgnore.always },
+    { name: 'positionId', bind: 'positionLov.positionId' },
+    { name: 'positionName', bind: 'positionLov.positionName' },
     { name: 'submitDesc', type: FieldType.string, label: intl.get(`${prefix}.field.approvalNote`).d('审批的相关说明'), dynamicProps: { required: ({ record }) => record.get('nominationStatus') === 'TO_BE_RELEASED' },},
-    { name: 'reviewType', type: FieldType.string, lookupCode: 'SCUX_TWNF_TECHNICAL_SHORTLIST_REVIEW_CATEGORY', label: intl.get(`${prefix}.field.reviewType`).d('入围评审类型'), required: true },
+    { name: 'reviewType', type: FieldType.string, lookupCode: 'SCUX.TWNF_BID_BUS_TYPE', label: '标的类型', required: true },
     { name: 'caseRequirementCount', type: FieldType.number, label: intl.get(`${prefix}.field.caseRequirementCount`).d('案例要求数量'), required: true },
     { name: 'warrantyPolicy', type: FieldType.string, label: intl.get(`${prefix}.field.warrantyPolicy`).d('质保政策'), required: true },
-    { 
-      name: 'nominationAttachmentUuid', 
-      type: FieldType.attachment, 
-      label: intl.get(`${prefix}.field.nominationAttachmentUuid`).d('入围标准附件'), 
-      required: true,      
+    {
+      name: 'nominationAttachmentUuid',
+      type: FieldType.attachment,
+      label: intl.get(`${prefix}.field.nominationAttachmentUuid`).d('入围标准附件'),
+      required: true,
       bucketName: (globalThis as any).$$env?.PRIVATE_BUCKET || 'private-bucket',
-      bucketDirectory: '', 
+      bucketDirectory: '',
     },
   ],
   transport: {
@@ -60,7 +67,7 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
 });
 
 // 供应商列表数据集
-export const supplierListDS = (nominationHeaderId, type): DataSetProps => ({
+export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSetProps => ({
   selection: type === 'edit' ? DataSetSelection.multiple : false,
   autoQuery: !!nominationHeaderId,
   paging: false,
@@ -75,10 +82,22 @@ export const supplierListDS = (nominationHeaderId, type): DataSetProps => ({
     { name: 'contactName', type: FieldType.string, bind: "contactPersonLov.realName" },
     { name: 'contactMobilephone', type: FieldType.string, label: intl.get(`${prefix}.field.contactMobilephone`).d('联系人电话'), required: true },
     { name: 'contactMail', type: FieldType.string, label: intl.get(`${prefix}.field.contactEmail`).d('电子邮件') },
+    { name: 'recommenderLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', valueField: 'employeeId', textField: 'name', label: '供应商推荐人', ignore: FieldIgnore.always,
+      dynamicProps: {
+        lovPara: () => ({ bidCompanyId: getCompanyId?.() }),
+      },
+    },
+    { name: 'employeeId', bind: 'recommenderLov.employeeId' },
+    { name: 'employeeName', bind: 'recommenderLov.name' },
+    { name: 'employeeCompanyId', type: FieldType.string, bind: 'recommenderLov.attributeVarchar17' },
+    { name: 'employeeCompanyName', label: '推荐人所在公司', type: FieldType.string, bind: 'recommenderLov.attributeVarchar18' },
     { name: 'technologyReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.technologyReviewResult`).d('技术评审状态'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', },
     { name: 'businessReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.businessReviewResult`).d('商务评审状态'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', },
     { name: 'financeReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.financeReviewResult`).d('财务评审状态'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', },
     { name: 'summaryReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.summaryReviewResult`).d('评审总状态'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', },
+    { name: 'riskScanDate', type: FieldType.dateTime, label: '最近扫描时间' },
+    { name: 'riskLevelMeaning', type: FieldType.string, label: '风险等级' },
+    { name: 'fileUrl', type: FieldType.string, label: '最新风险报告' },
     { name: 'remark', type: FieldType.string, label: intl.get(`${prefix}.field.remark`).d('备注') },
   ],
   transport: {
@@ -95,7 +114,7 @@ export const supplierListDS = (nominationHeaderId, type): DataSetProps => ({
       url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwS1bzxDCNOEAicftu4qN43uYEFxl5aklcAcgqDg5lczWR`,
       method: 'POST',
       data: {
-        nominationHeaderId, 
+        nominationHeaderId,
         operationType: 'DELETE_SUP_LINE',
         nominationSupLineIds: data.map((item) => item.nominationSupLineId),
       },
@@ -115,46 +134,46 @@ export const supplierBusinessStandardDS = (nominationHeaderId, supplierSelectDs)
   autoQuery: true,
   paging: false,
   fields: [
-    { 
-      name: 'taxLevel', 
-      type: FieldType.string, 
+    {
+      name: 'taxLevel',
+      type: FieldType.string,
       label: intl.get(`${prefix}.field.taxGrade`).d('纳税等级'),
       lookupCode: 'SCUX_TW_TAX_LEVEL',
     },
-    { 
-      name: 'supplierRating', 
-      type: FieldType.string, 
+    {
+      name: 'supplierRating',
+      type: FieldType.string,
       label: intl.get(`${prefix}.field.supplierRating`).d('供应商评级'),
       lookupCode: 'SCUX_TWNF_SUPPLIER_LEVEL',
     },
-    { 
-      name: 'registeredCapitalFrom', 
-      type: FieldType.number, 
+    {
+      name: 'registeredCapitalFrom',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.registeredCapitalFrom`).d('注册资本从（万元）'),
     },
-    { 
-      name: 'registeredCapitalTo', 
-      type: FieldType.number, 
+    {
+      name: 'registeredCapitalTo',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.registeredCapitalTo`).d('注册资本至（万元）'),
     },
-    { 
-      name: 'paidInCapitalFrom', 
-      type: FieldType.number, 
+    {
+      name: 'paidInCapitalFrom',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.paidInCapitalFrom`).d('实缴资本从（万元）'),
     },
-    { 
-      name: 'paidInCapitalTo', 
-      type: FieldType.number, 
+    {
+      name: 'paidInCapitalTo',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.paidInCapitalTo`).d('实缴资本至（万元）'),
     },
-    { 
-      name: 'establishmentYearsFrom', 
-      type: FieldType.number, 
+    {
+      name: 'establishmentYearsFrom',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.establishmentYearsFrom`).d('成立年限从'),
     },
-    { 
-      name: 'establishmentYearsTo', 
-      type: FieldType.number, 
+    {
+      name: 'establishmentYearsTo',
+      type: FieldType.number,
       label: intl.get(`${prefix}.field.establishmentYearsTo`).d('成立年限至'),
     },
   ],
@@ -239,103 +258,43 @@ export const supplierSelectDS = (): DataSetProps => ({
 });
 
 // 商务标准设置数据集
+// 商务标准行数据（5行）
+const businessRuleItems = [
+  { seqNum: 1, itemCode: 'taxGrade', itemName: '纳税等级', valueType: 'select', lookupCode: 'SCUX_TW_TAX_LEVEL', requiredLocked: true },
+  { seqNum: 2, itemCode: 'supplierRating', itemName: '供应商评级', valueType: 'select', lookupCode: 'SCUX_TWNF_SUPPLIER_LEVEL' },
+  { seqNum: 3, itemCode: 'registeredCapital', itemName: '注册资本（万元）', valueType: 'range', lookupCode: '' },
+  { seqNum: 4, itemCode: 'paidInCapital', itemName: '实缴资本（万元）', valueType: 'range', lookupCode: '' },
+  { seqNum: 5, itemCode: 'establishmentYears', itemName: '成立年限', valueType: 'range', lookupCode: '' },
+];
+
 export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProps => ({
+  selection: false,
   autoQuery: true,
-  autoCreate: true,
   paging: false,
   fields: [
-    { name: 'nominationNum', type: FieldType.string, label: intl.get(`${prefix}.field.supplierEntryCode`).d('入围单位编码') },
-    { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
-    { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.creationDate`).d('创建时间') },
-    
-    // 纳税等级
-    { name: 'taxGradeRequired', type: FieldType.boolean, label: intl.get(`${prefix}.field.taxGradeRequired`).d('纳税等级是否有要求'), required: true, trueValue: '1', falseValue: '0', defaultValue: '0' },
-    { 
-      name: 'taxGrade', 
-      type: FieldType.string, 
-      label: intl.get(`${prefix}.field.taxGrade`).d('纳税等级'), 
-      lookupCode: 'SCUX_TW_TAX_LEVEL',
+    { name: 'seqNum', type: FieldType.number },
+    { name: 'itemCode', type: FieldType.string },
+    { name: 'itemName', type: FieldType.string },
+    { name: 'valueType', type: FieldType.string },
+    { name: 'requiredLocked', type: FieldType.boolean, trueValue: '1', falseValue: '0' },
+    { name: 'lookupCode', type: FieldType.string },
+    { name: 'valueCode', type: FieldType.string,
       dynamicProps: {
-        required: ({ record }) => +record.get('taxGradeRequired') === 1,
-        disabled: ({ record }) => +record.get('taxGradeRequired') !== 1,
+        lookupCode: ({ record }) => record.get('lookupCode') || undefined,
+        required: ({ record }) => record.get('isRequired') === '1',
+        disabled: ({ record }) => record.get('isRequired') !== '1',
+        multiple: ({ record }) => record.get('itemCode') === 'taxGrade',
       },
     },
-    
-    // 供应商评级
-    { name: 'supplierRatingRequired', type: FieldType.boolean, label: intl.get(`${prefix}.field.supplierRatingRequired`).d('供应商评级是否有要求'), required: true, trueValue: '1', falseValue: '0', defaultValue: '0' },
-    { 
-      name: 'supplierRating', 
-      type: FieldType.string, 
-      label: intl.get(`${prefix}.field.supplierRating`).d('供应商评级'), 
-      lookupCode: 'SCUX_TWNF_SUPPLIER_LEVEL',
+    { name: 'valueFrom', type: FieldType.number },
+    { name: 'valueTo', type: FieldType.number },
+    { name: 'isRequired', type: FieldType.boolean, trueValue: '1', falseValue: '0', defaultValue: '0',
       dynamicProps: {
-        required: ({ record }) => +record.get('supplierRatingRequired') === 1,
-        disabled: ({ record }) => +record.get('supplierRatingRequired') !== 1,
+        disabled: ({ record }) => record.get('requiredLocked'),
       },
     },
-    
-    // 注册资本
-    { name: 'registeredCapitalRequired', type: FieldType.boolean, label: intl.get(`${prefix}.field.registeredCapitalRequired`).d('注册资本是否有要求'), required: true, trueValue: '1', falseValue: '0', defaultValue: '0' },
-    { 
-      name: 'registeredCapitalFrom', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.registeredCapitalFrom`).d('注册资本从（万元）'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('registeredCapitalRequired') === 1,
-        disabled: ({ record }) => +record.get('registeredCapitalRequired') !== 1,
-      },
-    },
-    { 
-      name: 'registeredCapitalTo', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.registeredCapitalTo`).d('注册资本至（万元）'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('registeredCapitalRequired') === 1,
-        disabled: ({ record }) => +record.get('registeredCapitalRequired') !== 1,
-      },
-    },
-    
-    // 实缴资本
-    { name: 'paidInCapitalRequired', type: FieldType.boolean, label: intl.get(`${prefix}.field.paidInCapitalRequired`).d('实缴资本是否有要求'), required: true, trueValue: '1', falseValue: '0', defaultValue: '0' },
-    { 
-      name: 'paidInCapitalFrom', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.paidInCapitalFrom`).d('实缴资本从（万元）'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('paidInCapitalRequired') === 1,
-        disabled: ({ record }) => +record.get('paidInCapitalRequired') !== 1,
-      },
-    },
-    { 
-      name: 'paidInCapitalTo', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.paidInCapitalTo`).d('实缴资本至（万元）'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('paidInCapitalRequired') === 1,
-        disabled: ({ record }) => +record.get('paidInCapitalRequired') !== 1,
-      },
-    },
-    
-    // 成立年限
-    { name: 'establishmentYearsRequired', type: FieldType.boolean, label: intl.get(`${prefix}.field.establishmentYearsRequired`).d('成立年限是否有要求'), required: true, trueValue: '1', falseValue: '0', defaultValue: '0' },
-    { 
-      name: 'establishmentYearsFrom', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.establishmentYearsFrom`).d('成立年限从'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('establishmentYearsRequired') === 1,
-        disabled: ({ record }) => +record.get('establishmentYearsRequired') !== 1,
-      },
-    },
-    { 
-      name: 'establishmentYearsTo', 
-      type: FieldType.number, 
-      label: intl.get(`${prefix}.field.establishmentYearsTo`).d('成立年限至'),
-      dynamicProps: {
-        required: ({ record }) => +record.get('establishmentYearsRequired') === 1,
-        disabled: ({ record }) => +record.get('establishmentYearsRequired') !== 1,
-      },
-    },
+    { name: 'businessCfgId', type: FieldType.string },
+    { name: 'objectVersionNumber', type: FieldType.string },
   ],
   transport: {
     read: ({ params }) => ({
@@ -347,23 +306,47 @@ export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProp
         queryType: 'BUSINESS_CFG',
       },
       transformResponse: (res) => {
-        const { nominationNum, createdByName, creationDate } = basicInfoDs?.current?.get(['nominationNum', 'createdByName', 'creationDate']);
-        const commonData = {
-          nominationNum,
-          createdByName,
-          creationDate,
+        const defaultRows = businessRuleItems.map(item => ({
+          ...item,
+          valueCode: item.itemCode === 'taxGrade' ? [] : '',
+          isRequired: item.requiredLocked ? '1' : '0',
+        }));
+        if (!res) return defaultRows;
+        try {
+          const data = JSON.parse(res);
+          return businessRuleItems.map(item => {
+            const row: any = { ...item, businessCfgId: data.businessCfgId, objectVersionNumber: data.objectVersionNumber };
+            switch (item.itemCode) {
+              case 'taxGrade':
+                row.valueCode = data.taxGrade ? data.taxGrade.split(',') : [];
+                row.isRequired = item.requiredLocked ? '1' : (data.taxGradeRequired || '0');
+                break;
+              case 'supplierRating':
+                row.valueCode = data.supplierRating || '';
+                row.isRequired = data.supplierRatingRequired || '0';
+                break;
+              case 'registeredCapital':
+                row.valueCode = data.registeredCapitalFrom;
+                row.valueTo = data.registeredCapitalTo;
+                row.isRequired = data.registeredCapitalRequired || '0';
+                break;
+              case 'paidInCapital':
+                row.valueCode = data.paidInCapitalFrom;
+                row.valueTo = data.paidInCapitalTo;
+                row.isRequired = data.paidInCapitalRequired || '0';
+                break;
+              case 'establishmentYears':
+                row.valueCode = data.establishmentYearsFrom;
+                row.valueTo = data.establishmentYearsTo;
+                row.isRequired = data.establishmentYearsRequired || '0';
+                break;
+            }
+            return row;
+          });
+        } catch (e) {
+          return defaultRows;
         }
-        if(!res) {
-          return commonData;
-        } else {
-          try {
-            const formatData = JSON.parse(res);
-            return { ...commonData, ...formatData };
-          } catch (e) {
-            return e;
-          }
-        }
-      }
+      },
     }),
   },
 });
@@ -386,9 +369,9 @@ export const technicalStandardLineDS = (nominationHeaderId): DataSetProps => ({
   selection: DataSetSelection.multiple,
   fields: [
     { name: 'seqNum', type: FieldType.number, label: intl.get(`${prefix}.field.sequence`).d('序号') },
-    { 
-      name: 'mainBusiness', 
-      type: FieldType.object, 
+    {
+      name: 'mainBusiness',
+      type: FieldType.object,
       label: intl.get(`${prefix}.field.mainBusiness`).d('主营业务'),
       lovCode: 'SMDM.ITEM_CATEGORY_CNF',
       ignore: FieldIgnore.always,
@@ -401,15 +384,15 @@ export const technicalStandardLineDS = (nominationHeaderId): DataSetProps => ({
       name: 'mainCategoryId',
       bind: 'mainBusiness.categoryId',
     },
-    { 
-      name: 'qualificationType', 
-      type: FieldType.string, 
+    {
+      name: 'qualificationType',
+      type: FieldType.string,
       label: intl.get(`${prefix}.field.qualificationType`).d('资质类型'),
       lookupCode: 'SCUX_TWNF_SUPPLIER_QUALIFICATION',
     },
-    { 
-      name: 'qualificationGrade', 
-      type: FieldType.string, 
+    {
+      name: 'qualificationGrade',
+      type: FieldType.string,
       label: intl.get(`${prefix}.field.qualificationLevel`).d('资质等级'),
       lookupCode: 'SCUX_TWNF_QUALIFICATION_LEVEL',
     },
@@ -446,7 +429,7 @@ fields: [
     { name: 'sourceProjectName', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectName`).d('招标名称') },
     { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('招标经理') },
     { name: 'technicalPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
-    
+
     // 评审详情数据集
     { name: 'nominationNum', type: FieldType.string, label: intl.get(`${prefix}.field.nominationNum`).d('入围单编号') },
     { name: 'nominationStatusMeaning', type: FieldType.string, label: intl.get(`${prefix}.field.nominationStatusMeaning`).d('状态') },
@@ -501,7 +484,7 @@ export const technicalReviewCaseDS = (nominationHeaderId, nominationSupLineId): 
     { name: 'employerContact', type: FieldType.string, label: intl.get(`${prefix}.field.employerContact`).d('发包联系人') },
     { name: 'contactPhone', type: FieldType.string, label: intl.get(`${prefix}.field.contactPhone`).d('联系电话') },
     { name: 'remark', type: FieldType.string, label: intl.get(`${prefix}.field.remark`).d('备注') },
-    { name: 'attachmentUuid', type: FieldType.attachment, label: intl.get(`${prefix}.field.attachmentUuid`).d('附件上传'),      
+    { name: 'attachmentUuid', type: FieldType.attachment, label: intl.get(`${prefix}.field.attachmentUuid`).d('附件上传'),
     bucketName: (globalThis as any).$$env?.PRIVATE_BUCKET || 'private-bucket',
       bucketDirectory: '', },
   ],
@@ -698,7 +681,7 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
         }
       }
       if(name === 'netAssets' || name === 'netProfit') {
-        record.set('returnOnEquity', record.get('netAssets') > 0 ? math.toFixed(math.multipliedBy(math.div(record.get('netProfit'), record.get('netAssets')), 100), 2) : null); 
+        record.set('returnOnEquity', record.get('netAssets') > 0 ? math.toFixed(math.multipliedBy(math.div(record.get('netProfit'), record.get('netAssets')), 100), 2) : null);
         if(resultDs) {
           const allRecords = dataSet.records;
           const allNetProfit = allRecords.reduce((sum, current) => {

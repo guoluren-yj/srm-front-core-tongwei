@@ -15,21 +15,19 @@ import styles from './index.less';
 
 const { Panel } = Collapse;
 
-export const openAddSupplierModal = (dataSet: any, basicInfoDs: any) => {
+export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds = '') => {
   const supplierSelectDs = new DataSet(supplierSelectDS());
   const businessStandardDs = new DataSet(supplierBusinessStandardDS(dataSet.getState('nominationHeaderId'), supplierSelectDs));
   const technicalStandardDs = new DataSet(supplierTechnicalStandardDS(dataSet.getState('nominationHeaderId')));
   supplierSelectDs.setQueryParameter('companyId', basicInfoDs.current?.get('companyId'));
+  supplierSelectDs.setQueryParameter('supplierCompanyIdList', existingIds);
 
   const businessFields = [
     { name: 'taxLevel', _type: 'Select', colSpan: 2 },
     { name: 'supplierRating', _type: 'Select', colSpan: 2 },
     { name: 'registeredCapitalFrom', _type: 'NumberField' },
-    { name: 'registeredCapitalTo', _type: 'NumberField' },
     { name: 'paidInCapitalFrom', _type: 'NumberField' },
-    { name: 'paidInCapitalTo', _type: 'NumberField' },
     { name: 'establishmentYearsFrom', _type: 'NumberField' },
-    { name: 'establishmentYearsTo', _type: 'NumberField' },
   ];
 
   const technicalColumns = [
@@ -66,6 +64,7 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any) => {
     drawer: true,
     title: intl.get(`${prefix}.view.supplier`).d('供应商'),
     style: { width: 1000 },
+    resizable: true,
     children: (
       <div className={styles['detail-container']}>
         <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['businessStandard', 'technicalStandard', 'supplier']}>

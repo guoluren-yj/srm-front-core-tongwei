@@ -23,6 +23,7 @@ import {
   deleteSupplierLines,
   fetchProjectSetupHeader,
   cancelProjectSetup,
+  querySourceProjects,
 } from '@/services/projectSetupService';
 
 import {
@@ -185,6 +186,7 @@ const Page = () => {
     refreshSectionFieldsFlag = false,
     refreshSectionFields = [],
   } = {}) => {
+    console.log('fetchPageData 被调用了');
     try {
       handleSetOperateLoading(true);
       const res = await fetchHeader({ refreshSectionFieldsFlag, refreshSectionFields });
@@ -195,6 +197,11 @@ const Page = () => {
           : [false];
 
       const list = [
+        querySourceProjects(sourceProjectId).then((nodeRes) => {
+          if (nodeRes && !nodeRes.failed) {
+            bidPlanNodeDs?.loadData(nodeRes || []);
+          }
+        }),
         itemLineDs?.query(),
         res?.subjectMatterRule === 'PACK' ? sectionOrPacketInfoDs?.query() : false,
         planLineTableDs?.query(),
@@ -332,14 +339,18 @@ const Page = () => {
 
       // 处理保存成功后的处理逻辑
       const handlePageAfterSaveOperate = () => {
+        console.log('handlePageAfterSaveOperate 被调用，准备刷新');
         notification.success();
         // 刷新页面数据
         fetchPageData();
       };
       return saveEditData(pageData)
         .then((res) => {
+          console.log('saveEditData 返回:', res);
           const result = getResponse(res);
           if (!result) {
+            console.log('getResponse 返回 falsy，未刷新');
+            handleSetOperateLoading(false);
             handleSetOperateLoading(false);
             return;
           }

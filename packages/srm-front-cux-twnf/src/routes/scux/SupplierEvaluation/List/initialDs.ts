@@ -126,6 +126,10 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'warrantyPolicy', type: FieldType.string, label: intl.get(`${prefix}.field.warrantyPolicy`).d('质保政策') },
     { name: 'nominationAttachmentUuid', type: FieldType.string, label: intl.get(`${prefix}.field.nominationAttachmentUuid`).d('入围标准附件') },
     { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.createDate`).d('创建时间') },
+    { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
+    { name: 'fbcNumber', type: FieldType.string, label: intl.get(`${prefix}.field.fbcNumber`).d('FBC单据') },
+    { name: 'fbcUrl', type: FieldType.string, label: intl.get(`${prefix}.field.fbcUrl`).d('审批URL') },
+    { name: 'fbcResult', type: FieldType.string, label: intl.get(`${prefix}.field.fbcResult`).d('审批结果字段') },
   ],
   transport: {
     read: ({ params }) => {

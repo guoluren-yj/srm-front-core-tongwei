@@ -16,7 +16,7 @@ import MultipleTextSplitInput from 'srm-front-boot/lib/components/MultipleTextSp
 import withProps from 'hzero-front/lib/utils/withProps';
 
 import { tableDataSet } from './storeDs';
-import { tenderListExportApi } from './api';
+import { tenderListExportApi, tenderListBillCommonApi } from './api';
 import { timeFilerProcess } from '../utils/fun';
 
 // 用户个性化编码
@@ -51,6 +51,24 @@ const Index: React.FC<any> = (props) => {
     });
   };
 
+  // 变更
+  const handleChange = async (record) => {
+    const { sourceProjectId, bidCatalogId } = record.get(['bidCatalogId', 'sourceProjectId']);
+    if (!sourceProjectId || !bidCatalogId) return;
+    const res = await tenderListBillCommonApi({
+      operationType: 'CHANGE',
+      bidCatalogId,
+    });
+    if (getResponse(res)) {
+      history.push({
+        pathname: `/scux/ssrc/tender-workbench/update/${bidCatalogId}`,
+        search: querystring.stringify({
+          sourceProjectId,
+        }),
+      });
+    }
+  };
+
   // 列表按钮
   const getListButtons = ({ record }) => {
     const catalogStatus = record.get('catalogStatus');
@@ -60,9 +78,14 @@ const Index: React.FC<any> = (props) => {
       wait: 500,
     };
     return [
-      ['NEW', 'APPROVED'].includes(catalogStatus) && `${createdBy}` === `${currentUser.id}` && (
+      catalogStatus === 'NEW' && `${createdBy}` === `${currentUser.id}` && (
         <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.provideList').d('清单提供')}
+        </Button>
+      ),
+      (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING') && `${createdBy}` === `${currentUser.id}` && (
+        <Button {...commonButtonsProps} onClick={() => catalogStatus === 'APPROVED' ? handleChange(record) : handleEdit(record)}>
+          {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
         </Button>
       ),
     ].filter(Boolean);

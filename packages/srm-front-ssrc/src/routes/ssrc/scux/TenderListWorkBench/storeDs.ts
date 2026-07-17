@@ -72,7 +72,7 @@ const tableDataSet = ({ queryType }): DataSetProps => {
         name: 'catalogStatus',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.sourceProjectStatus').d('状态'),
         type: FieldType.string,
-        lookupCode: 'SCUX_TWNF_NOMINATION_STATUS',
+        lookupCode: 'SCUX_TWNF_LIST_STATUS',
       },
       {
         name: 'catelogNum',

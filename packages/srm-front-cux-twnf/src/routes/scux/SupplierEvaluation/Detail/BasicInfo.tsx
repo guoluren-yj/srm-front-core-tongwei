@@ -17,7 +17,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ dataSet }) => {
         { name: 'companyName' },
         { name: 'sourceProjectName' },
         { name: 'bidDirectorName' },
-        { name: 'technicalPersonName' },
+        { name: 'reviewType', label: '标的类型' },
       ]}
     />
   );

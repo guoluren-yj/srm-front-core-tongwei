@@ -34,9 +34,16 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
   const caseDs = new DataSet(technicalReviewCaseDS(nominationHeaderId, nominationSupLineId));
   const formDs = new DataSet(technicalReviewFormDS(nominationHeaderId, nominationSupLineId));
   let modal;
-  
-  await formDs.query();
+
+  await Promise.all([basicInfoDs.query(), formDs.query()]);
   const isReadOnly = type === 'unreleasedReadOnly' || formDs.current?.get('reviewStatus') === '2';
+
+  // 构建标题：技术入围评审 - 标的类型 - 供应商名称
+  const supplierName = record.get('supplierCompanyName') || '';
+  const reviewTypeCode = basicInfoDs.current?.get('reviewType') || '';
+  const reviewTypeField = basicInfoDs.getField('reviewType');
+  const reviewTypeText = reviewTypeCode ? (reviewTypeField?.getText(reviewTypeCode) || reviewTypeCode) : '';
+  const title = `技术入围评审${reviewTypeText ? ` - ${reviewTypeText}` : ''}${supplierName ? ` - ${supplierName}` : ''}`;
 
   const basicInfoFields = [
     { name: 'companyName' },
@@ -131,13 +138,13 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
   modal = Modal.open({
     key: Modal.key(),
     drawer: true,
-    title: intl.get(`${prefix}.view.technicalReview`).d('技术入围评审'),
+    title,
     style: { width: 1080 },
     closeable: true,
     children: (
       <div className={styles['detail-container']}>
       <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['basicInfo', 'reviewInfo', 'technicalReviewInfo', 'reviewResult']}>
-        <Panel header={intl.get(`${prefix}.view.panel.basicInfo`).d('基础信息')} key="basicInfo">
+        {/* <Panel header={intl.get(`${prefix}.view.panel.basicInfo`).d('基础信息')} key="basicInfo">
           <FormPro
             dataSet={basicInfoDs}
             columns={2}
@@ -152,7 +159,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
             fields={reviewInfoFields}
             readOnly
           />
-        </Panel>
+        </Panel> */}
         <Panel header={intl.get(`${prefix}.view.panel.technicalReviewInfo`).d('技术评审信息')} key="technicalReviewInfo">
           <Table
             dataSet={caseDs}

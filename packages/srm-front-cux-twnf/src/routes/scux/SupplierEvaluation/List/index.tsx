@@ -9,7 +9,7 @@ import { observer } from 'mobx-react-lite';
 import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { downloadFileByAxios } from 'hzero-front/lib/services/api';
-import { filterNullValueObject } from 'hzero-front/lib/utils/utils';
+import { filterNullValueObject, getCurrentUserId } from 'hzero-front/lib/utils/utils';
 
 import { TABS, tableDs, prefix, getTabValue, TabKeyType } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
@@ -29,14 +29,28 @@ const handleToDetail = (history: any, search: any) => {
   });
 };
 
-const handleToSupplierEntryDetail = (history: any, record: any) => {
+const handleToSupplierEntryDetail = (history: any, record: any, type: string) => {
   handleToDetail(history, stringify({
     nominationHeaderId: record?.get('nominationHeaderId'),
-    type: 'readOnly',
+    type,
   }));
 };
 
 const handleToEdit = (history: any, record: any) => {
+  handleToDetail(history, stringify({
+    nominationHeaderId: record?.get('nominationHeaderId'),
+    type: 'pendingReview',
+  }));
+};
+
+const handleToShortlistEdit = (history: any, record: any) => {
+  handleToDetail(history, stringify({
+    nominationHeaderId: record?.get('nominationHeaderId'),
+    type: 'edit',
+  }));
+};
+
+const handleToSubmit = (history: any, record: any) => {
   handleToDetail(history, stringify({
     nominationHeaderId: record?.get('nominationHeaderId'),
     type: 'pendingReview',
@@ -65,33 +79,32 @@ const SupplierEvaluationList = ({ history }: any) => {
 
     const renderNominationNum = ({ value, record }: any) => (
       <a
-        onClick={() => handleToSupplierEntryDetail(history, record)}
+        onClick={() => handleToSupplierEntryDetail(history, record, 'view')}
       >
         {value}
       </a>
     );
 
-    const baseColumns = [
-      { name: 'nominationStatusMeaning', width: 100 },
-      { name: 'nominationNum', width: 160, renderer: renderNominationNum },
-      { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },
-      { name: 'sourceProjectName', width: 200 },
-      { name: 'companyName', width: 150 },
-      { name: 'templateName', width: 150 },
-      { name: 'bidDirectorName', width: 120 },
-      { name: 'financePerson', width: 120 },
-      { name: 'technicalPerson', width: 120 },
-      { name: 'supManagerPerson', width: 120 },
-      { name: 'reviewType', width: 120 },
-      { name: 'creationDate', width: 150 },
-    ];
+    const renderFbcNumber = ({ value, record }: any) => {
+      const url = record.get('fbcUrl');
+      if (!value) return null;
+      if (url) {
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {value}
+          </a>
+        );
+      }
+      return <span>{value}</span>;
+    };
 
     if (tabKey === 'EVALUATE') {
       return [
-        { name: 'nominationStatusMeaning', width: 100 },
+        { name: 'nominationStatusMeaning', width: 80 },
         {
           name: 'action',
           title: intl.get(`${prefix}.field.action`).d('操作'),
+          align: 'center',
           width: 100,
           renderer: ({ record }: any) => (
             <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
@@ -105,11 +118,83 @@ const SupplierEvaluationList = ({ history }: any) => {
         { name: 'companyName', width: 150 },
         { name: 'templateName', width: 150 },
         { name: 'bidDirectorName', width: 120 },
+        { name: 'createdByName', width: 120 },
         { name: 'creationDate', width: 150 },
       ];
     }
 
-    return baseColumns;
+  // 全部 t：根据状态显示不同操作按钮
+    const currentUserId = getCurrentUserId();
+
+    const renderAction = ({ record }: any) => {
+      const isBidDirector = String(record.get('createdBy')) === String(currentUserId);
+
+      const status = record.get('nominationStatus');
+
+      // 新建 → 编辑（仅入围负责人）
+      if (status === 'NEW' && isBidDirector) {
+        return (
+          <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
+            {intl.get(`${prefix}.button.edit`).d('编辑')}
+          </Button>
+        );
+      }
+
+      // 待发布 → 提交（仅入围负责人）
+      if (status === 'TO_BE_RELEASED' && isBidDirector) {
+        return (
+          <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
+            {intl.get('hzero.common.button.submit').d('提交')}
+          </Button>
+        );
+      }
+
+      // 审批拒绝 → 提交（仅入围负责人）
+      if (status === 'REJECTED' && isBidDirector) {
+        return (
+          <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
+            {intl.get('hzero.common.button.submit').d('提交')}
+          </Button>
+        );
+      }
+
+      // 待评审 → 评审
+      if (status === 'PENDING_REVIEW') {
+        return (
+          <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
+            {intl.get(`${prefix}.button.review`).d('评审')}
+          </Button>
+        );
+      }
+
+      return null;
+    };
+
+    return [
+      { name: 'nominationStatusMeaning', width: 80 },
+      {
+        name: 'action',
+        title: intl.get(`${prefix}.field.action`).d('操作'),
+        width: 100,
+        align: 'center',
+        renderer: renderAction,
+      },
+      { name: 'nominationNum', width: 160, renderer: renderNominationNum },
+      { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },
+      { name: 'sourceProjectName', width: 200 },
+      { name: 'companyName', width: 150 },
+      { name: 'templateName', width: 150 },
+      { name: 'bidDirectorName', width: 120 },
+      { name: 'createdByName', width: 120 },
+      { name: 'fbcNumber', width: 150, renderer: renderFbcNumber },
+      { name: 'fbcUrl', width: 200 },
+      { name: 'fbcResult', width: 150 },
+      { name: 'financePerson', width: 120 },
+      { name: 'technicalPerson', width: 120 },
+      { name: 'supManagerPerson', width: 120 },
+      { name: 'reviewType', width: 120 },
+      { name: 'creationDate', width: 150 },
+    ];
   }, [tabKey, history, intl, prefix]);
 
   const getQueryData = useCallback(() => {

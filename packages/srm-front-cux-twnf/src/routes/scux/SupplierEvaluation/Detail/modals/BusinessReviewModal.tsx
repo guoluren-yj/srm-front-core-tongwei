@@ -16,13 +16,19 @@ import { supplierEvaluationDetailPostApi } from '../../../../../services/scux/su
 
 const { Panel } = Collapse;
 
-export const openBusinessReviewModal = async (record: any, type?: string, dataSet?: any) => {
+export const openBusinessReviewModal = async (record: any, type?: string, dataSet?: any, basicInfoDs?: any) => {
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
   let modal;
   const reviewInfoDs = new DataSet(businessReviewDS(nominationHeaderId, nominationSupLineId, record));
   await reviewInfoDs.query();
   const isReadOnly = type === 'unreleasedReadOnly' || reviewInfoDs.current?.get('reviewStatus') === '2';
+
+  const supplierName = record.get('supplierCompanyName') || '';
+  const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';
+  const reviewTypeField = basicInfoDs?.getField('reviewType');
+  const reviewTypeText = reviewTypeCode ? (reviewTypeField?.getText(reviewTypeCode) || reviewTypeCode) : '';
+  const title = `商务入围评审${reviewTypeText ? ` - ${reviewTypeText}` : ''}${supplierName ? ` - ${supplierName}` : ''}`;
   const supplierInfoFields = [
     { name: 'supplierCompanyName', _type: 'TextField', disabled: true },
     { name: 'contactName', _type: 'TextField', disabled: true },
@@ -76,7 +82,7 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
   modal = Modal.open({
     key: Modal.key(),
     drawer: true,
-    title: intl.get(`${prefix}.view.businessReview`).d('商务入围评审'),
+    title,
     style: { width: 1080 },
     closeable: true,
     children: (
