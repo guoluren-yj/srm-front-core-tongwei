@@ -13,7 +13,7 @@ import { Header, Content } from 'components/Page';
 import intl from 'utils/intl';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import notification from 'utils/notification';
-import { getCurrentOrganizationId, filterNullValueObject, getResponse } from 'utils/utils';
+import { getCurrentOrganizationId, filterNullValueObject, getResponse, getCurrentUser } from 'utils/utils';
 import MultipleTextSplitInput from 'srm-front-boot/lib/components/MultipleTextSplitInput';
 import withProps from 'utils/withProps';
 import { downloadFileByAxios } from 'srm-front-boot/lib/services/MarmotDownloadButtonServices';
@@ -41,6 +41,7 @@ const Index: React.FC<any> = (props) => {
   } = props;
 
   const [activeKey, setActiveKey] = useState('toBeReleased');
+  const currentUser = getCurrentUser();
 
   // 编辑
   const handleEdit = (record) => {
@@ -75,6 +76,8 @@ const Index: React.FC<any> = (props) => {
   // 列表按钮
   const getListButtons = ({ record }) => {
     const techFileStatus = record.get('techFileStatus');
+    const isTechPerson = (record.get('userInCharge') || '').split(',').includes(`${currentUser.id}`);
+    if (!isTechPerson) return null;
     const commonButtonsProps = {
       funcType: FuncType.link,
       wait: 500,

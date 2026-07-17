@@ -571,14 +571,12 @@ export const businessReviewDS = (nominationHeaderId, nominationSupLineId, record
     { name: 'contactMail', type: FieldType.string, label: intl.get(`${prefix}.field.contactEmail`).d('联系人邮箱') },
     { name: 'registeredCapital', type: FieldType.number, label: intl.get(`${prefix}.field.registeredCapital`).d('注册资本（万元）') },
     { name: 'paidInCapital', type: FieldType.number, label: intl.get(`${prefix}.field.paidInCapital`).d('实缴资本（万元）') },
-    { name: 'buildDate', type: FieldType.number, label: intl.get(`${prefix}.field.buildDate`).d('成立年限') },
+    { name: 'buildDate', type: FieldType.date, label: intl.get(`${prefix}.field.buildDate`).d('成立日期') },
     { name: 'insuredNumber', type: FieldType.number, label: intl.get(`${prefix}.field.insuredNumber`).d('参保人数') },
     { name: 'taxLevel', type: FieldType.string, label: intl.get(`${prefix}.field.taxLevel`).d('纳税等级'), lookupCode: 'SCUX_TWNF_TAX_BRACKET' },
     { name: 'supplierRating', type: FieldType.string, label: intl.get(`${prefix}.field.supplierLevel`).d('供应商评级'), lookupCode: 'SCUX_TWNF_SUPPLIER_LEVEL' },
-    { name: 'businessReferrerUserLov', type: FieldType.object, lovCode: 'HIAM.TENANT.USER', label: intl.get(`${prefix}.field.businessReferrerUserId`).d('供应商推荐人'), ignore: FieldIgnore.always, },
-    { name: 'businessReferrerUserId', bind: 'businessReferrerUserLov.id' },
-    { name: 'businessReferrerUserName', bind: 'businessReferrerUserLov.realName' },
-    { name: 'businessReferrerCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.businessReferrerCompanyName`).d('推荐人所属公司') },
+    { name: 'employeeName', type: FieldType.string, label: intl.get(`${prefix}.field.employeeName`).d('供应商推荐人') },
+    { name: 'employeeCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.employeeCompanyName`).d('推荐人所属公司') },
     { name: 'caseRequirementCount', type: FieldType.number, label: intl.get(`${prefix}.field.caseRequiredCount`).d('案例要求数量') },
     { name: 'warrantyPolicy', type: FieldType.string, label: intl.get(`${prefix}.field.warrantyPolicy`).d('质保政策')},
 
@@ -590,10 +588,9 @@ export const businessReviewDS = (nominationHeaderId, nominationSupLineId, record
     { name: 'businessReviewDesc', type: FieldType.string, label: intl.get(`${prefix}.field.businessReviewDesc`).d('审查说明'), required: true },
 
     // 商务评审结果
-    { name: 'businessReviewResultDesc', type: FieldType.string, label: intl.get(`${prefix}.field.businessReviewResultDesc`).d('商务评审说明'), required: true },
     { name: 'businessReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.businessReviewResult`).d('商务评审结果'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', required: true },
-    { name: 'businessSubmitUserName', type: FieldType.string, label: intl.get(`${prefix}.field.businessSubmitUserName`).d('提交人') },
-    { name: 'businessSubmitDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.businessSubmitDate`).d('提交时间') },
+    // { name: 'businessSubmitUserName', type: FieldType.string, label: intl.get(`${prefix}.field.businessSubmitUserName`).d('提交人') },
+    // { name: 'businessSubmitDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.businessSubmitDate`).d('提交时间') },
   ],
   transport: {
     read: ({ params }) => ({

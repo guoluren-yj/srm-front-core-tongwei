@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { Button, DataSet } from 'choerodon-ui/pro';
+import { Button, DataSet, Modal } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { getTableFixSelfAdaptStyle } from '@/utils/utils';
@@ -52,20 +52,31 @@ const Index: React.FC<any> = (props) => {
   };
 
   // 变更
-  const handleChange = async (record) => {
-    const { sourceProjectId, bidCatalogId } = record.get(['bidCatalogId', 'sourceProjectId']);
+  const handleChange = (record) => {
+    const { sourceProjectId, bidCatalogId, sourceProjectName, catelogNum, rfxHeaderId } = record.get(['bidCatalogId', 'sourceProjectId', 'sourceProjectName', 'catelogNum', 'rfxHeaderId']);
     if (!sourceProjectId || !bidCatalogId) return;
-    const res = await tenderListBillCommonApi({
-      operationType: 'CHANGE',
-      bidCatalogId,
-    });
-    if (getResponse(res)) {
-      history.push({
-        pathname: `/scux/ssrc/tender-workbench/update/${bidCatalogId}`,
-        search: querystring.stringify({
-          sourceProjectId,
-        }),
+    const doChange = async () => {
+      const res = await tenderListBillCommonApi({
+        operationType: 'CHANGE',
+        bidCatalogId,
       });
+      if (getResponse(res)) {
+        history.push({
+          pathname: `/scux/ssrc/tender-workbench/update/${bidCatalogId}`,
+          search: querystring.stringify({
+            sourceProjectId,
+          }),
+        });
+      }
+    };
+    if (rfxHeaderId) {
+      Modal.confirm({
+        title: '变更确认',
+        children: `【${sourceProjectName || ''}】已创建招标文件【${catelogNum || ''}】，不允许进行标段增减，请确认是否进行变更操作。`,
+        onOk: doChange,
+      });
+    } else {
+      doChange();
     }
   };
 
@@ -84,7 +95,7 @@ const Index: React.FC<any> = (props) => {
         </Button>
       ),
       (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING') && `${createdBy}` === `${currentUser.id}` && (
-        <Button {...commonButtonsProps} onClick={() => catalogStatus === 'APPROVED' ? handleChange(record) : handleEdit(record)}>
+        <Button {...commonButtonsProps} onClick={() => (catalogStatus === 'APPROVED') ? handleChange(record) : handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
         </Button>
       ),
@@ -161,6 +172,10 @@ const Index: React.FC<any> = (props) => {
       },
       {
         name: 'bidDirectorName',
+      },
+      {
+        name: 'createdByName',
+        header: '清单负责人',
       },
       {
         name: 'createdByName',

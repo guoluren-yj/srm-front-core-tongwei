@@ -50,6 +50,9 @@ function getQueryFields({ queryTab = '' } = {}) {
       label: intl.get('scux.bidPlanWorkBench.model.twnf.companyName').d('公司'),
     },
     {
+      name: 'userInCharge',
+    },
+    {
       name: 'userInChargeMeaning',
       label: intl.get('scux.technicalDocumentsWorkBench.model.twnf.userInChargeMeaning').d('技术负责人'),
     },
@@ -96,6 +99,9 @@ const tableDataSet = ({ queryTab }): DataSetProps => {
       {
         name: 'manager',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.biddingManager').d('招标经理'),
+      },
+      {
+        name: 'userInCharge',
       },
       {
         name: 'userInChargeMeaning',

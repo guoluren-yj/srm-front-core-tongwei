@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Table, Button, Modal } from 'choerodon-ui/pro';
+import { Alert } from 'choerodon-ui';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { isEmpty } from 'lodash';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
@@ -91,24 +92,35 @@ const TenderListSection = () => {
     }
   };
 
+  const catalogStatus = baseInfoDs?.current?.get('catalogStatus');
   const buttons : any[] = useMemo(() => {
-    return editorFlag ? [
+    if (!editorFlag || catalogStatus === 'SOURCE_CHANGING') return [];
+    return [
       'add',
       ['delete', {
         icon: 'delete_sweep',
         onClick: handleDelete,
       }],
-    ] : [];
-  }, [editorFlag]);
+    ];
+  }, [editorFlag, catalogStatus]);
 
   return (
-    <Table
-      dataSet={tenderListSectionDs}
-      columns={columns}
-      buttons={buttons}
-      customizable
-      customizedCode="'SCUX_TWNF_TENDER_LIST_DETAIL_TENDER_LIST"
-    />
+    <>
+      {catalogStatus === 'SOURCE_CHANGING' && (
+        <Alert
+          type="info"
+          message="提示: 招标文件已创建，不允许进行标段的增减!"
+          style={{ marginBottom: 8 }}
+        />
+      )}
+      <Table
+        dataSet={tenderListSectionDs}
+        columns={columns}
+        buttons={buttons}
+        customizable
+        customizedCode="'SCUX_TWNF_TENDER_LIST_DETAIL_TENDER_LIST"
+      />
+    </>
   );
 };
 

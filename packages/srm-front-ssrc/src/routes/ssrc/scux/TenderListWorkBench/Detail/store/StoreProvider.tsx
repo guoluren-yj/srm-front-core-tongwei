@@ -89,7 +89,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const catalogStatus = useObserver(() => baseInfoDs.current?.get('catalogStatus'));
   // 页面编辑标识
   const editorFlag = useMemo(() => {
-    return ['NEW', 'APPROVED', 'CHANGING'].includes(catalogStatus) && pathname.includes('/scux/ssrc/tender-workbench/update');
+    return ['NEW', 'APPROVED', 'CHANGING', 'SOURCE_CHANGING'].includes(catalogStatus) && pathname.includes('/scux/ssrc/tender-workbench/update');
   }, [catalogStatus, pathname]);
 
   // 招标清单标段列表ds

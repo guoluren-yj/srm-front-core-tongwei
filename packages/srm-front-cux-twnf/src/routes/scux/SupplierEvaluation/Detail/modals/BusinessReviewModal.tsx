@@ -37,17 +37,18 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'contactMail', _type: 'TextField', disabled: true },
     { name: 'registeredCapital', _type: 'NumberField', disabled: true },
     { name: 'paidInCapital', _type: 'NumberField', disabled: true },
-    { name: 'buildDate', _type: 'NumberField', disabled: true },
+    { name: 'buildDate', _type: 'DateTimePicker', disabled: true, label: '成立日期' },
     { name: 'insuredNumber', _type: 'NumberField', disabled: true },
     { name: 'taxLevel', _type: 'Select', disabled: true },
     { name: 'supplierRating', _type: 'Select', disabled: true },
-    { name: 'businessReferrerUserLov', _type: 'Lov' },
-    { name: 'businessReferrerCompanyName', _type: 'TextField', disabled: true },
+    { name: 'employeeName', _type: 'TextField', disabled: true },
+    { name: 'employeeCompanyName', _type: 'TextField', disabled: true },
     { name: 'caseRequirementCount', _type: 'NumberField', disabled: true },
     { name: 'warrantyPolicy', _type: 'TextField', disabled: true },
   ];
 
   const reviewInfoFields = [
+    { name: 'businessReviewResult', _type: 'Select' },
     { name: 'businessQualificationReview', _type: 'TextArea' },
     { name: 'businessCreditLawReview', _type: 'TextArea' },
     { name: 'businessLegalAction', _type: 'TextArea' },
@@ -55,19 +56,12 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'businessReviewDesc', _type: 'TextArea' },
   ];
 
-  const resultFields = [
-    { name: 'businessReviewResultDesc', _type: 'TextArea', colSpan: 2 },
-    { name: 'businessReviewResult', _type: 'Select' },
-    { name: 'businessSubmitUserName', _type: 'TextField', disabled: true },
-    { name: 'businessSubmitDate', _type: 'DateTimePicker', disabled: true },
-  ];
-
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
     const valid = await reviewInfoDs.validate();
     if (!valid) {
       return false;
     }
-    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData()  } }, !!submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
+    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, !!submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
@@ -87,7 +81,7 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     closeable: true,
     children: (
       <div className={styles['detail-container']}>
-      <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['supplierInfo', 'reviewInfo', 'reviewResult']}>
+      <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['supplierInfo', 'reviewInfo']}>
         <Panel header={intl.get(`${prefix}.view.panel.supplierInfo`).d('供应商信息')} key="supplierInfo">
           <FormPro
             dataSet={reviewInfoDs}
@@ -96,19 +90,11 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
             readOnly={isReadOnly}
           />
         </Panel>
-        <Panel header={intl.get(`${prefix}.view.panel.businessReviewInfo`).d('商务审查信息')} key="reviewInfo">
+        <Panel header={intl.get(`${prefix}.view.panel.businessReviewInfo`).d('商务评审信息')} key="reviewInfo">
           <FormPro
             dataSet={reviewInfoDs}
             columns={1}
             fields={reviewInfoFields}
-            readOnly={isReadOnly}
-          />
-        </Panel>
-        <Panel header={intl.get(`${prefix}.view.panel.businessReviewResult`).d('商务入围评审结果')} key="reviewResult">
-          <FormPro
-            dataSet={reviewInfoDs}
-            columns={3}
-            fields={resultFields}
             readOnly={isReadOnly}
           />
         </Panel>
