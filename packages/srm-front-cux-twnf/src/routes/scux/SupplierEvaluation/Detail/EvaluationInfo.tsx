@@ -9,13 +9,15 @@ interface EvaluationInfoProps {
 }
 
 const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
+  const isView = type === 'view' || type === 'readOnly';
   const showApprovalNote = useComputed(() => {
+    if (type === 'submit' || isView) return true;
     const { current } = dataSet;
     if (current) {
       return current.get('nominationStatus') === 'TO_BE_RELEASED';
     }
     return false;
-  }, [dataSet]);
+  }, [dataSet, type]);
   const readOnly = type !== 'edit';
   const allReadOnly = ['readOnly', 'pendingReview'].includes(type);
 
@@ -30,13 +32,21 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'supManagerPersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'functionalHeadUserLov', _type: 'Lov', disabled: readOnly },
       { name: 'positionLov', _type: 'Lov', disabled: readOnly },
-      showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: !showApprovalNote, colSpan: 3 },
       { name: 'caseRequirementCount', _type: 'NumberField', disabled: readOnly },
-      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 2, disabled: readOnly },
-      { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment' }
+      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 3, disabled: readOnly },
+      showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: type !== 'submit', required: type === 'submit', colSpan: 3 },
+      isView && { name: 'fbcNumber', _type: 'TextField', disabled: true, colSpan: 1,
+        renderer: ({ value, dataSet: ds }: any) => {
+          const url = ds?.current?.get('fbcUrl');
+          if (url) return <a href={url} target="_blank" rel="noopener noreferrer">{value}</a>;
+          return value;
+        },
+      },
+      isView && { name: 'fbcUrl', _type: 'TextField', disabled: true },
+      { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment', colSpan: 3 },
     ].filter(Boolean);
     return baseFields;
-  }, [readOnly, showApprovalNote]);
+  }, [readOnly, showApprovalNote, isView, type]);
 
   return (
     <FormPro

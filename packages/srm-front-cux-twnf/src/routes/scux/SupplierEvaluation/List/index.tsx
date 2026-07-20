@@ -53,7 +53,7 @@ const handleToShortlistEdit = (history: any, record: any) => {
 const handleToSubmit = (history: any, record: any) => {
   handleToDetail(history, stringify({
     nominationHeaderId: record?.get('nominationHeaderId'),
-    type: 'pendingReview',
+    type: 'submit',
   }));
 };
 
@@ -128,7 +128,6 @@ const SupplierEvaluationList = ({ history }: any) => {
 
     const renderAction = ({ record }: any) => {
       const isBidDirector = String(record.get('createdBy')) === String(currentUserId);
-
       const status = record.get('nominationStatus');
 
       // 新建 → 编辑（仅入围负责人）
@@ -140,12 +139,38 @@ const SupplierEvaluationList = ({ history }: any) => {
         );
       }
 
-      // 待发布 → 提交（仅入围负责人）
+      // 待评审 → 变更（入围负责人）/ 评审（评审人员，满足任一角色）
+      if (status === 'PENDING_REVIEW') {
+        const isReviewer = record.get('technologyUserFlag') === '1'
+          || record.get('businessUserFlag') === '1'
+          || record.get('financeUserFlag') === '1';
+        return (
+          <>
+            {isBidDirector && (
+              <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
+                {intl.get(`${prefix}.button.change`).d('变更')}
+              </Button>
+            )}
+            {isReviewer && (
+              <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
+                {intl.get(`${prefix}.button.review`).d('评审')}
+              </Button>
+            )}
+          </>
+        ) || null;
+      }
+
+      // 待发布 → 提交 / 变更（仅入围负责人）
       if (status === 'TO_BE_RELEASED' && isBidDirector) {
         return (
-          <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
-            {intl.get('hzero.common.button.submit').d('提交')}
-          </Button>
+          <>
+            <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
+              {intl.get('hzero.common.button.submit').d('提交')}
+            </Button>
+            <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
+              {intl.get(`${prefix}.button.change`).d('变更')}
+            </Button>
+          </>
         );
       }
 
@@ -158,15 +183,6 @@ const SupplierEvaluationList = ({ history }: any) => {
         );
       }
 
-      // 待评审 → 评审
-      if (status === 'PENDING_REVIEW') {
-        return (
-          <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
-            {intl.get(`${prefix}.button.review`).d('评审')}
-          </Button>
-        );
-      }
-
       return null;
     };
 
@@ -175,7 +191,7 @@ const SupplierEvaluationList = ({ history }: any) => {
       {
         name: 'action',
         title: intl.get(`${prefix}.field.action`).d('操作'),
-        width: 100,
+        width: 200,
         align: 'center',
         renderer: renderAction,
       },
@@ -189,9 +205,9 @@ const SupplierEvaluationList = ({ history }: any) => {
       { name: 'fbcNumber', width: 150, renderer: renderFbcNumber },
       { name: 'fbcUrl', width: 200 },
       { name: 'fbcResult', width: 150 },
-      { name: 'financePerson', width: 120 },
-      { name: 'technicalPerson', width: 120 },
-      { name: 'supManagerPerson', width: 120 },
+      { name: 'financePersonName', width: 120 },
+      { name: 'technicalPersonName', width: 120 },
+      { name: 'supManagerPersonName', width: 120 },
       { name: 'reviewType', width: 120 },
       { name: 'creationDate', width: 150 },
     ];

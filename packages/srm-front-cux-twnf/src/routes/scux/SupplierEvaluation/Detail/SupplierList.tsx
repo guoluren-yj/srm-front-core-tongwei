@@ -4,7 +4,6 @@ import { observer } from 'mobx-react-lite';
 
 import { prefix } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
-import { TableButtonType } from 'choerodon-ui/pro/lib/table/enum';
 import intl from 'hzero-front/lib/utils/intl';
 import { stringify } from 'querystring';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
@@ -95,6 +94,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
   };
 
   const isNew = basicInfoDs?.current?.get('nominationStatus') === 'NEW';
+  const clickableReview = type === 'submit' || type === 'view' || type === 'readOnly';
 
   // 操作列按钮数量
   const { businessUserFlag: bf, financeUserFlag: ff, technologyUserFlag: tf } = basicInfoDs?.current?.get(['businessUserFlag', 'financeUserFlag', 'technologyUserFlag']) || {};
@@ -120,14 +120,38 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     },
     { name: 'supplierCompanyName', width: 200 },
     { name: 'stageDescription', width: 100 },
-    { name: 'contactPersonLov', editor: !readOnly, width: 120 },
-    { name: 'contactMobilephone', editor: !readOnly, width: 130 },
-    { name: 'contactMail', editor: !readOnly, width: 150 },
-    { name: 'recommenderLov', editor: !readOnly, width: 120 },
+    { name: 'contactPersonLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
+    { name: 'contactMobilephone', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 130 },
+    { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
+    { name: 'recommenderLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'employeeCompanyName', width: 150 },
-    !isNew && { name: 'technologyReviewResult', width: 120 },
-    !isNew && { name: 'businessReviewResult', width: 120 },
-    !isNew && { name: 'financeReviewResult', width: 120 },
+    !isNew && {
+      name: 'technologyReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => clickableReview && showTech ? (
+        <Button funcType={FuncType.link} onClick={() => handleTechnicalReview(record)}>
+          {text}
+        </Button>
+      ) : text,
+    },
+    !isNew && {
+      name: 'businessReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => type === 'submit' && showBiz ? (
+        <Button funcType={FuncType.link} onClick={() => handleBusinessReview(record)}>
+          {text}
+        </Button>
+      ) : text,
+    },
+    !isNew && {
+      name: 'financeReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => type === 'submit' && showFin ? (
+        <Button funcType={FuncType.link} onClick={() => handleFinanceReview(record)}>
+          {text}
+        </Button>
+      ) : text,
+    },
     !isNew && { name: 'summaryReviewResult', width: 120 },
     { name: 'riskScanDate', width: 160 },
     { name: 'riskLevelMeaning', width: 100 },
@@ -140,7 +164,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         return <a href={value} target="_blank" rel="noopener noreferrer">查看</a>;
       },
     },
-    {
+    type !== 'view' && type !== 'readOnly' && {
       name: 'riskScanning',
       header: intl.get(`${prefix}.button.riskScan`).d('风险扫描'),
       width: 150,
@@ -155,8 +179,8 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         </Button>
       ),
     },
-    { name: 'remark', editor: !readOnly, width: 150 },
-    (type === 'pendingReview' || type === 'unreleasedReadOnly') && {
+    { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
+    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && {
       name: 'action',
       header: intl.get(`${prefix}.button.operation`).d('操作'),
       width: btnCount * 90,
@@ -184,6 +208,8 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     },
   ].filter(Boolean) as ColumnProps[];
 
+  const hasEmptyReview = dataSet.some((r: any) => !r.get('technologyReviewResult') || !r.get('businessReviewResult') || !r.get('financeReviewResult'));
+
   const buttons = useMemo(() => {
     const btns: any[] = [];
     if (type === 'edit') {
@@ -196,7 +222,22 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         >
           {intl.get('hzero.common.button.add').d('新增')}
         </Button>,
-        TableButtonType.delete,
+        <Button
+          funcType={FuncType.flat}
+          onClick={() => {
+            const selected = dataSet.selected;
+            const released = selected.filter((r: any) => r.get('releaseFlag') === '1');
+            if (released.length > 0) {
+              notification.warning({ message: '已发布的数据不能删除' });
+              return;
+            }
+            dataSet.delete(selected);
+          }}
+          icon="delete"
+          key="delete"
+        >
+          {intl.get('hzero.common.button.delete').d('删除')}
+        </Button>,
         <Button
           funcType={FuncType.flat}
           onClick={onBusinessStandard}
@@ -213,7 +254,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         </Button>
       );
     }
-    if (type === 'readOnly' && basicInfoDs?.current?.get('nominationStatus') === 'PENDING_REVIEW') {
+    if (clickableReview && hasEmptyReview) {
       btns.push(
         <Button
           funcType={FuncType.flat}
@@ -225,7 +266,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       );
     }
     return btns;
-  }, [type, onBusinessStandard, onTechnicalStandard]);
+  }, [type, onBusinessStandard, onTechnicalStandard, dataSet, clickableReview, hasEmptyReview]);
 
   return (
     <Table

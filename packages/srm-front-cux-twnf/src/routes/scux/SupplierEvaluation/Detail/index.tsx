@@ -20,15 +20,25 @@ import SupplierList from './SupplierList';
 import styles from './index.less';
 import { supplierEvaluationPostApi, supplierEvaluationDetailPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
-const defaultActiveKey = ['basicInfo', 'evaluationInfo', 'supplierList'];
+const getDefaultActiveKey = (type: string) => {
+  if (type === 'view' || type === 'readOnly') {
+    return ['evaluationInfo', 'supplierList'];
+  }
+  return ['basicInfo', 'evaluationInfo', 'supplierList'];
+};
 const { Panel } = Collapse;
 
-const TitleWithProject = observer(({ basicInfoDs }: any) => {
+const TitleWithProject = observer(({ basicInfoDs, type }: any) => {
   const num = basicInfoDs.current?.get('sourceProjectNum');
   const name = basicInfoDs.current?.get('sourceProjectName');
+  const title = type === 'submit'
+    ? intl.get(`${prefix}.view.submitTitle`).d('入围单提交')
+    : (type === 'view' || type === 'readOnly')
+      ? intl.get(`${prefix}.view.viewTitle`).d('入围查看')
+      : intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
   return (
     <span>
-      {intl.get(`${prefix}.view.detailTitle`).d('入围单维护')}
+      {title}
       {(num || name) && (
         <span style={{ marginLeft: 16, fontSize: 14, color: '#666' }}>
           {num} - {name}
@@ -303,7 +313,7 @@ const handleBusinessStandard = useCallback(() => {
           {
             name: 'publish',
             hidden: !!readOnly,
-            child: intl.get(`${prefix}.button.publish`).d('发布'),
+            child: intl.get(`${prefix}.button.publishNew`).d('发布评审'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handlePublish },
           },
           {
@@ -363,7 +373,7 @@ const handleBusinessStandard = useCallback(() => {
 
   return (
     <>
-      <Header backPath={backPath} title={<TitleWithProject basicInfoDs={basicInfoDs} />}>
+      <Header backPath={backPath} title={<TitleWithProject basicInfoDs={basicInfoDs} type={type} />}>
         <HeaderButtons />
       </Header>
       <Content>
@@ -372,7 +382,7 @@ const handleBusinessStandard = useCallback(() => {
             trigger="text-icon"
             ghost
             expandIconPosition="text-right"
-            defaultActiveKey={defaultActiveKey}
+            defaultActiveKey={getDefaultActiveKey(type)}
           >
             {contentList.map(i => i.content)}
           </Collapse>

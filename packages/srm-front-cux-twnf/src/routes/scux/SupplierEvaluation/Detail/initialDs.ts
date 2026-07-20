@@ -18,7 +18,7 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
     { name: 'sourceProjectNum', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectNum`).d('招标计划单号') },
     { name: 'sourceProjectName', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectName`).d('招标名称') },
     { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('招标经理') },
-    { name: 'technicalPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
+    { name: 'technicalPersonName', type: FieldType.string, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', valueField: 'employeeId', label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
     { name: 'technologyUserFlag', type: FieldType.string },
     { name: 'businessUserFlag', type: FieldType.string },
     { name: 'financeUserFlag', type: FieldType.string },
@@ -28,22 +28,25 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
     { name: 'nominationStatusMeaning', type: FieldType.string, label: intl.get(`${prefix}.field.nominationStatusMeaning`).d('状态'), lookupCode: 'SCUX_TWNF_NOMINATION_STATUS' },
     { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.creationDate`).d('创建时间') },
     { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
-    { name: 'financePersonLov', type: FieldType.object, lovCode: 'HPFM.ON_EMPLOYEE', label: intl.get(`${prefix}.field.financePerson`).d('财务人员'), required: true, ignore: FieldIgnore.always, },
+    { name: 'financePersonLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', valueField: 'employeeId', label: intl.get(`${prefix}.field.financePerson`).d('财务人员'), required: true, ignore: FieldIgnore.always, },
     { name: 'financePerson', bind: 'financePersonLov.employeeId' },
     { name: 'financePersonName', bind: 'financePersonLov.name' },
-    { name: 'supManagerPersonLov', type: FieldType.object, lovCode: 'HPFM.ON_EMPLOYEE', label: intl.get(`${prefix}.field.supManagerPerson`).d('供应商专管员'), required: true, ignore: FieldIgnore.always, },
+    { name: 'supManagerPersonLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', valueField: 'employeeId', label: intl.get(`${prefix}.field.supManagerPerson`).d('供应商专管员'), required: true, ignore: FieldIgnore.always, },
     { name: 'supManagerPerson', bind: 'supManagerPersonLov.employeeId' },
     { name: 'supManagerPersonName', bind: 'supManagerPersonLov.name' },
-    { name: 'functionalHeadUserLov', type: FieldType.object, lovCode: 'HIAM.TENANT.USER', label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), required: true, ignore: FieldIgnore.always, },
-    { name: 'functionalHeadUser', bind: 'functionalHeadUserLov.id' },
-    { name: 'functionalHeadUserName', bind: 'functionalHeadUserLov.realName' },
+    { name: 'functionalHeadUserLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', valueField: 'employeeId', label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), required: true, ignore: FieldIgnore.always, },
+    { name: 'functionalHeadUser', bind: 'functionalHeadUserLov.employeeId' },
+    { name: 'functionalHeadUserName', bind: 'functionalHeadUserLov.name' },
     { name: 'positionLov', type: FieldType.object, lovCode: 'SCUX_TWNF_LOV_POSITION', label: '岗位', ignore: FieldIgnore.always },
     { name: 'positionId', bind: 'positionLov.positionId' },
     { name: 'positionName', bind: 'positionLov.positionName' },
-    { name: 'submitDesc', type: FieldType.string, label: intl.get(`${prefix}.field.approvalNote`).d('审批的相关说明'), dynamicProps: { required: ({ record }) => record.get('nominationStatus') === 'TO_BE_RELEASED' },},
     { name: 'reviewType', type: FieldType.string, lookupCode: 'SCUX.TWNF_BID_BUS_TYPE', label: '标的类型', required: true },
     { name: 'caseRequirementCount', type: FieldType.number, label: intl.get(`${prefix}.field.caseRequirementCount`).d('案例要求数量'), required: true },
     { name: 'warrantyPolicy', type: FieldType.string, label: intl.get(`${prefix}.field.warrantyPolicy`).d('质保政策'), required: true },
+
+    { name: 'submitDesc', type: FieldType.string, label: intl.get(`${prefix}.field.approvalNote`).d('审批的相关说明'), dynamicProps: { required: ({ record }) => record.get('nominationStatus') === 'TO_BE_RELEASED' }, required: true},
+    { name: 'fbcNumber', type: FieldType.string, label: intl.get(`${prefix}.field.fbcNumber`).d('FBC流程单号') },
+    { name: 'fbcUrl', type: FieldType.string, label: intl.get(`${prefix}.field.fbcUrl`).d('审批URL') },
     {
       name: 'nominationAttachmentUuid',
       type: FieldType.attachment,
@@ -78,8 +81,15 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
     { name: 'supplierCompanyNum', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCode`).d('供应商编码') },
     { name: 'supplierCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCompanyName`).d('供应商名称') },
     { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.stageDescription`).d('生命周期') },
-    { name: 'contactPersonLov', type: FieldType.object, lovCode: 'HIAM.TENANT.USER', label: intl.get(`${prefix}.field.contactPerson`).d('联系人'), required: true, ignore: FieldIgnore.always, },
-    { name: 'contactName', type: FieldType.string, bind: "contactPersonLov.realName" },
+    { name: 'contactPersonLov', type: FieldType.object, lovCode: 'SSRC.SUPPLIER_CONTANCTS',dynamicProps: {
+          lovPara({ record }) {
+            return {
+              companyId: getCompanyId?.(),
+              supplierCompanyId: record.get('supplierCompanyId'),
+            };
+          },
+        }, textField: 'name', valueField: 'companyContactId', label: intl.get(`${prefix}.field.contactPerson`).d('联系人'), required: true, ignore: FieldIgnore.always, },
+    { name: 'contactName', type: FieldType.string, bind: "contactPersonLov.name" },
     { name: 'contactMobilephone', type: FieldType.string, label: intl.get(`${prefix}.field.contactMobilephone`).d('联系人电话'), required: true },
     { name: 'contactMail', type: FieldType.string, label: intl.get(`${prefix}.field.contactEmail`).d('电子邮件') },
     { name: 'recommenderLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', valueField: 'employeeId', textField: 'name', label: '供应商推荐人', ignore: FieldIgnore.always,
@@ -99,6 +109,7 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
     { name: 'riskLevelMeaning', type: FieldType.string, label: '风险等级' },
     { name: 'fileUrl', type: FieldType.string, label: '最新风险报告' },
     { name: 'remark', type: FieldType.string, label: intl.get(`${prefix}.field.remark`).d('备注') },
+    { name: 'releaseFlag', type: FieldType.string },
   ],
   transport: {
     read: ({ params }) => ({
@@ -107,6 +118,7 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
       params: {
         ...params,
         nominationHeaderId,
+        releaseFlag: type !== 'edit' ? '1' : undefined,
         queryType: 'SUP_LINE',
       },
     }),
@@ -123,8 +135,8 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
   events: {
     update: ({ record, name, value })  => {
       if(name === 'contactPersonLov' && value) {
-        record.set('contactMobilephone', value?.phone);
-        record.set('contactMail', value?.email);}
+        record.set('contactMobilephone', value?.mobilephone);
+        record.set('contactMail', value?.mail);}
     }
   }
 });
@@ -440,7 +452,7 @@ fields: [
     { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
     { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.creationDate`).d('创建时间') },
     { name: 'submitTime', type: FieldType.dateTime, label: intl.get(`${prefix}.field.submitTime`).d('提交时间') },
-    { name: 'reviewType', type: FieldType.string, label: intl.get(`${prefix}.field.reviewType`).d('入围评审类型'), lookupCode: 'SCUX_TWNF_TECHNICAL_SHORTLIST_REVIEW_CATEGORY' },
+    { name: 'reviewType', type: FieldType.string, label: intl.get(`${prefix}.field.reviewType`).d('标的类型'), lookupCode: 'SCUX.TWNF_BID_BUS_TYPE' },
     { name: 'caseRequirementCount', type: FieldType.number, label: intl.get(`${prefix}.field.caseRequirementCount`).d('案例要求数量') },
     { name: 'nominationAttachmentUuid', type: FieldType.attachment, label: intl.get(`${prefix}.field.nominationAttachmentUuid`).d('入围标准附件'),       bucketName: (globalThis as any).$$env?.PRIVATE_BUCKET || 'private-bucket',
       bucketDirectory: '', },
