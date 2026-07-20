@@ -139,12 +139,14 @@ export const supplierBusinessStandardDS = (nominationHeaderId, supplierSelectDs)
       type: FieldType.string,
       label: intl.get(`${prefix}.field.taxGrade`).d('纳税等级'),
       lookupCode: 'SCUX_TW_TAX_LEVEL',
+      multiple: true,
     },
     {
       name: 'supplierRating',
       type: FieldType.string,
       label: intl.get(`${prefix}.field.supplierRating`).d('供应商评级'),
       lookupCode: 'SCUX_TWNF_SUPPLIER_LEVEL',
+      multiple: true,
     },
     {
       name: 'registeredCapitalFrom',
@@ -189,6 +191,8 @@ export const supplierBusinessStandardDS = (nominationHeaderId, supplierSelectDs)
       transformResponse: (res) => {
         try {
           const formatData = JSON.parse(res);
+          formatData.taxLevel = formatData.taxGrade ? formatData.taxGrade.split(',') : [];
+          formatData.supplierRating = formatData.supplierRating ? formatData.supplierRating.split(',') : [];
           Object.entries(formatData).forEach(([key, value]) => {
             supplierSelectDs.setQueryParameter(key, value);
           });
@@ -283,7 +287,7 @@ export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProp
         lookupCode: ({ record }) => record.get('lookupCode') || undefined,
         required: ({ record }) => record.get('isRequired') === '1',
         disabled: ({ record }) => record.get('isRequired') !== '1',
-        multiple: ({ record }) => record.get('itemCode') === 'taxGrade',
+        multiple: ({ record }) => ['taxGrade', 'supplierRating'].includes(record.get('itemCode')),
       },
     },
     { name: 'valueFrom', type: FieldType.number },
@@ -308,7 +312,7 @@ export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProp
       transformResponse: (res) => {
         const defaultRows = businessRuleItems.map(item => ({
           ...item,
-          valueCode: item.itemCode === 'taxGrade' ? [] : '',
+          valueCode: (item.itemCode === 'taxGrade' || item.itemCode === 'supplierRating') ? [] : '',
           isRequired: item.requiredLocked ? '1' : '0',
         }));
         if (!res) return defaultRows;
@@ -322,7 +326,7 @@ export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProp
                 row.isRequired = item.requiredLocked ? '1' : (data.taxGradeRequired || '0');
                 break;
               case 'supplierRating':
-                row.valueCode = data.supplierRating || '';
+                row.valueCode = data.supplierRating ? data.supplierRating.split(',') : [];
                 row.isRequired = data.supplierRatingRequired || '0';
                 break;
               case 'registeredCapital':
@@ -628,14 +632,14 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
   primaryKey: 'financeReviewLineId',
   fields: [
     { name: 'year', type: FieldType.string, label: intl.get(`${prefix}.field.year`).d('年度'), required: true },
-    { name: 'operatingRevenue', type: FieldType.number, label: intl.get(`${prefix}.field.operatingRevenue`).d('营业收入（万元）'), required: true },
-    { name: 'netProfit', type: FieldType.number, label: intl.get(`${prefix}.field.netProfit`).d('净利润（万元）'), required: true },
-    { name: 'totalAssets', type: FieldType.number, label: intl.get(`${prefix}.field.totalAssets`).d('总资产（万元）'), required: true },
-    { name: 'netAssets', type: FieldType.number, label: intl.get(`${prefix}.field.netAssets`).d('净资产（万元）'), required: true },
-    { name: 'interestBearingDebt', type: FieldType.number, label: intl.get(`${prefix}.field.interestBearingDebt`).d('有息负债（万元）'), required: true },
-    { name: 'totalLiabilities', type: FieldType.number, label: intl.get(`${prefix}.field.totalLiabilities`).d('总负债（万元）'), required: true },
-    { name: 'assetLiabilityRatio', type: FieldType.number, label: intl.get(`${prefix}.field.assetLiabilityRatio`).d('资产负债率（%）') },
-    { name: 'returnOnEquity', type: FieldType.number, label: intl.get(`${prefix}.field.returnOnEquity`).d('净资产收益率（%）') },
+    { name: 'operatingRevenue', type: FieldType.number, label: intl.get(`${prefix}.field.operatingRevenue`).d('营业收入（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'netProfit', type: FieldType.number, label: intl.get(`${prefix}.field.netProfit`).d('净利润（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'totalAssets', type: FieldType.number, label: intl.get(`${prefix}.field.totalAssets`).d('总资产（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'netAssets', type: FieldType.number, label: intl.get(`${prefix}.field.netAssets`).d('净资产（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'interestBearingDebt', type: FieldType.number, label: intl.get(`${prefix}.field.interestBearingDebt`).d('有息负债（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'totalLiabilities', type: FieldType.number, label: intl.get(`${prefix}.field.totalLiabilities`).d('总负债（万元）'), required: true, precision: 2, numberGrouping: true },
+    { name: 'assetLiabilityRatio', type: FieldType.number, label: intl.get(`${prefix}.field.assetLiabilityRatio`).d('资产负债率（%）'), precision: 2 },
+    { name: 'roe', type: FieldType.number, label: intl.get(`${prefix}.field.roe`).d('净资产收益率（%）'), precision: 2 },
   ],
   transport: {
     read: ({ params }) => ({
@@ -678,7 +682,7 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
         }
       }
       if(name === 'netAssets' || name === 'netProfit') {
-        record.set('returnOnEquity', record.get('netAssets') > 0 ? math.toFixed(math.multipliedBy(math.div(record.get('netProfit'), record.get('netAssets')), 100), 2) : null);
+        record.set('roe', record.get('netAssets') > 0 ? math.toFixed(math.multipliedBy(math.div(record.get('netProfit'), record.get('netAssets')), 100), 2) : null);
         if(resultDs) {
           const allRecords = dataSet.records;
           const allNetProfit = allRecords.reduce((sum, current) => {
@@ -702,8 +706,8 @@ export const financeReviewResultDS = (nominationHeaderId, nominationSupLineId): 
   autoCreate: true,
   paging: false,
   fields: [
-    { name: 'financeAvgLiabilityRatio', type: FieldType.number, label: intl.get(`${prefix}.field.avgAssetLiabilityRatio`).d('年均资产负债率（%）') },
-    { name: 'financeAvgRevenueRatio', type: FieldType.number, label: intl.get(`${prefix}.field.avgReturnOnEquity`).d('年均净资产收益率（%）') },
+    { name: 'financeAvgLiabilityRatio', type: FieldType.number, label: intl.get(`${prefix}.field.avgAssetLiabilityRatio`).d('年均资产负债率（%）'), precision: 2 },
+    { name: 'financeAvgRevenueRatio', type: FieldType.number, label: intl.get(`${prefix}.field.avgReturnOnEquity`).d('年均净资产收益率（%）'), precision: 2 },
     { name: 'financeReviewDesc', type: FieldType.string, label: intl.get(`${prefix}.field.financeReviewDesc`).d('财务评审说明'), required: true },
     { name: 'financeReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.financeReviewResult`).d('财务评审结果'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', required: true },
     { name: 'financeSubmitUserName', type: FieldType.string, label: intl.get(`${prefix}.field.financeSubmitUserName`).d('提交人') },

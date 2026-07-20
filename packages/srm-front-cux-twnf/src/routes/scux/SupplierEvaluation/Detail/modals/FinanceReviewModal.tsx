@@ -46,7 +46,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'interestBearingDebt', editor: !isReadOnly, width: 150 },
     { name: 'totalLiabilities', editor: !isReadOnly, width: 150 },
     { name: 'assetLiabilityRatio', width: 130 },
-    { name: 'returnOnEquity', width: 130 },
+    { name: 'roe', width: 130 },
   ];
 
   const infoButtons = isReadOnly ? [] : [TableButtonType.add, TableButtonType.delete];
@@ -71,7 +71,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     }
     if (infoDs.length === 0) {
       notification.warning({
-        message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'), 
+        message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
       });
       return false;
     }
@@ -120,9 +120,9 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
       <div>
         {!isReadOnly && (
           <>
-            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
               {intl.get('hzero.common.button.save').d('保存')}
-            </Button>
+            </Button> */}
             <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
               {intl.get('hzero.common.button.submit').d('提交')}
             </Button>

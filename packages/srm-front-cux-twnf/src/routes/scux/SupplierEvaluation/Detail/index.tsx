@@ -139,7 +139,7 @@ const handleBusinessStandard = useCallback(() => {
             businessCfg.taxGradeRequired = '1';
             break;
           case 'supplierRating':
-            businessCfg.supplierRating = row.valueCode;
+            businessCfg.supplierRating = Array.isArray(row.valueCode) ? row.valueCode.join(',') : row.valueCode;
             businessCfg.supplierRatingRequired = row.isRequired;
             break;
           case 'registeredCapital':

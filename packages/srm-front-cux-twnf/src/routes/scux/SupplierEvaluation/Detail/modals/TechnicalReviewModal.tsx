@@ -190,9 +190,9 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
       <div>
         {!isReadOnly && (
           <>
-            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
               {intl.get('hzero.common.button.save').d('保存')}
-            </Button>
+            </Button> */}
             <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
               {intl.get('hzero.common.button.submit').d('提交')}
             </Button>

@@ -23,8 +23,8 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
   supplierSelectDs.setQueryParameter('supplierCompanyIdList', existingIds);
 
   const businessFields = [
-    { name: 'taxLevel', _type: 'Select', colSpan: 2 },
-    { name: 'supplierRating', _type: 'Select', colSpan: 2 },
+    { name: 'taxLevel', _type: 'Select' },
+    { name: 'supplierRating', _type: 'Select' },
     { name: 'registeredCapitalFrom', _type: 'NumberField' },
     { name: 'paidInCapitalFrom', _type: 'NumberField' },
     { name: 'establishmentYearsFrom', _type: 'NumberField' },
@@ -71,7 +71,7 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
           <Panel header={intl.get(`${prefix}.view.businessStandard`).d('商务标准')} key="businessStandard">
             <FormPro
               dataSet={businessStandardDs}
-              columns={4}
+              columns={3}
               fields={businessFields}
               readOnly
             />
