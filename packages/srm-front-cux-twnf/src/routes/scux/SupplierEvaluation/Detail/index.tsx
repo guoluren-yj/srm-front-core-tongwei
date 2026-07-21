@@ -304,7 +304,7 @@ const handleBusinessStandard = useCallback(() => {
         const buttons = [
           {
             name: 'submit',
-            hidden: type !== 'unreleasedReadOnly',
+            hidden: type !== 'unreleasedReadOnly' && type !== 'submit',
             child: intl.get('hzero.common.button.submit').d('提交'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmit },
           },

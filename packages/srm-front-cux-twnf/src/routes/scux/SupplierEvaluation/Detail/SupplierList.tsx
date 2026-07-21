@@ -128,7 +128,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew && {
       name: 'technologyReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => clickableReview && showTech ? (
+      renderer: ({ text, record }: any) => clickableReview ? (
         <Button funcType={FuncType.link} onClick={() => handleTechnicalReview(record)}>
           {text}
         </Button>
@@ -137,7 +137,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew && {
       name: 'businessReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => type === 'submit' && showBiz ? (
+      renderer: ({ text, record }: any) => clickableReview ? (
         <Button funcType={FuncType.link} onClick={() => handleBusinessReview(record)}>
           {text}
         </Button>
@@ -146,7 +146,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew && {
       name: 'financeReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => type === 'submit' && showFin ? (
+      renderer: ({ text, record }: any) => clickableReview ? (
         <Button funcType={FuncType.link} onClick={() => handleFinanceReview(record)}>
           {text}
         </Button>
@@ -164,7 +164,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         return <a href={value} target="_blank" rel="noopener noreferrer">查看</a>;
       },
     },
-    type !== 'view' && type !== 'readOnly' && {
+    type !== 'view' && type !== 'submit' && type !== 'readOnly' && {
       name: 'riskScanning',
       header: intl.get(`${prefix}.button.riskScan`).d('风险扫描'),
       width: 150,
