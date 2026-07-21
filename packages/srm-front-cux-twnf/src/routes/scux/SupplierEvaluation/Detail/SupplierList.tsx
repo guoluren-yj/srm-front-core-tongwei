@@ -27,7 +27,7 @@ interface SupplierListProps {
 }
 
 const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, history, basicInfoDs, onBusinessStandard, onTechnicalStandard }) => {
-  const readOnly = type !== 'edit';
+  const readOnly = type !== 'edit' && type !== 'change';
 
   const handleRiskScan = async (record: any) => {
     const riskMonitorTypeResult = getResponse(await queryRiskMonitorType({partnerCode: 'ZHENYUN_PARTNER'}));
@@ -212,7 +212,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
 
   const buttons = useMemo(() => {
     const btns: any[] = [];
-    if (type === 'edit') {
+    if (type === 'edit' || type === 'change') {
       btns.push(
         <Button
           funcType={FuncType.flat}
@@ -237,24 +237,28 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
           key="delete"
         >
           {intl.get('hzero.common.button.delete').d('删除')}
-        </Button>,
-        <Button
-          funcType={FuncType.flat}
-          onClick={onBusinessStandard}
-          key="businessStandard"
-        >
-          {intl.get(`${prefix}.button.businessStandard`).d('商务入围标准设置')}
-        </Button>,
-        <Button
-          funcType={FuncType.flat}
-          onClick={onTechnicalStandard}
-          key="technicalStandard"
-        >
-          {intl.get(`${prefix}.button.technicalStandard`).d('技术入围标准设置')}
         </Button>
       );
+      if (type === 'edit') {
+        btns.push(
+          <Button
+            funcType={FuncType.flat}
+            onClick={onBusinessStandard}
+            key="businessStandard"
+          >
+            {intl.get(`${prefix}.button.businessStandard`).d('商务入围标准设置')}
+          </Button>,
+          <Button
+            funcType={FuncType.flat}
+            onClick={onTechnicalStandard}
+            key="technicalStandard"
+          >
+            {intl.get(`${prefix}.button.technicalStandard`).d('技术入围标准设置')}
+          </Button>
+        );
+      }
     }
-    if (clickableReview && hasEmptyReview) {
+    if ((clickableReview || type === 'pendingReview') && hasEmptyReview) {
       btns.push(
         <Button
           funcType={FuncType.flat}

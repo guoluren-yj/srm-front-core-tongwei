@@ -9,10 +9,11 @@ import { observer } from 'mobx-react-lite';
 import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { downloadFileByAxios } from 'hzero-front/lib/services/api';
-import { filterNullValueObject, getCurrentUserId } from 'hzero-front/lib/utils/utils';
+import { filterNullValueObject, getCurrentUserId, getResponse } from 'hzero-front/lib/utils/utils';
 
 import { TABS, tableDs, prefix, getTabValue, TabKeyType } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
+import { supplierEvaluationPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
 const { TabPane } = Tabs;
 
@@ -47,6 +48,18 @@ const handleToShortlistEdit = (history: any, record: any) => {
   handleToDetail(history, stringify({
     nominationHeaderId: record?.get('nominationHeaderId'),
     type: 'edit',
+  }));
+};
+
+const handleToChange = async (history: any, record: any) => {
+  const nominationHeaderId = record?.get('nominationHeaderId');
+  if (record?.get('nominationStatus') !== 'CHANGING') {
+    const res = await supplierEvaluationPostApi({ nominationHeaderId }, 'CHANGE');
+    if (!getResponse(res)) return;
+  }
+  handleToDetail(history, stringify({
+    nominationHeaderId,
+    type: 'change',
   }));
 };
 
@@ -139,15 +152,15 @@ const SupplierEvaluationList = ({ history }: any) => {
         );
       }
 
-      // 待评审 → 变更（入围负责人）/ 评审（评审人员，满足任一角色）
-      if (status === 'PENDING_REVIEW') {
+      // 待评审 / 变更中 → 变更（入围负责人）/ 评审（评审人员，满足任一角色）
+      if (status === 'PENDING_REVIEW' || status === 'CHANGING') {
         const isReviewer = record.get('technologyUserFlag') === '1'
           || record.get('businessUserFlag') === '1'
           || record.get('financeUserFlag') === '1';
         return (
           <>
             {isBidDirector && (
-              <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
+              <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
                 {intl.get(`${prefix}.button.change`).d('变更')}
               </Button>
             )}
@@ -167,7 +180,7 @@ const SupplierEvaluationList = ({ history }: any) => {
             <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
               {intl.get('hzero.common.button.submit').d('提交')}
             </Button>
-            <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
+            <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
               {intl.get(`${prefix}.button.change`).d('变更')}
             </Button>
           </>

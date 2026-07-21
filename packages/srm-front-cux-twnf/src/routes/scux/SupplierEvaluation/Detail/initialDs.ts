@@ -71,7 +71,7 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
 
 // 供应商列表数据集
 export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSetProps => ({
-  selection: type === 'edit' ? DataSetSelection.multiple : false,
+  selection: (type === 'edit' || type === 'change') ? DataSetSelection.multiple : false,
   autoQuery: !!nominationHeaderId,
   paging: false,
   primaryKey: 'nominationSupLineId',
@@ -118,7 +118,7 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
       params: {
         ...params,
         nominationHeaderId,
-        releaseFlag: type !== 'edit' ? '1' : undefined,
+        releaseFlag: (type !== 'edit' && type !== 'change' && type !== 'view') ? '1' : undefined,
         queryType: 'SUP_LINE',
       },
     }),

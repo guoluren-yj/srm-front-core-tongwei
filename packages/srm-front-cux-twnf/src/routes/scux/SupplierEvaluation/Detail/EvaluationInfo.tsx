@@ -9,7 +9,7 @@ interface EvaluationInfoProps {
 }
 
 const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
-  const isView = type === 'view' || type === 'readOnly';
+  const isView = type === 'view' || type === 'readOnly' || type === 'change';
   const showApprovalNote = useComputed(() => {
     if (type === 'submit' || isView) return true;
     const { current } = dataSet;
@@ -19,7 +19,7 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
     return false;
   }, [dataSet, type]);
   const readOnly = type !== 'edit';
-  const allReadOnly = ['readOnly', 'pendingReview'].includes(type);
+  const allReadOnly = ['readOnly', 'pendingReview', 'change'].includes(type);
 
   const fields = useMemo(() => {
     const baseFields = [

@@ -34,8 +34,12 @@ const TitleWithProject = observer(({ basicInfoDs, type }: any) => {
   const title = type === 'submit'
     ? intl.get(`${prefix}.view.submitTitle`).d('入围单提交')
     : (type === 'view' || type === 'readOnly')
-      ? intl.get(`${prefix}.view.viewTitle`).d('入围查看')
-      : intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
+      ? intl.get(`${prefix}.view.viewTitle`).d('入围单查看')
+      : (type === 'change')
+        ? intl.get(`${prefix}.view.changeTitle`).d('入围单变更')
+        : (type === 'pendingReview')
+          ? intl.get(`${prefix}.view.reviewTitle`).d('入围单评审')
+          : intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
   return (
     <span>
       {title}
@@ -62,7 +66,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
     supplierListDs.setState('nominationHeaderId', nominationHeaderId)
   }, []);
 
-  const readOnly = type !== 'edit';
+  const readOnly = type !== 'edit' && type !== 'change';
 
   const backPath = useMemo(() => '/scux/supplier-evaluation/list', []);
 
