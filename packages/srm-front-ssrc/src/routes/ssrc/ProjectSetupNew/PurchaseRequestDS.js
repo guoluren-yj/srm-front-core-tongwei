@@ -243,7 +243,7 @@ const PurchaseRequestDS = () => {
             ...data,
             erpControlFlag: 1,
             prCustomizeFilterFlag: 1,
-            sourceDocumentType: 'NEW_BID',
+            sourceDocumentType: 'PROJECT',
             customizeUnitCode: `SSRC.PROJECT_SETUP.APPLY_TO_PROJECT_NEW.FILTER,SSRC.PROJECT_SETUP.APPLY_TO_PROJECT_NEW.LIST`,
           },
         };
