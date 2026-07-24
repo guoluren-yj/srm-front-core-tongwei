@@ -466,7 +466,7 @@ class ProjectSetup extends Component {
       prLineIdList: selectedRowKeys,
       customizeUnitCode: 'SSRC.PROJECT_SETUP.APPLY_TO_PROJECT_NEW.LIST',
       configCenterCode: 'SITE.SSRC.PROJECT_PURCHASE_MERGE_RULE',
-      sourceDocumentType: 'PROJECT',
+      sourceDocumentType: 'NEW_BID',
     });
     if (getResponse(res)) {
       const onOk = () => {
