@@ -22,8 +22,9 @@ const BaseInfo: React.FC<any> = () => {
       labelLayout={LabelLayout.float}
     >
       <TextField name="techFileNum" />
-      <TextField name="confirmedByName" />
-      <TextField name="confirmedDate" />
+      {/* <TextField name="confirmedByName" />
+      <TextField name="confirmedDate" /> */}
+      <TextField name="technicalManager" />
       <Select name="techFileStatus" />
       <TextArea name="remark" resize={ResizeType.vertical} newLine colSpan={2} />
     </Form>
@@ -36,9 +37,10 @@ const BaseInfo: React.FC<any> = () => {
       className="c7n-pro-vertical-form-display"
     >
       <Output name="techFileNum" />
-      <Output name="confirmedByName" />
+      {/* <Output name="confirmedByName" /> */}
+      <Output name="technicalManager" />
       <Output name="techFileStatus" />
-      <Output name="confirmedDate" />
+      {/* <Output name="confirmedDate" /> */}
       <Output name="remark" newLine colSpan={2} />
     </Form>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { DataSet, Table, Button, Modal } from 'choerodon-ui/pro';
-import { Collapse } from 'choerodon-ui';
+import { Collapse, Alert } from 'choerodon-ui';
 
 import {
   prefix,
@@ -55,10 +55,10 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'financeAvgLiabilityRatio', _type: 'NumberField', disabled: true },
     { name: 'financeAvgRevenueRatio', _type: 'NumberField', disabled: true },
     { name: 'empty', _type: 'empty' },
-    { name: 'financeReviewDesc', _type: 'TextArea', colSpan: 2 },
     { name: 'financeReviewResult', _type: 'Select' },
-    { name: 'financeSubmitUserName', _type: 'TextField', disabled: true },
-    { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
+    { name: 'financeReviewDesc', _type: 'TextArea', colSpan: 2 },
+    // { name: 'financeSubmitUserName', _type: 'TextField', disabled: true },
+    // { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
@@ -98,6 +98,12 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
       <div className={styles['detail-container']}>
         <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['reviewInfo', 'reviewResult']}>
           <Panel header={intl.get(`${prefix}.view.panel.financeReviewInfo`).d('评审信息')} key="reviewInfo">
+            <Alert
+              type="info"
+              showIcon
+              message={intl.get(`${prefix}.tip.financeReviewInfo`).d('财务信息有且必须维护一行')}
+              style={{ marginBottom: 8 }}
+            />
             <Table
               dataSet={infoDs}
               columns={infoColumns}

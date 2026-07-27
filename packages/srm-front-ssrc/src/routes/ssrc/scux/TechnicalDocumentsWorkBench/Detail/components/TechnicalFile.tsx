@@ -37,10 +37,10 @@ const BidPlanNode = () => {
         editor: editorFlag,
         width: 100,
       },
-      {
-        name: 'submittedByName',
-        width: 120,
-      },
+      // {
+      //   name: 'submittedByName',
+      //   width: 120,
+      // },
       {
         name: 'submittedDate',
         width: 130,
@@ -95,9 +95,9 @@ const BidPlanNode = () => {
         onClick: handleDelete,
       }],
     ] : [
-      <Button icon="file_download_black-o" wait={1000} onClick={handleDownloadAttachment}>
-        {intl.get('scux.technicalDocumentsDetail.view.button.downloadAttachment').d('附件下载')}
-      </Button>
+      // <Button icon="file_download_black-o" wait={1000} onClick={handleDownloadAttachment}>
+      //   {intl.get('scux.technicalDocumentsDetail.view.button.downloadAttachment').d('附件下载')}
+      // </Button>
     ]
   }, [editorFlag]);
 

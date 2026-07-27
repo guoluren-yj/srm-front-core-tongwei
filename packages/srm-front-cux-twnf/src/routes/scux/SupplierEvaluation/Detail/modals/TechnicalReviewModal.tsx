@@ -1,6 +1,6 @@
 import React from 'react';
 import { DataSet, Table, Button, Modal } from 'choerodon-ui/pro';
-import { Collapse } from 'choerodon-ui';
+import { Collapse, Alert } from 'choerodon-ui';
 
 import {
   prefix,
@@ -83,29 +83,13 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
 
   const caseButtons = isReadOnly ? [] : [TableButtonType.add, TableButtonType.delete];
 
-  const reviewFormFields = [
-    { name: 'techCapability', _type: 'TextField' },
-    { name: 'techCapabilityMeet', _type: 'Select' },
-    { name: 'techCapabilityDesc', _type: 'TextField' },
-    { name: 'techQualityControl', _type: 'TextField' },
-    { name: 'techQualityControlMeet', _type: 'Select' },
-    { name: 'techQualityControlDesc', _type: 'TextField' },
-    { name: 'techPreparationCycle', _type: 'TextField' },
-    { name: 'techPreparationCycleMeet', _type: 'Select' },
-    { name: 'techPreparationCycleDesc', _type: 'TextField' },
-    { name: 'techCaseQuantity', _type: 'TextField' },
-    { name: 'techCaseQuantityMeet', _type: 'Select' },
-    { name: 'techCaseQuantityDesc', _type: 'TextField' },
-    { name: 'techWarrantyPolicy', _type: 'TextField' },
-    { name: 'techWarrantyPolicyMeet', _type: 'Select' },
-    { name: 'techWarrantyPolicyDesc', _type: 'TextField' },
-    { name: 'techSalesResponse', _type: 'TextField' },
-    { name: 'techSalesResponseMeet', _type: 'Select' },
-    { name: 'techSalesResponseDesc', _type: 'TextField' },
-    { name: 'techInspectionEvaluation', _type: 'TextField' },
-    { name: 'techInspectionMethod', _type: 'Select' },
-    { name: 'empty', _type: 'empty' },
-    { name: 'techInspectionEvaluationDesc', _type: 'TextArea', colSpan: 2 },
+  const reviewCards = [
+    { title: intl.get(`${prefix}.field.techCapability`).d('技术/方案能力'), meet: 'techCapabilityMeet', desc: 'techCapabilityDesc' },
+    { title: intl.get(`${prefix}.field.techQualityControl`).d('质量控制'), meet: 'techQualityControlMeet', desc: 'techQualityControlDesc' },
+    { title: intl.get(`${prefix}.field.techPreparationCycle`).d('备货周期'), meet: 'techPreparationCycleMeet', desc: 'techPreparationCycleDesc' },
+    { title: intl.get(`${prefix}.field.techCaseQuantity`).d('案例数量'), meet: 'techCaseQuantityMeet', desc: 'techCaseQuantityDesc' },
+    { title: intl.get(`${prefix}.field.techWarrantyPolicy`).d('质保政策'), meet: 'techWarrantyPolicyMeet', desc: 'techWarrantyPolicyDesc' },
+    { title: intl.get(`${prefix}.field.techSalesResponse`).d('售后响应'), meet: 'techSalesResponseMeet', desc: 'techSalesResponseDesc' },
   ];
 
   const resultFields = [
@@ -120,6 +104,12 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
       formDs.validate(),
     ]);
     if (!valid.every(Boolean)) {
+      return false;
+    }
+    if (caseDs.length === 0) {
+      notification.warning({
+        message: intl.get(`${prefix}.message.techReviewInfoRequired`).d('技术评审信息有且必须维护一行'),
+      });
       return false;
     }
     const res = await supplierEvaluationDetailPostApi({ technologyReviewInfo: { nominationHeaderId, nominationSupLineId, ...formDs.current?.toJSONData(), techReviewLineList: caseDs.toData(), } }, !!submitFlag ? 'TECH_REVIEW_SUBMIT' : 'TECH_REVIEW_SAVE');
@@ -161,6 +151,12 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
           />
         </Panel> */}
         <Panel header={intl.get(`${prefix}.view.panel.technicalReviewInfo`).d('技术评审信息')} key="technicalReviewInfo">
+          <Alert
+            type="info"
+            showIcon
+            message={intl.get(`${prefix}.tip.techReviewInfo`).d('技术评审信息有且必须维护一行')}
+            style={{ marginBottom: 8 }}
+          />
           <Table
             dataSet={caseDs}
             columns={caseColumns}
@@ -168,12 +164,34 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
             style={{ marginBottom: 16 }}
             customizedCode="technicalReviewCase"
           />
-          <FormPro
-            dataSet={formDs}
-            columns={3}
-            fields={reviewFormFields}
-            readOnly={isReadOnly}
-          />
+          {reviewCards.map((card) => (
+            <div key={card.meet} style={{ marginBottom: 12 }}>
+              <div className={styles['review-card-title']}>{card.title}</div>
+              <FormPro
+                dataSet={formDs}
+                columns={2}
+                fields={[
+                  { name: card.meet, _type: 'Select' },
+                  { name: card.desc, _type: 'TextField' },
+                ]}
+                readOnly={isReadOnly}
+              />
+            </div>
+          ))}
+          <div style={{ marginBottom: 12 }}>
+            <div className={styles['review-card-title']}>
+              {intl.get(`${prefix}.field.techInspectionEvaluation`).d('考察评价')}
+            </div>
+            <FormPro
+              dataSet={formDs}
+              columns={2}
+              fields={[
+                { name: 'techInspectionMethod', _type: 'Select' },
+                { name: 'techInspectionEvaluationDesc', _type: 'TextArea' },
+              ]}
+              readOnly={isReadOnly}
+            />
+          </div>
         </Panel>
         <Panel header={intl.get(`${prefix}.view.panel.reviewResult`).d('技术入围评审结果')} key="reviewResult">
           <FormPro

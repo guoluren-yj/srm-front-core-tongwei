@@ -25,22 +25,27 @@ const baseInfoDS = ({ techFileId }): DataSetProps => {
       },
       {
         name: 'manager',
-        label: intl.get('scux.technicalDocumentsDetail.model.twnf.biddingPrincipal').d('招标负责人'),
+        label: intl.get('scux.technicalDocumentsDetail.model.twnf.biddingPrincipal').d('招标经理'),
       },
       {
         name: 'techFileNum',
         label: intl.get('scux.technicalDocumentsDetail.model.twnf.techFileNum').d('技术文件编码'),
         disabled: true,
       },
+      // {
+      //   name: 'confirmedByName',
+      //   label: intl.get('scux.technicalDocumentsDetail.model.twnf.confirmedByName').d('确认人'),
+      //   disabled: true,
+      // },
+      // {
+      //   name: 'confirmedDate',
+      //   label: intl.get('scux.technicalDocumentsDetail.model.twnf.confirmedDate').d('最后确认日期'),
+      //   type: FieldType.date,
+      //   disabled: true,
+      // },
       {
-        name: 'confirmedByName',
-        label: intl.get('scux.technicalDocumentsDetail.model.twnf.confirmedByName').d('确认人'),
-        disabled: true,
-      },
-      {
-        name: 'confirmedDate',
-        label: intl.get('scux.technicalDocumentsDetail.model.twnf.confirmedDate').d('最后确认日期'),
-        type: FieldType.date,
+        name: 'technicalManager',
+        label: intl.get('scux.technicalDocumentsDetail.model.twnf.technicalManager').d('技术负责人'),
         disabled: true,
       },
       {
@@ -99,10 +104,10 @@ const technicalFileDS = (): DataSetProps => {
         bucketName: PRIVATE_BUCKET,
         bucketDirectory: 'ssrc-rfx-rfxheader',
       },
-      {
-        name: 'submittedByName',
-        label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedBy`).d('提交人'),
-      },
+      // {
+      //   name: 'submittedByName',
+      //   label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedBy`).d('提交人'),
+      // },
       {
         name: 'submittedDate',
         label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedDate`).d('提交时间'),
@@ -215,10 +220,14 @@ const bidPlanContentDS = ({ sourceProjectId }): DataSetProps => {
       },
     ],
     transport: {
-      read: ({}) => {
+      read: ({ params }) => {
         return {
           url: `${SRM_SSRC}/v1/${getCurrentOrganizationId()}/source-projects/${sourceProjectId}/items`,
           method: 'GET',
+          params: {
+            ...params,
+            attributeVarchar10: 0,
+          },
         };
       },
     },

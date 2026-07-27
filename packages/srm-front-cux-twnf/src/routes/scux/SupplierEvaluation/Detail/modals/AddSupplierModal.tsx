@@ -32,7 +32,7 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
 
   const technicalColumns = [
     { name: 'seqNum', width: 80 },
-    { name: 'mainCategoryName', width: 200 },
+    // { name: 'mainCategoryName', width: 200 },
     { name: 'qualificationType', width: 150 },
     { name: 'qualificationGrade', width: 150 },
   ];
@@ -40,6 +40,7 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
   const supplierColumns = [
     { name: 'supplierCompanyName', width: 200 },
     { name: 'supplierCompanyNum', width: 150 },
+    { name: 'stageDescription', width: 150 },
     { name: 'registeredCapital', width: 120 },
     { name: 'paidInCapital', width: 120 },
     { name: 'buildDate', width: 120 },

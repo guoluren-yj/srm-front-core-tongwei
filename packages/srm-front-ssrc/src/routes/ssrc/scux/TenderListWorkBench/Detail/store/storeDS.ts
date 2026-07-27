@@ -32,7 +32,7 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
       },
       {
         name: 'bidDirectorName',
-        label: intl.get('scux.tenderDetail.model.twnf.biddingPrincipal').d('招标负责人'),
+        label: intl.get('scux.tenderDetail.model.twnf.createdByName').d('招标经理'),
       },
       {
         name: 'catelogNum',
@@ -40,7 +40,7 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
       },
       {
         name: 'createdByName',
-        label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('创建人'),
+        label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('清单负责人'),
       },
       {
         name: 'creationDate',
@@ -212,10 +212,14 @@ const bidPlanContentDS = ({ sourceProjectId }): DataSetProps => {
       },
     ],
     transport: {
-      read: ({}) => {
+      read: ({ params }) => {
         return {
           url: `${SRM_SSRC}/v1/${getCurrentOrganizationId()}/source-projects/${sourceProjectId}/items`,
           method: 'GET',
+          params: {
+            ...params,
+            attributeVarchar10: 0,
+          },
         };
       },
     },
@@ -305,21 +309,20 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
         required: true,
         type: FieldType.number,
       },
-      // {
-      //   name: 'taxId',
-      //   label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.taxRate').d('税率'),
-      //   required: true,
-      //   type: FieldType.object,
-      //   lovCode: 'SMDM.TAX',
-      //   transformRequest: (value) => value?.taxId,
-      //   transformResponse: (value, data) => {
-      //     return value ? { taxId: value, taxRate: data.taxRate } : null;
-      //   },
-      // },
-      // {
-      //   name: 'taxRate',
-      //   bind: 'taxId.taxRate',
-      // },
+      {
+        name: 'taxId',
+        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.taxRate').d('税率'),
+        type: FieldType.object,
+        lovCode: 'SMDM.TAX',
+        transformRequest: (value) => value?.taxId,
+        transformResponse: (value, data) => {
+          return value ? { taxId: value, taxRate: data.taxRate } : null;
+        },
+      },
+      {
+        name: 'taxRate',
+        bind: 'taxId.taxRate',
+      },
       {
         name: 'remark',
         label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.remark').d('备注'),

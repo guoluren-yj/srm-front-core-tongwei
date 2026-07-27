@@ -27,7 +27,7 @@ const BaseInfo: React.FC<any> = () => {
       <Output name="sourceProjectName" />
       <Output name="templateName" />
       <Output name="sourceProjectNum" />
-      <Output name="bidDirectorName" />
+      <Output name="bidDirectorName" renderer={({ record }) => record?.get('createdByName') || '-'} />
       <Output name="catelogNum" />
       <Output name="createdByName" />
       <Output name="creationDate" />

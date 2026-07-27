@@ -19,7 +19,7 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
     return false;
   }, [dataSet, type]);
   const readOnly = type !== 'edit';
-  const allReadOnly = ['readOnly', 'pendingReview', 'change'].includes(type);
+  const allReadOnly = ['view', 'readOnly', 'pendingReview', 'change'].includes(type);
 
   const fields = useMemo(() => {
     const baseFields = [
@@ -28,12 +28,13 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'creationDate', _type: 'DateTimePicker', disabled: true },
       { name: 'createdByName', _type: 'TextField', disabled: true },
       { name: 'technicalPersonName', _type: 'TextField', disabled: true },
+      { name: 'bidDirectorName', _type: 'TextField', disabled: true, label: '入围负责人' },
       { name: 'financePersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'supManagerPersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'functionalHeadUserLov', _type: 'Lov', disabled: readOnly },
       { name: 'positionLov', _type: 'Lov', disabled: readOnly },
       { name: 'caseRequirementCount', _type: 'NumberField', disabled: readOnly },
-      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 3, disabled: readOnly },
+      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 3, newLine: true, disabled: readOnly },
       showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: type !== 'submit', required: type === 'submit', colSpan: 3 },
       isView && { name: 'fbcNumber', _type: 'TextField', disabled: true, colSpan: 1,
         renderer: ({ value, dataSet: ds }: any) => {

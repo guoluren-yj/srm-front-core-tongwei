@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, } from 'react';
+import React, { useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Table, Button, useDataSet, Modal, DataSet } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
@@ -20,7 +20,7 @@ interface DetailMaintenanceProps {
   sectionName?: string;
 };
 
-const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
+function DetailMaintenanceInner(props: any, ref: any) {
 
   const { bidCatalogSectionId, baseInfoDs, editorFlag, sectionName } = props;
   // 明细维护 ds
@@ -92,10 +92,10 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
         name: 'quantity',
         editor: editorFlag,
       },
-      // {
-      //   name: 'taxId',
-      //   editor: editorFlag,
-      // },
+      {
+        name: 'taxId',
+        editor: editorFlag,
+      },
       {
         name: 'quotationTemplateIdLov',
         editor: editorFlag,
@@ -163,11 +163,16 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
         icon: 'delete_sweep',
         onClick: handleDelete,
       }],
-      <Button funcType={FuncType.link} wait={1000} onClick={handleSaveLine}>
-        {intl.get('hzero.common.button.save').d('保存')}
-      </Button>,
+      ['save', {
+        icon: 'save',
+        onClick: handleSaveLine,
+      }],
     ] : [];
   }, [handleDelete, handleSaveLine, sectionName, detailMaintenanceDs]);
+
+  useImperativeHandle(ref, () => ({
+    save: handleSaveLine,
+  }), [handleSaveLine]);
 
   return (
     <Table
@@ -178,5 +183,7 @@ const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
     />
   );
 };
+
+const DetailMaintenance = forwardRef(DetailMaintenanceInner);
 
 export default DetailMaintenance;

@@ -28,28 +28,18 @@ const getDefaultActiveKey = (type: string) => {
 };
 const { Panel } = Collapse;
 
-const TitleWithProject = observer(({ basicInfoDs, type }: any) => {
+const getPageTitle = (type: string) => {
+  if (type === 'submit') return intl.get(`${prefix}.view.submitTitle`).d('入围单提交');
+  if (type === 'view' || type === 'readOnly') return intl.get(`${prefix}.view.viewTitle`).d('入围单查看');
+  if (type === 'change') return intl.get(`${prefix}.view.changeTitle`).d('入围单变更');
+  if (type === 'pendingReview') return intl.get(`${prefix}.view.reviewTitle`).d('入围单评审');
+  return intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
+};
+
+const BasicInfoHeader = observer(({ basicInfoDs }: any) => {
   const num = basicInfoDs.current?.get('sourceProjectNum');
   const name = basicInfoDs.current?.get('sourceProjectName');
-  const title = type === 'submit'
-    ? intl.get(`${prefix}.view.submitTitle`).d('入围单提交')
-    : (type === 'view' || type === 'readOnly')
-      ? intl.get(`${prefix}.view.viewTitle`).d('入围单查看')
-      : (type === 'change')
-        ? intl.get(`${prefix}.view.changeTitle`).d('入围单变更')
-        : (type === 'pendingReview')
-          ? intl.get(`${prefix}.view.reviewTitle`).d('入围单评审')
-          : intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
-  return (
-    <span>
-      {title}
-      {(num || name) && (
-        <span style={{ marginLeft: 16, fontSize: 14, color: '#666' }}>
-          {num} - {name}
-        </span>
-      )}
-    </span>
-  );
+  return (num || name) && (<span>{num} - {name}</span>);
 });
 
 const SupplierEvaluationDetail = ({ location, history }: any) => {
@@ -129,9 +119,9 @@ const handleBusinessStandard = useCallback(() => {
         name: 'valueCode',
         header: '入围要求',
         width: 200,
-        editor: (record: any) => record.get('isRequired') === '1',
+        editor: true,
       },
-      { name: 'isRequired', header: '是否要求', width: 80, editor: (record: any) => !record.get('requiredLocked') },
+      { name: 'isRequired', header: '是否要求', width: 80, editor: true },
     ];
 
     const handleOk = async () => {
@@ -351,7 +341,7 @@ const handleBusinessStandard = useCallback(() => {
       {
         key: 'basicInfo',
         content: (
-          <Panel key="basicInfo" header={intl.get(`${prefix}.view.panel.basicInfo`).d('基础信息')}>
+          <Panel key="basicInfo" header={<BasicInfoHeader basicInfoDs={basicInfoDs} />}>
             <BasicInfo dataSet={basicInfoDs} />
           </Panel>
         ),
@@ -377,7 +367,7 @@ const handleBusinessStandard = useCallback(() => {
 
   return (
     <>
-      <Header backPath={backPath} title={<TitleWithProject basicInfoDs={basicInfoDs} type={type} />}>
+      <Header backPath={backPath} title={getPageTitle(type)}>
         <HeaderButtons />
       </Header>
       <Content>

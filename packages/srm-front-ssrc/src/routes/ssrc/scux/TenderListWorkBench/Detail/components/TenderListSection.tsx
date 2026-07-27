@@ -1,30 +1,36 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Table, Button, Modal } from 'choerodon-ui/pro';
 import { Alert } from 'choerodon-ui';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { isEmpty } from 'lodash';
-import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
+import { FuncType, ButtonColor } from 'choerodon-ui/pro/lib/button/enum';
 
 import intl from 'utils/intl';
+import notification from 'utils/notification';
+import { getResponse } from 'utils/utils';
 
 import { useStore } from '../store/StoreProvider';
 import DetailMaintenance from './DetailMaintenance';
+import { tenderListBillCommonApi } from '../../api';
 
 const TenderListSection = () => {
 
   const {
     commonDs: { baseInfoDs, tenderListSectionDs } = {},
     editorFlag,
+    initData = () => {},
   } = useStore();
 
   if (!tenderListSectionDs) return null;
+
+  const detailRef = useRef<any>(null);
 
   // 打开明细维护弹框
   const handleOpenDetail = (record) => {
     const bidCatalogSectionId = record.get('bidCatalogSectionId');
     const sectionName = record.get('sectionName');
     if (!baseInfoDs) return;
-    Modal.open({
+    const modal = Modal.open({
       title: editorFlag ? intl.get('ssrc.tenderDetail.view.title.detailEdit').d('明细维护') : intl.get('ssrc.tenderDetail.view.title.viewDetail').d('明细查看'),
       drawer: true,
       destroyOnClose: true,
@@ -32,9 +38,21 @@ const TenderListSection = () => {
       style: {
         width: 850,
       },
-      okButton: false,
-      cancelText: intl.get('hzero.common.button.close').d('关闭'),
-      children: <DetailMaintenance baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} sectionName={sectionName} />,
+      footer: (okBtn: any, cancelBtn: any) => (
+        <>
+          <Button
+            color={ButtonColor.primary}
+            onClick={async () => {
+              await detailRef.current?.save();
+              modal.close();
+            }}
+          >
+            {intl.get('hzero.common.button.ok').d('确认')}
+          </Button>
+          {cancelBtn}
+        </>
+      ),
+      children: <DetailMaintenance ref={detailRef} baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} sectionName={sectionName} />,
     });
   };
 
@@ -93,6 +111,25 @@ const TenderListSection = () => {
   };
 
   const catalogStatus = baseInfoDs?.current?.get('catalogStatus');
+
+  const handleSave = async () => {
+    if (!tenderListSectionDs?.length) {
+      notification.warning({
+        message: intl.get('scux.tenderDetail.view.tip.sectionRequired').d('至少维护一条标段数据'),
+      });
+      return;
+    }
+    const res = await tenderListBillCommonApi({
+      operationType: 'SAVE_CATALOG',
+      catalogHeader: baseInfoDs?.current?.toData() || {},
+      sectionList: tenderListSectionDs?.toData(),
+    });
+    if (getResponse(res)) {
+      notification.success({});
+      initData();
+    }
+  };
+
   const buttons : any[] = useMemo(() => {
     if (!editorFlag || catalogStatus === 'SOURCE_CHANGING') return [];
     return [
@@ -100,6 +137,10 @@ const TenderListSection = () => {
       ['delete', {
         icon: 'delete_sweep',
         onClick: handleDelete,
+      }],
+      ['save', {
+        icon: 'save',
+        onClick: handleSave,
       }],
     ];
   }, [editorFlag, catalogStatus]);

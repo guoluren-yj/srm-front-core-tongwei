@@ -118,12 +118,22 @@ const SupplierEvaluationList = ({ history }: any) => {
           name: 'action',
           title: intl.get(`${prefix}.field.action`).d('操作'),
           align: 'center',
-          width: 100,
-          renderer: ({ record }: any) => (
-            <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
-              {intl.get(`${prefix}.button.review`).d('评审')}
-            </Button>
-          ),
+          width: 200,
+          renderer: ({ record }: any) => {
+            const isChanging = record.get('nominationStatus') === 'CHANGING';
+            return (
+              <>
+                {isChanging && (
+                  <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
+                    {intl.get(`${prefix}.button.change`).d('变更')}
+                  </Button>
+                )}
+                <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
+                  {intl.get(`${prefix}.button.review`).d('评审')}
+                </Button>
+              </>
+            );
+          },
         },
         { name: 'nominationNum', width: 160, renderer: renderNominationNum },
         { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },

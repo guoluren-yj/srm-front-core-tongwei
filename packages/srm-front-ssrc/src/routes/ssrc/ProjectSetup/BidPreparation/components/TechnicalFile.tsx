@@ -23,10 +23,10 @@ const TechnicalFile:React.FC<TechnicalFileProps> = (props) => {
         name: 'attachmentUuid',
         width: 100,
       },
-      {
-        name: 'submittedByName',
-        width: 120,
-      },
+      // {
+      //   name: 'submittedByName',
+      //   width: 120,
+      // },
       {
         name: 'submittedDate',
         width: 130,

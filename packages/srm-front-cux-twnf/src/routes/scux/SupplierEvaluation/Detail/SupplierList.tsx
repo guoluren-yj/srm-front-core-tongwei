@@ -13,7 +13,7 @@ import {
   openFinanceReviewModal,
   openAddSupplierModal,
 } from './modals';
-import { supplierEvaluationDetailPostApi, queryRiskMonitorType, riskEmbedPage } from '../../../../services/scux/supplierEvaluationServices';
+import { supplierEvaluationDetailPostApi, supplierEvaluationPostApi, queryRiskMonitorType, riskEmbedPage } from '../../../../services/scux/supplierEvaluationServices';
 import { getResponse } from 'hzero-front/lib/utils/utils';
 import notification from 'hzero-front/lib/utils/notification';
 
@@ -93,7 +93,8 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     }
   };
 
-  const isNew = basicInfoDs?.current?.get('nominationStatus') === 'NEW';
+  const nominationStatus = basicInfoDs?.current?.get('nominationStatus');
+  const isNew = nominationStatus === 'NEW';
   const clickableReview = type === 'submit' || type === 'view' || type === 'readOnly';
 
   // 操作列按钮数量
@@ -180,7 +181,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       ),
     },
     { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
-    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && {
+    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && nominationStatus === 'PENDING_REVIEW' && {
       name: 'action',
       header: intl.get(`${prefix}.button.operation`).d('操作'),
       width: btnCount * 90,
@@ -210,6 +211,22 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
 
   const hasEmptyReview = dataSet.some((r: any) => !r.get('technologyReviewResult') || !r.get('businessReviewResult') || !r.get('financeReviewResult'));
 
+  const handleSaveLine = async () => {
+    if (dataSet.length === 0) {
+      notification.warning({
+        message: intl.get(`${prefix}.message.supplierRequired`).d('至少维护一条供应商数据'),
+      });
+      return;
+    }
+    const nominationHeaderId = dataSet.getState('nominationHeaderId');
+    const supplierLineList = dataSet?.toData() || [];
+    const res = await supplierEvaluationPostApi({ nominationHeader: { nominationHeaderId }, supplierLineList }, 'SAVE_NOMINATION_LINE');
+    if (getResponse(res)) {
+      notification.success({});
+      dataSet.query();
+    }
+  };
+
   const buttons = useMemo(() => {
     const btns: any[] = [];
     if (type === 'edit' || type === 'change') {
@@ -237,6 +254,14 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
           key="delete"
         >
           {intl.get('hzero.common.button.delete').d('删除')}
+        </Button>,
+        <Button
+          funcType={FuncType.flat}
+          onClick={handleSaveLine}
+          icon="save"
+          key="saveLine"
+        >
+          {intl.get('hzero.common.button.save').d('保存')}
         </Button>
       );
       if (type === 'edit') {
@@ -244,6 +269,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
           <Button
             funcType={FuncType.flat}
             onClick={onBusinessStandard}
+            icon="settings"
             key="businessStandard"
           >
             {intl.get(`${prefix}.button.businessStandard`).d('商务入围标准设置')}
@@ -251,6 +277,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
           <Button
             funcType={FuncType.flat}
             onClick={onTechnicalStandard}
+            icon="settings"
             key="technicalStandard"
           >
             {intl.get(`${prefix}.button.technicalStandard`).d('技术入围标准设置')}
@@ -258,7 +285,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         );
       }
     }
-    if ((clickableReview || type === 'pendingReview') && hasEmptyReview) {
+    if (type === 'view' && nominationStatus === 'PENDING_REVIEW' && hasEmptyReview) {
       btns.push(
         <Button
           funcType={FuncType.flat}

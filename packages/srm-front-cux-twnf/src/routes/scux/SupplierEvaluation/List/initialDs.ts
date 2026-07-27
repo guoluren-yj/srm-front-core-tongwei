@@ -89,7 +89,7 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
       type: FieldType.object,
       lovCode: 'SCUX.HPFM.TW..EMPLOYEE',
       display: true,
-      label: intl.get(`${prefix}.field.tenderManager`).d('招标经理'),
+      label: intl.get(`${prefix}.field.tenderManager`).d('入围负责人'),
     },
     {
       name: 'createStartDate',
@@ -116,7 +116,7 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'templateId', type: FieldType.number, label: intl.get(`${prefix}.field.templateId`).d('招标流程') },
     { name: 'templateName', type: FieldType.string, label: intl.get(`${prefix}.field.templateName`).d('招标流程') },
     { name: 'bidDirector', type: FieldType.number, label: intl.get(`${prefix}.field.bidDirector`).d('招标经理ID') },
-    { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('招标经理') },
+    { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('入围负责人') },
     { name: 'financePersonName', type: FieldType.string, label: intl.get(`${prefix}.field.financePersonName`).d('财务人员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
     { name: 'technicalPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPersonName`).d('技术人员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
     { name: 'supManagerPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.supManagerPersonName`).d('供应商专管员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },

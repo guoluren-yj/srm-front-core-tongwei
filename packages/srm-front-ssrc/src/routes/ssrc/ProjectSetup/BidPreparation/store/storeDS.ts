@@ -96,10 +96,10 @@ export const technicalFileDS = (): DataSetProps => {
         bucketName: PRIVATE_BUCKET,
         bucketDirectory: 'ssrc-rfx-rfxheader',
       },
-      {
-        name: 'submittedByName',
-        label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedBy`).d('提交人'),
-      },
+      // {
+      //   name: 'submittedByName',
+      //   label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedBy`).d('提交人'),
+      // },
       {
         name: 'submittedDate',
         label: intl.get(`scux.technicalDocumentsDetail.model.twnf.technicalFile.submittedDate`).d('提交时间'),
