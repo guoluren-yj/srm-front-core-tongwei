@@ -141,6 +141,7 @@ const BidManagementAttachment = (props) => {
       },
       {
         name: 'attributeLongtext1',
+        editor: (record) => record.get('attributeVarchar1') === '0',
       },
     ],
     []

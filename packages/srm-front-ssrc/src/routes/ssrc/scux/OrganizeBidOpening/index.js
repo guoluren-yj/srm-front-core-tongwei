@@ -90,7 +90,7 @@ const OrganizeBidOpening = (props) => {
         const res = getResponse(await checkDrawLots({ rfxHeaderId }));
         if (res) {
           notification.success();
-          openBidListDs.query();
+          history.push('/ssrc/new-bid-hall/list');
         }
         return false;
       },
@@ -195,7 +195,7 @@ const OrganizeBidOpening = (props) => {
               child: intl.get(`${prefix}.view.message.button.openingBid`).d('开标'),
               btnProps: {
                 wait: 1500,
-                funcType: 'flat',
+                color: 'primary',
                 onClick: handleCuxOpenBid,
               },
             },

@@ -1741,7 +1741,7 @@ class InquiryHall extends React.Component {
   openCuxBidConfirmNode = (record) => {
     const { rfxHeaderId, attributeVarchar20, openEnabledFlag, rfxStatus } =
       record.get(['rfxHeaderId', 'attributeVarchar20', 'openEnabledFlag', 'rfxStatus']) || {};
-    if (attributeVarchar20 === 'BIDCONFIRM' || Number(openEnabledFlag) !== 1 || rfxStatus !== 'OPEN_BID_PENDING') return null;
+    if (attributeVarchar20 === 'BIDCONFIRM' || attributeVarchar20 === 'SORTITION' || Number(openEnabledFlag) !== 1 || rfxStatus !== 'OPEN_BID_PENDING') return null;
     return (
       <div>
         <a
@@ -5083,7 +5083,7 @@ class InquiryHall extends React.Component {
         pathname: `/scux/ssrc/bid-evaluation-management/list`,
         search: querystring.stringify({
           positionTab: 'toBeEvaluated',
-          sourceNum: record.get('rfxNum'),
+          sourceNum: record.rfxNum,
         }),
       });
       return;
