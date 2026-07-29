@@ -3,12 +3,12 @@ import axios from 'axios';
 import { Table, DataSet, Modal } from 'choerodon-ui/pro';
 import { Popconfirm } from 'choerodon-ui';
 import type { ColumnProps } from 'choerodon-ui/pro/lib/table/Column';
-import intl from 'utils/intl';
-import { TagRender } from 'utils/renderer';
-import { getEnvConfig } from 'utils/iocUtils';
-import { downloadFileByAxios } from 'services/api';
-import notification from 'utils/notification';
-import { getCurrentOrganizationId, getResponse } from 'utils/utils';
+import intl from 'hzero-front/lib/utils/intl';
+import { TagRender } from 'hzero-front/lib/utils/renderer';
+import { getEnvConfig } from 'hzero-front/lib/utils/iocUtils';
+import { downloadFileByAxios } from 'hzero-front/lib/services/api';
+import notification from 'hzero-front/lib/utils/notification';
+import { getCurrentOrganizationId, getResponse } from 'hzero-front/lib/utils/utils';
 import { exportHistoryDS } from './exportDS';
 
 const { HZERO_PLATFORM, HZERO_FILE, BKT_PLATFORM } = getEnvConfig();

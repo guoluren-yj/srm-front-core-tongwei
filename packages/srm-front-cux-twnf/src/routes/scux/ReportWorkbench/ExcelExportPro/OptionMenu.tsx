@@ -3,7 +3,7 @@ import { Dropdown, Modal, DataSet } from 'choerodon-ui/pro';
 import { Icon, Menu } from 'choerodon-ui';
 import { Action } from 'choerodon-ui/pro/lib/trigger/enum';
 import { FieldType } from 'choerodon-ui/pro/lib/data-set/enum';
-import intl from 'utils/intl';
+import intl from 'hzero-front/lib/utils/intl';
 import RenameModal from './RenameModal';
 import { ExportTemplateTypeEnum } from './util';
 
@@ -28,7 +28,7 @@ const OptionMenu: React.FC<any> = (props) => {
             if (value && (value[0] === '\'' || value[value.length - 1] === '\'')) {
               return intl.get('hzero.common.components.export.v.hd.rename.template.invalidDot').d('名称不能以单引号开头或结尾');
             }
-          },  
+          },
         },
       ],
       data: [{ templateName: data?.templateName }],
@@ -80,14 +80,14 @@ const OptionMenu: React.FC<any> = (props) => {
       case 'setDefault':
         setDefault();
         break;
-      case 'rename': 
+      case 'rename':
         renameModal();
         break;
       case 'delete':
         deleteTemplate();
         break;
       default:
-        return;   
+        return;
     }
   };
 
@@ -129,7 +129,7 @@ const OptionMenu: React.FC<any> = (props) => {
     );
   };
 
-  return render();  
+  return render();
 };
 
 export default OptionMenu;

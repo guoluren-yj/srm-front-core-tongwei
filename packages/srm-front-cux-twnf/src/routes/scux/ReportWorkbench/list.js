@@ -4,9 +4,9 @@ import { Table, DataSet } from 'choerodon-ui/pro';
 
 import { notification } from 'choerodon-ui';
 
-import intl from 'utils/intl';
+import intl from 'hzero-front/lib/utils/intl';
 
-import { getResponse, filterNullValueObject } from 'utils/utils';
+import { getResponse, filterNullValueObject } from 'hzero-front/lib/utils/utils';
 
 import { fetchFieldList } from './server';
 

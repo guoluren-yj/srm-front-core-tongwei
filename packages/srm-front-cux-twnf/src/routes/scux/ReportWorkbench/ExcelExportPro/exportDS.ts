@@ -1,9 +1,9 @@
 import type { DataSetProps } from 'choerodon-ui/pro/lib/data-set/DataSet';
 import { isEmpty, remove } from 'lodash';
 import { DataToJSON, FieldType } from 'choerodon-ui/pro/lib/data-set/enum';
-import intl from 'utils/intl';
-import { getCurrentUser, getCurrentOrganizationId, isTenantRoleLevel } from 'utils/utils';
-import { getEnvConfig } from 'utils/iocUtils';
+import intl from 'hzero-front/lib/utils/intl';
+import { getCurrentUser, getCurrentOrganizationId, isTenantRoleLevel } from 'hzero-front/lib/utils/utils';
+import { getEnvConfig } from 'hzero-front/lib/utils/iocUtils';
 
 const { HZERO_HMDE, HZERO_PLATFORM } = getEnvConfig();
 const {
