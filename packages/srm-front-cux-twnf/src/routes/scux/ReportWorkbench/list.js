@@ -14,6 +14,8 @@ import { queryListApi, exportApi } from './constant';
 
 import ExcelExportPro from './ExcelExportPro';
 
+import { openCategoryDetail, openSupplierDetail } from './DetailModals';
+
 const List = ({ headerNum, organizationId, autoQuery, queryFieldsLimit, exportFlag }) => {
   const [Ds, setDs] = useState(null);
 
@@ -43,6 +45,15 @@ const List = ({ headerNum, organizationId, autoQuery, queryFieldsLimit, exportFl
       label: fieldName,
       type: 'string',
       width: Number(fieldLength || 100),
+      ...(fieldNum === 'categoryCode' ? {
+        renderer: ({ value, record }) => (
+          <a onClick={() => openCategoryDetail(organizationId, value, record.get('comparePeriod'))}>{value}</a>
+        ),
+      } : fieldNum === 'supplierCode' ? {
+        renderer: ({ value, record }) => (
+          <a onClick={() => openSupplierDetail(organizationId, value, record.get('comparePeriod'), record.get('compareDimension'))}>{value}</a>
+        ),
+      } : {}),
     }));
 
     const queryFields = filedQueryList.map(
