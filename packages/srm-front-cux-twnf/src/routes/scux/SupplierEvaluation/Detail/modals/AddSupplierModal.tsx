@@ -15,24 +15,26 @@ import styles from './index.less';
 
 const { Panel } = Collapse;
 
-export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds = '') => {
+export const openAddSupplierModal = (dataSet: any, basicInfoDs: any) => {
   const supplierSelectDs = new DataSet(supplierSelectDS());
   const businessStandardDs = new DataSet(supplierBusinessStandardDS(dataSet.getState('nominationHeaderId'), supplierSelectDs));
   const technicalStandardDs = new DataSet(supplierTechnicalStandardDS(dataSet.getState('nominationHeaderId')));
   supplierSelectDs.setQueryParameter('companyId', basicInfoDs.current?.get('companyId'));
-  supplierSelectDs.setQueryParameter('supplierCompanyIdList', existingIds);
 
   const businessFields = [
-    { name: 'taxLevel', _type: 'Select' },
-    { name: 'supplierRating', _type: 'Select' },
+    { name: 'taxLevel', _type: 'Select', colSpan: 2 },
+    { name: 'supplierRating', _type: 'Select', colSpan: 2 },
     { name: 'registeredCapitalFrom', _type: 'NumberField' },
+    { name: 'registeredCapitalTo', _type: 'NumberField' },
     { name: 'paidInCapitalFrom', _type: 'NumberField' },
+    { name: 'paidInCapitalTo', _type: 'NumberField' },
     { name: 'establishmentYearsFrom', _type: 'NumberField' },
+    { name: 'establishmentYearsTo', _type: 'NumberField' },
   ];
 
   const technicalColumns = [
     { name: 'seqNum', width: 80 },
-    // { name: 'mainCategoryName', width: 200 },
+    { name: 'mainCategoryName', width: 200 },
     { name: 'qualificationType', width: 150 },
     { name: 'qualificationGrade', width: 150 },
   ];
@@ -40,7 +42,6 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
   const supplierColumns = [
     { name: 'supplierCompanyName', width: 200 },
     { name: 'supplierCompanyNum', width: 150 },
-    { name: 'stageDescription', width: 150 },
     { name: 'registeredCapital', width: 120 },
     { name: 'paidInCapital', width: 120 },
     { name: 'buildDate', width: 120 },
@@ -65,14 +66,13 @@ export const openAddSupplierModal = (dataSet: any, basicInfoDs: any, existingIds
     drawer: true,
     title: intl.get(`${prefix}.view.supplier`).d('供应商'),
     style: { width: 1000 },
-    resizable: true,
     children: (
       <div className={styles['detail-container']}>
         <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['businessStandard', 'technicalStandard', 'supplier']}>
           <Panel header={intl.get(`${prefix}.view.businessStandard`).d('商务标准')} key="businessStandard">
             <FormPro
               dataSet={businessStandardDs}
-              columns={3}
+              columns={4}
               fields={businessFields}
               readOnly
             />

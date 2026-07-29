@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useCallback, useState } from 'react';
-import { DataSet, Modal, Table, Output } from 'choerodon-ui/pro';
+import { DataSet, Button, Modal, Table, Output } from 'choerodon-ui/pro';
 import { TableButtonType } from 'choerodon-ui/pro/lib/table/enum';
 import { Collapse } from 'choerodon-ui';
 import { Header, Content } from 'hzero-front/lib/components/Page';
@@ -20,43 +20,23 @@ import SupplierList from './SupplierList';
 import styles from './index.less';
 import { supplierEvaluationPostApi, supplierEvaluationDetailPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
-const getDefaultActiveKey = (type: string) => {
-  if (type === 'view' || type === 'readOnly') {
-    return ['evaluationInfo', 'supplierList'];
-  }
-  return ['basicInfo', 'evaluationInfo', 'supplierList'];
-};
+const defaultActiveKey = ['basicInfo', 'evaluationInfo', 'supplierList'];
 const { Panel } = Collapse;
-
-const getPageTitle = (type: string) => {
-  if (type === 'submit') return intl.get(`${prefix}.view.submitTitle`).d('入围单提交');
-  if (type === 'view' || type === 'readOnly') return intl.get(`${prefix}.view.viewTitle`).d('入围单查看');
-  if (type === 'change') return intl.get(`${prefix}.view.changeTitle`).d('入围单变更');
-  if (type === 'pendingReview') return intl.get(`${prefix}.view.reviewTitle`).d('入围单评审');
-  return intl.get(`${prefix}.view.detailTitle`).d('入围单维护');
-};
-
-const BasicInfoHeader = observer(({ basicInfoDs }: any) => {
-  const num = basicInfoDs.current?.get('sourceProjectNum');
-  const name = basicInfoDs.current?.get('sourceProjectName');
-  return (num || name) && (<span>{num} - {name}</span>);
-});
 
 const SupplierEvaluationDetail = ({ location, history }: any) => {
   const { search } = location || {};
   const searchParams = new URLSearchParams(search || '');
   const nominationHeaderId = searchParams.get('nominationHeaderId');
   const type = searchParams.get('type') || 'readOnly';
-  console.log(type)
 
   const basicInfoDs = useMemo(() => new DataSet(basicInfoDS(nominationHeaderId)), [nominationHeaderId]);
-  const supplierListDs = useMemo(() => new DataSet(supplierListDS(nominationHeaderId, type, () => basicInfoDs?.current?.get('companyId'))), [nominationHeaderId, type, basicInfoDs]);
+  const supplierListDs = useMemo(() => new DataSet(supplierListDS(nominationHeaderId, type)), [nominationHeaderId, type]);
 
   useEffect(() => {
     supplierListDs.setState('nominationHeaderId', nominationHeaderId)
   }, []);
 
-  const readOnly = type !== 'edit' && type !== 'change';
+  const readOnly = type !== 'edit';
 
   const backPath = useMemo(() => '/scux/supplier-evaluation/list', []);
 
@@ -111,17 +91,30 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
 
 const handleBusinessStandard = useCallback(() => {
     const businessStandardDs = new DataSet(businessStandardDS(nominationHeaderId, basicInfoDs));
-
-    const columns = [
-      { name: 'seqNum', header: '序号', width: 60 },
-      { name: 'itemName', header: '评审项目', width: 120, editor: false },
+    
+    const fields = [
+      { name: 'nominationNum', _type: 'TextField', disabled: true, colSpan: 3 },
+      { name: 'createdByName', _type: 'TextField', disabled: true, colSpan: 3 },
+      { name: 'creationDate', _type: 'DateTimePicker', disabled: true, colSpan: 3 },
       {
-        name: 'valueCode',
-        header: '入围要求',
-        width: 200,
-        editor: true,
+        name: '_hr',
+        FormField: Output,
+        style:{ borderBottom: '1px solid rgba(0,0,0,0.12)', width: '100%', margin: '16px 0', height: 0, overflow: 'hidden' },
+        colSpan: 3,
       },
-      { name: 'isRequired', header: '是否要求', width: 80, editor: true },
+      { name: 'taxGrade', _type: 'Select', colSpan: 2 },
+      { name: 'taxGradeRequired', _type: 'Switch' },
+      { name: 'supplierRating', _type: 'Select', colSpan: 2 },
+      { name: 'supplierRatingRequired', _type: 'Switch' },
+      { name: 'registeredCapitalFrom', _type: 'NumberField' },
+      { name: 'registeredCapitalTo', _type: 'NumberField' },
+      { name: 'registeredCapitalRequired', _type: 'Switch' },
+      { name: 'paidInCapitalFrom', _type: 'NumberField' },
+      { name: 'paidInCapitalTo', _type: 'NumberField' },
+      { name: 'paidInCapitalRequired', _type: 'Switch' },
+      { name: 'establishmentYearsFrom', _type: 'NumberField' },
+      { name: 'establishmentYearsTo', _type: 'NumberField' },
+      { name: 'establishmentYearsRequired', _type: 'Switch' },
     ];
 
     const handleOk = async () => {
@@ -129,41 +122,8 @@ const handleBusinessStandard = useCallback(() => {
       if (!valid) {
         return false;
       }
-      const rows = businessStandardDs.toData();
-      const firstRow: any = rows[0] || {};
-      const businessCfg: any = {
-        nominationHeaderId,
-        businessCfgId: firstRow.businessCfgId,
-        objectVersionNumber: firstRow.objectVersionNumber,
-      };
-      rows.forEach((row: any) => {
-        switch (row.itemCode) {
-          case 'taxGrade':
-            businessCfg.taxGrade = Array.isArray(row.valueCode) ? row.valueCode.join(',') : row.valueCode;
-            businessCfg.taxGradeRequired = '1';
-            break;
-          case 'supplierRating':
-            businessCfg.supplierRating = Array.isArray(row.valueCode) ? row.valueCode.join(',') : row.valueCode;
-            businessCfg.supplierRatingRequired = row.isRequired;
-            break;
-          case 'registeredCapital':
-            businessCfg.registeredCapitalFrom = row.valueCode ? Number(row.valueCode) : undefined;
-            businessCfg.registeredCapitalTo = row.valueTo || undefined;
-            businessCfg.registeredCapitalRequired = row.isRequired;
-            break;
-          case 'paidInCapital':
-            businessCfg.paidInCapitalFrom = row.valueCode ? Number(row.valueCode) : undefined;
-            businessCfg.paidInCapitalTo = row.valueTo || undefined;
-            businessCfg.paidInCapitalRequired = row.isRequired;
-            break;
-          case 'establishmentYears':
-            businessCfg.establishmentYearsFrom = row.valueCode ? Number(row.valueCode) : undefined;
-            businessCfg.establishmentYearsTo = row.valueTo || undefined;
-            businessCfg.establishmentYearsRequired = row.isRequired;
-            break;
-        }
-      });
-      const res = await supplierEvaluationPostApi({ businessCfg }, 'SAVE_BUSINESS_CFG');
+      const data = businessStandardDs.current?.toData();
+      const res = await supplierEvaluationPostApi({ businessCfg: { ...data, nominationHeaderId } }, 'SAVE_BUSINESS_CFG');
       if (getResponse(res)) {
         notification.success({});
         basicInfoDs.query();
@@ -178,11 +138,11 @@ const handleBusinessStandard = useCallback(() => {
       drawer: true,
       title: intl.get(`${prefix}.view.businessStandard`).d('商务标准设置'),
       style: { width: 800 },
-      resizable: true,
       children: (
-        <Table
+        <FormPro
           dataSet={businessStandardDs}
-          columns={columns}
+          columns={3}
+          fields={fields}
         />
       ),
       onOk: handleOk,
@@ -190,11 +150,11 @@ const handleBusinessStandard = useCallback(() => {
       cancelText: intl.get('hzero.common.button.cancel').d('取消'),
       destroyOnClose: true,
     });
-  }, [basicInfoDs, nominationHeaderId, supplierListDs]);
+  }, [basicInfoDs]);
 
   const handleTechnicalStandard = useCallback(() => {
     const technicalStandardLineDs = new DataSet(technicalStandardLineDS(nominationHeaderId));
-
+    
     const fields = [
       { name: 'nominationNum', _type: 'TextField', disabled: true },
       { name: 'createdByName', _type: 'TextField', disabled: true },
@@ -203,6 +163,7 @@ const handleBusinessStandard = useCallback(() => {
 
     const columns = [
       { name: 'seqNum', width: 80 },
+      { name: 'mainBusiness', editor: true },
       { name: 'qualificationType', editor: true },
       { name: 'qualificationGrade', editor: true },
       { name: 'isRequired', editor: true, width: 100 },
@@ -231,14 +192,13 @@ const handleBusinessStandard = useCallback(() => {
       drawer: true,
       title: intl.get(`${prefix}.view.technicalStandard`).d('技术标准设置'),
       style: { width: 800 },
-      resizable: true,
       children: (
         <div>
-          {/* <FormPro
+          <FormPro
             dataSet={basicInfoDs}
             columns={3}
             fields={fields}
-          /> */}
+          />
           <Table
             dataSet={technicalStandardLineDs}
             columns={columns}
@@ -294,7 +254,7 @@ const handleBusinessStandard = useCallback(() => {
         const buttons = [
           {
             name: 'submit',
-            hidden: type !== 'unreleasedReadOnly' && type !== 'submit',
+            hidden: type !== 'unreleasedReadOnly',
             child: intl.get('hzero.common.button.submit').d('提交'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmit },
           },
@@ -307,7 +267,7 @@ const handleBusinessStandard = useCallback(() => {
           {
             name: 'publish',
             hidden: !!readOnly,
-            child: intl.get(`${prefix}.button.publishNew`).d('发布评审'),
+            child: intl.get(`${prefix}.button.publish`).d('发布'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handlePublish },
           },
           {
@@ -315,6 +275,18 @@ const handleBusinessStandard = useCallback(() => {
             hidden: !!readOnly,
             child: intl.get('hzero.common.btn.save').d('保存'),
             btnProps: { icon: 'save', funcType: 'flat', onClick: handleSave },
+          },
+          {
+            name: 'businessStandard',
+            hidden: !!readOnly,
+            child: intl.get(`${prefix}.button.businessStandard`).d('商务入围标准设置'),
+            btnProps: { funcType: 'flat', onClick: handleBusinessStandard },
+          },
+          {
+            name: 'technicalStandard',
+            hidden: !!readOnly,
+            child: intl.get(`${prefix}.button.technicalStandard`).d('技术入围标准设置'),
+            btnProps: { funcType: 'flat', onClick: handleTechnicalStandard },
           },
           {
             name: 'operation',
@@ -341,7 +313,7 @@ const handleBusinessStandard = useCallback(() => {
       {
         key: 'basicInfo',
         content: (
-          <Panel key="basicInfo" header={<BasicInfoHeader basicInfoDs={basicInfoDs} />}>
+          <Panel key="basicInfo" header={intl.get(`${prefix}.view.panel.basicInfo`).d('基础信息')}>
             <BasicInfo dataSet={basicInfoDs} />
           </Panel>
         ),
@@ -358,7 +330,7 @@ const handleBusinessStandard = useCallback(() => {
         key: 'supplierList',
         content: (
           <Panel key="supplierList" header={intl.get(`${prefix}.view.panel.supplierList`).d('供应商列表')}>
-            <SupplierList dataSet={supplierListDs} type={type} history={history} basicInfoDs={basicInfoDs} onBusinessStandard={handleBusinessStandard} onTechnicalStandard={handleTechnicalStandard} />
+            <SupplierList dataSet={supplierListDs} type={type} history={history} basicInfoDs={basicInfoDs} />
           </Panel>
         ),
       },
@@ -367,7 +339,7 @@ const handleBusinessStandard = useCallback(() => {
 
   return (
     <>
-      <Header backPath={backPath} title={getPageTitle(type)}>
+      <Header backPath={backPath} title={intl.get(`${prefix}.view.detailTitle`).d('入围单维护')}>
         <HeaderButtons />
       </Header>
       <Content>
@@ -376,7 +348,7 @@ const handleBusinessStandard = useCallback(() => {
             trigger="text-icon"
             ghost
             expandIconPosition="text-right"
-            defaultActiveKey={getDefaultActiveKey(type)}
+            defaultActiveKey={defaultActiveKey}
           >
             {contentList.map(i => i.content)}
           </Collapse>

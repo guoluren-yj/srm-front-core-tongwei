@@ -1,6 +1,6 @@
 import React from 'react';
 import { DataSet, Table, Button, Modal } from 'choerodon-ui/pro';
-import { Collapse, Alert } from 'choerodon-ui';
+import { Collapse } from 'choerodon-ui';
 
 import {
   prefix,
@@ -19,7 +19,7 @@ import styles from './index.less';
 
 const { Panel } = Collapse;
 
-export const openFinanceReviewModal = async (record: any, type?: string, dataSet?: any, basicInfoDs?: any) => {
+export const openFinanceReviewModal = async (record: any, type?: string, dataSet?: any) => {
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
   let modal;
@@ -27,15 +27,9 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
   const resultDs = new DataSet(financeReviewResultDS(nominationHeaderId, nominationSupLineId));
 
   infoDs.bind(resultDs, 'children');
-
+  
   await resultDs.query();
   const isReadOnly = type === 'unreleasedReadOnly' || resultDs.current?.get('reviewStatus') === '2';
-
-  const supplierName = record.get('supplierCompanyName') || '';
-  const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';
-  const reviewTypeField = basicInfoDs?.getField('reviewType');
-  const reviewTypeText = reviewTypeCode ? (reviewTypeField?.getText(reviewTypeCode) || reviewTypeCode) : '';
-  const title = `财务入围评审${reviewTypeText ? ` - ${reviewTypeText}` : ''}${supplierName ? ` - ${supplierName}` : ''}`;
 
   const infoColumns = [
     { name: 'year', editor: !isReadOnly, width: 100 },
@@ -46,7 +40,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'interestBearingDebt', editor: !isReadOnly, width: 150 },
     { name: 'totalLiabilities', editor: !isReadOnly, width: 150 },
     { name: 'assetLiabilityRatio', width: 130 },
-    { name: 'roe', width: 130 },
+    { name: 'returnOnEquity', width: 130 },
   ];
 
   const infoButtons = isReadOnly ? [] : [TableButtonType.add, TableButtonType.delete];
@@ -55,10 +49,10 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'financeAvgLiabilityRatio', _type: 'NumberField', disabled: true },
     { name: 'financeAvgRevenueRatio', _type: 'NumberField', disabled: true },
     { name: 'empty', _type: 'empty' },
-    { name: 'financeReviewResult', _type: 'Select' },
     { name: 'financeReviewDesc', _type: 'TextArea', colSpan: 2 },
-    // { name: 'financeSubmitUserName', _type: 'TextField', disabled: true },
-    // { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
+    { name: 'financeReviewResult', _type: 'Select' },
+    { name: 'financeSubmitUserName', _type: 'TextField', disabled: true },
+    { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
@@ -71,7 +65,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     }
     if (infoDs.length === 0) {
       notification.warning({
-        message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
+        message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'), 
       });
       return false;
     }
@@ -91,19 +85,13 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
   modal = Modal.open({
     key: Modal.key(),
     drawer: true,
-    title,
+    title: intl.get(`${prefix}.view.financeReview`).d('财务入围评审'),
     style: { width: 1080 },
     closeable: true,
     children: (
       <div className={styles['detail-container']}>
         <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['reviewInfo', 'reviewResult']}>
           <Panel header={intl.get(`${prefix}.view.panel.financeReviewInfo`).d('评审信息')} key="reviewInfo">
-            <Alert
-              type="info"
-              showIcon
-              message={intl.get(`${prefix}.tip.financeReviewInfo`).d('财务信息有且必须维护一行')}
-              style={{ marginBottom: 8 }}
-            />
             <Table
               dataSet={infoDs}
               columns={infoColumns}
@@ -126,9 +114,9 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
       <div>
         {!isReadOnly && (
           <>
-            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
               {intl.get('hzero.common.button.save').d('保存')}
-            </Button> */}
+            </Button>
             <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
               {intl.get('hzero.common.button.submit').d('提交')}
             </Button>

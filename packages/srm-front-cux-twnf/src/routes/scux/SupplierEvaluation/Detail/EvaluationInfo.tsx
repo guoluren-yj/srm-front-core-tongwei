@@ -9,17 +9,15 @@ interface EvaluationInfoProps {
 }
 
 const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
-  const isView = type === 'view' || type === 'readOnly' || type === 'change';
   const showApprovalNote = useComputed(() => {
-    if (type === 'submit' || isView) return true;
     const { current } = dataSet;
     if (current) {
       return current.get('nominationStatus') === 'TO_BE_RELEASED';
     }
     return false;
-  }, [dataSet, type]);
+  }, [dataSet]);
   const readOnly = type !== 'edit';
-  const allReadOnly = ['view', 'readOnly', 'pendingReview', 'change'].includes(type);
+  const allReadOnly = ['readOnly', 'pendingReview'].includes(type);
 
   const fields = useMemo(() => {
     const baseFields = [
@@ -27,27 +25,17 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'nominationStatusMeaning', _type: 'TextField', disabled: true },
       { name: 'creationDate', _type: 'DateTimePicker', disabled: true },
       { name: 'createdByName', _type: 'TextField', disabled: true },
-      { name: 'technicalPersonName', _type: 'TextField', disabled: true },
-      { name: 'bidDirectorName', _type: 'TextField', disabled: true, label: '入围负责人' },
       { name: 'financePersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'supManagerPersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'functionalHeadUserLov', _type: 'Lov', disabled: readOnly },
-      { name: 'positionLov', _type: 'Lov', disabled: readOnly },
+      showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: !showApprovalNote, colSpan: 3 },
+      { name: 'reviewType', _type: 'Select', disabled: readOnly },
       { name: 'caseRequirementCount', _type: 'NumberField', disabled: readOnly },
-      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 3, newLine: true, disabled: readOnly },
-      showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: type !== 'submit', required: type === 'submit', colSpan: 3 },
-      isView && { name: 'fbcNumber', _type: 'TextField', disabled: true, colSpan: 1,
-        renderer: ({ value, dataSet: ds }: any) => {
-          const url = ds?.current?.get('fbcUrl');
-          if (url) return <a href={url} target="_blank" rel="noopener noreferrer">{value}</a>;
-          return value;
-        },
-      },
-      isView && { name: 'fbcUrl', _type: 'TextField', disabled: true },
-      { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment', colSpan: 3 },
+      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 2, disabled: readOnly },
+      { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment' }
     ].filter(Boolean);
     return baseFields;
-  }, [readOnly, showApprovalNote, isView, type]);
+  }, [readOnly, showApprovalNote]);
 
   return (
     <FormPro

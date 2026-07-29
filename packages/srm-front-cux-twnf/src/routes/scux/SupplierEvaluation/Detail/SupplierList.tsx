@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Table, Button } from 'choerodon-ui/pro';
-import { observer } from 'mobx-react-lite';
 
 import { prefix } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
+import { TableButtonType } from 'choerodon-ui/pro/lib/table/enum';
 import intl from 'hzero-front/lib/utils/intl';
 import { stringify } from 'querystring';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
@@ -13,50 +13,83 @@ import {
   openFinanceReviewModal,
   openAddSupplierModal,
 } from './modals';
-import { supplierEvaluationDetailPostApi, supplierEvaluationPostApi, queryRiskMonitorType, riskEmbedPage } from '../../../../services/scux/supplierEvaluationServices';
+import { supplierEvaluationDetailPostApi, supplierRiskScanApi, linkRiskScanApi } from '../../../../services/scux/supplierEvaluationServices';
 import { getResponse } from 'hzero-front/lib/utils/utils';
 import notification from 'hzero-front/lib/utils/notification';
+import {isEmpty} from 'lodash';
+import {validatorConfirmModal} from './modals/confirmModal'
+
+const urlReg = /(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?/;
 
 interface SupplierListProps {
   dataSet: any;
   type?: string;
   history?: any;
   basicInfoDs: any;
-  onBusinessStandard?: () => void;
-  onTechnicalStandard?: () => void;
 }
 
-const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, history, basicInfoDs, onBusinessStandard, onTechnicalStandard }) => {
-  const readOnly = type !== 'edit' && type !== 'change';
-
+const SupplierList: React.FC<SupplierListProps> = ({ dataSet, type, history, basicInfoDs }) => {
+  const readOnly = type !== 'edit';
   const handleRiskScan = async (record: any) => {
-    const riskMonitorTypeResult = getResponse(await queryRiskMonitorType({partnerCode: 'ZHENYUN_PARTNER'}));
-    const { supplierCompanyName, supplierCompanyId, companyId, supplierName } = (record?.data || record) || {};
-    const enterpriseName = supplierCompanyName || supplierName;
-    if (riskMonitorTypeResult) {
-      const { partnerCode: riskMonitorType = '' } = riskMonitorTypeResult || {};
-      if (['SRD', 'ZHENYUN_PARTNER'].includes(riskMonitorType)) {
-        const prompt = `<p style="text-align: center">${intl.get('spfm.common.view.riskMonitoring.loading').d('正在加载')}...</p>`;
-        const riskWindow = window.open();
-        if (riskWindow) {
-          riskWindow.document.body.innerHTML = prompt;
-        }
-        riskEmbedPage({ companyId, enterpriseName, supplierCompanyId, partnerCode: riskMonitorType }).then(response => {
-          const res = getResponse(response);
-          if (riskWindow) {
-            if (res && !res.failed) {
-              riskWindow.location = res.monitorUrl;
-              record.set('riskScanDate', res.riskScanDate);
-              record.set('fileUrl', res.fileUrl);
-              record.set('riskLevelMeaning', res.riskLevelMeaning);
-            } else {
-              const errPrompt = `<p style="text-align: center">${response.message}</p>`;
-              riskWindow.document.body.innerHTML = errPrompt;
-            }
-          }
+    const ValidateResult = await supplierRiskScanApi({
+      enterpriseId: record.get('supplierCompanyId'),
+      scanCode: 'rfx_supplier'
+    });
+    if (ValidateResult && ValidateResult.failed) {
+      if (ValidateResult.message) {
+        notification.warning({
+          message: ValidateResult.message,
         });
       }
+      return;
     }
+    if (isEmpty(ValidateResult)) {
+    // 如果啥都没返回 则跳转
+    handleLinkRisk(record.get('supplierCompanyId'));
+    return;
+    }
+
+    if (
+      !ValidateResult ||
+      ValidateResult.failed ||
+      !(ValidateResult.code && ValidateResult.message)
+    ) {
+      return;
+    }
+  
+    // 校验弹框提示
+    validatorConfirmModal({
+      response: ValidateResult,
+      validatorType: 'type',
+      validatorArrName: 'message',
+      isOkLoading: true,
+      onOk: async () => {
+        await handleLinkRisk(record.get('supplierCompanyId'));
+      },
+    });
+  };
+
+  // 按钮确定事件逻辑
+  const handleLinkRisk = async (supplierCompanyId) => {
+    let res;
+    try {
+      res = await linkRiskScanApi({
+        enterpriseId: supplierCompanyId,
+        scanCode: 'rfx_supplier',
+      });
+    } catch (err) {
+      throw err;
+    }
+    if (!res || !urlReg.test(res)) {
+      const result = JSON.parse(res || '{}') || {};
+      if (result && result.failed) {
+        notification.warning({
+          message: result.message || null,
+        });
+      }
+      return;
+    }
+    window.open(res);
   };
 
   const handleSupplierDetail = (record: any) => {
@@ -74,16 +107,15 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
   };
 
   const handleBusinessReview = (record: any) => {
-    openBusinessReviewModal(record, type, dataSet, basicInfoDs);
+    openBusinessReviewModal(record, type, dataSet);
   };
 
   const handleFinanceReview = (record: any) => {
-    openFinanceReviewModal(record, type, dataSet, basicInfoDs);
+    openFinanceReviewModal(record, type, dataSet);
   };
 
   const handleAddSupplier = () => {
-    const existingIds = dataSet.map((record: any) => record.get('supplierCompanyId')).filter(Boolean).join(',');
-    openAddSupplierModal(dataSet, basicInfoDs, existingIds);
+    openAddSupplierModal(dataSet, basicInfoDs);
   };
 
   const handleRemindReviewer = async () => {
@@ -93,20 +125,9 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     }
   };
 
-  const nominationStatus = basicInfoDs?.current?.get('nominationStatus');
-  const isNew = nominationStatus === 'NEW';
-  const clickableReview = type === 'submit' || type === 'view' || type === 'readOnly';
-
-  // 操作列按钮数量
-  const { businessUserFlag: bf, financeUserFlag: ff, technologyUserFlag: tf } = basicInfoDs?.current?.get(['businessUserFlag', 'financeUserFlag', 'technologyUserFlag']) || {};
-  const showTech = +tf === 1 || type === 'unreleasedReadOnly';
-  const showBiz = +bf === 1 || type === 'unreleasedReadOnly';
-  const showFin = +ff === 1 || type === 'unreleasedReadOnly';
-  const btnCount = [showTech, showBiz, showFin].filter(Boolean).length;
-
-  const columns = [
+  const columns = useMemo(() => [
     { name: 'seqNum', width: 80 },
-    !isNew && { name: 'isSelected', width: 100 },
+    { name: 'isSelected', width: 100 },
     {
       name: 'supplierCompanyNum',
       width: 150,
@@ -121,56 +142,17 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     },
     { name: 'supplierCompanyName', width: 200 },
     { name: 'stageDescription', width: 100 },
-    { name: 'contactPersonLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
-    { name: 'contactMobilephone', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 130 },
-    { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
-    { name: 'recommenderLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
-    { name: 'employeeCompanyName', width: 150 },
-    !isNew && {
-      name: 'technologyReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleTechnicalReview(record)}>
-          {text}
-        </Button>
-      ) : text,
-    },
-    !isNew && {
-      name: 'businessReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleBusinessReview(record)}>
-          {text}
-        </Button>
-      ) : text,
-    },
-    !isNew && {
-      name: 'financeReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleFinanceReview(record)}>
-          {text}
-        </Button>
-      ) : text,
-    },
-    !isNew && { name: 'summaryReviewResult', width: 120 },
-    { name: 'riskScanDate', width: 160 },
-    { name: 'riskLevelMeaning', width: 100 },
+    { name: 'contactPersonLov', editor: !readOnly, width: 120 },
+    { name: 'contactMobilephone', editor: !readOnly, width: 130 },
+    { name: 'contactMail', editor: !readOnly, width: 150 },
+    { name: 'technologyReviewResult', width: 120 },
+    { name: 'businessReviewResult', width: 120 },
+    { name: 'financeReviewResult', width: 120 },
+    { name: 'summaryReviewResult', width: 120 },
+    { name: 'remark', editor: !readOnly, width: 150 },
     {
-      name: 'fileUrl',
-      header: '最新风险报告',
-      width: 130,
-      renderer: ({ value }: any) => {
-        if (!value) return null;
-        return <a href={value} target="_blank" rel="noopener noreferrer">查看</a>;
-      },
-    },
-    type !== 'view' && type !== 'submit' && type !== 'readOnly' && {
-      name: 'riskScanning',
       header: intl.get(`${prefix}.button.riskScan`).d('风险扫描'),
-      width: 150,
-      lock: 'right',
-      align: 'center',
+      width: 130,
       renderer: ({ record }: any) => (
         <Button
           funcType={FuncType.flat}
@@ -180,56 +162,50 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         </Button>
       ),
     },
-    { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
-    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && nominationStatus === 'PENDING_REVIEW' && {
-      name: 'action',
+    (type === 'pendingReview' || type === 'unreleasedReadOnly') && {
       header: intl.get(`${prefix}.button.operation`).d('操作'),
-      width: btnCount * 90,
-      lock: 'right',
-      align: 'center',
-      renderer: ({ record }) => (
-        <>
-          {showTech && (
-            <Button funcType={FuncType.flat} onClick={() => handleTechnicalReview(record)}>
-              {intl.get(`${prefix}.button.technical`).d('技术')}
-            </Button>
-          )}
-          {showBiz && (
-            <Button funcType={FuncType.flat} onClick={() => handleBusinessReview(record)}>
-              {intl.get(`${prefix}.button.business`).d('商务')}
-            </Button>
-          )}
-          {showFin && (
-            <Button funcType={FuncType.flat} onClick={() => handleFinanceReview(record)}>
-              {intl.get(`${prefix}.button.finance`).d('财务')}
-            </Button>
-          )}
-        </>
-      ),
+      width: 200,
+      renderer: ({ record }) => {
+        const { businessUserFlag, financeUserFlag, technologyUserFlag } = basicInfoDs?.current?.get(['businessUserFlag', 'financeUserFlag', 'technologyUserFlag']) || {};
+        const showTechnical = +technologyUserFlag === 1 || type === 'unreleasedReadOnly';
+        const showBusiness = +businessUserFlag === 1 || type === 'unreleasedReadOnly';
+        const showFinance = +financeUserFlag === 1 || type === 'unreleasedReadOnly';
+
+        return (
+          <>
+            {showTechnical && (
+              <Button
+                funcType={FuncType.flat}
+                onClick={() => handleTechnicalReview(record)}
+              >
+                {intl.get(`${prefix}.button.technical`).d('技术')}
+              </Button>
+            )}
+            {showBusiness && (
+              <Button
+                funcType={FuncType.flat}
+                onClick={() => handleBusinessReview(record)}
+              >
+                {intl.get(`${prefix}.button.business`).d('商务')}
+              </Button>
+            )}
+            {showFinance && (
+              <Button
+                funcType={FuncType.flat}
+                onClick={() => handleFinanceReview(record)}
+              >
+                {intl.get(`${prefix}.button.finance`).d('财务')}
+              </Button>
+            )}
+          </>
+        );
+      },
     },
-  ].filter(Boolean) as ColumnProps[];
-
-  const hasEmptyReview = dataSet.some((r: any) => !r.get('technologyReviewResult') || !r.get('businessReviewResult') || !r.get('financeReviewResult'));
-
-  const handleSaveLine = async () => {
-    if (dataSet.length === 0) {
-      notification.warning({
-        message: intl.get(`${prefix}.message.supplierRequired`).d('至少维护一条供应商数据'),
-      });
-      return;
-    }
-    const nominationHeaderId = dataSet.getState('nominationHeaderId');
-    const supplierLineList = dataSet?.toData() || [];
-    const res = await supplierEvaluationPostApi({ nominationHeader: { nominationHeaderId }, supplierLineList }, 'SAVE_NOMINATION_LINE');
-    if (getResponse(res)) {
-      notification.success({});
-      dataSet.query();
-    }
-  };
+  ].filter(Boolean) as ColumnProps[], [readOnly, type]);
 
   const buttons = useMemo(() => {
     const btns: any[] = [];
-    if (type === 'edit' || type === 'change') {
+    if (type === 'edit') {
       btns.push(
         <Button
           funcType={FuncType.flat}
@@ -239,53 +215,10 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         >
           {intl.get('hzero.common.button.add').d('新增')}
         </Button>,
-        <Button
-          funcType={FuncType.flat}
-          onClick={() => {
-            const selected = dataSet.selected;
-            const released = selected.filter((r: any) => r.get('releaseFlag') === '1');
-            if (released.length > 0) {
-              notification.warning({ message: '已发布的数据不能删除' });
-              return;
-            }
-            dataSet.delete(selected);
-          }}
-          icon="delete"
-          key="delete"
-        >
-          {intl.get('hzero.common.button.delete').d('删除')}
-        </Button>,
-        <Button
-          funcType={FuncType.flat}
-          onClick={handleSaveLine}
-          icon="save"
-          key="saveLine"
-        >
-          {intl.get('hzero.common.button.save').d('保存')}
-        </Button>
+        TableButtonType.delete
       );
-      if (type === 'edit') {
-        btns.push(
-          <Button
-            funcType={FuncType.flat}
-            onClick={onBusinessStandard}
-            icon="settings"
-            key="businessStandard"
-          >
-            {intl.get(`${prefix}.button.businessStandard`).d('商务入围标准设置')}
-          </Button>,
-          <Button
-            funcType={FuncType.flat}
-            onClick={onTechnicalStandard}
-            icon="settings"
-            key="technicalStandard"
-          >
-            {intl.get(`${prefix}.button.technicalStandard`).d('技术入围标准设置')}
-          </Button>
-        );
-      }
     }
-    if (type === 'view' && nominationStatus === 'PENDING_REVIEW' && hasEmptyReview) {
+    if (type === 'readOnly' && basicInfoDs?.current?.get('nominationStatus') === 'PENDING_REVIEW') {
       btns.push(
         <Button
           funcType={FuncType.flat}
@@ -297,7 +230,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       );
     }
     return btns;
-  }, [type, onBusinessStandard, onTechnicalStandard, dataSet, clickableReview, hasEmptyReview]);
+  }, [type]);
 
   return (
     <Table
@@ -307,6 +240,6 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       customizedCode="customized"
     />
   );
-});
+};
 
 export default SupplierList;

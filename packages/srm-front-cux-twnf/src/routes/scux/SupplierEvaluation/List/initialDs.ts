@@ -7,7 +7,7 @@ import { DataSetSelection, FieldType } from 'choerodon-ui/pro/lib/data-set/enum'
 export const prefix = 'scux.supplierEvaluation';
 
 // 页签类型
-export type TabKeyType = 'EVALUATE' | 'ALL';
+export type TabKeyType = 'MAINTAIN' | 'EVALUATE' | 'PUBLISH' | 'ALL';
 
 const organizationId = getCurrentOrganizationId();
 
@@ -22,6 +22,17 @@ export const TABS: Array<{
   queryData: object
 }> = [
     {
+      key: 'MAINTAIN',
+      name: intl.get(`${prefix}.tab.maintain`).d('待维护'),
+      primaryKey: 'sourceProjectId',
+      url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
+      customizedCode: 'SCUX.SUPPLIER_EVALUATION.MAINTAIN',
+      searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_MAINTAIN',
+      queryData: {
+        queryType: 'UN_CREATE'
+      }
+    },
+    {
       key: 'EVALUATE',
       name: intl.get(`${prefix}.tab.evaluate`).d('待评审'),
       primaryKey: 'nominationHeaderId',
@@ -30,6 +41,17 @@ export const TABS: Array<{
       searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_EVALUATE',
       queryData: {
         queryType: 'UN_REVIEW'
+      }
+    },
+    {
+      key: 'PUBLISH',
+      name: intl.get(`${prefix}.tab.publish`).d('待发布'),
+      primaryKey: 'nominationHeaderId',
+      url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
+      customizedCode: 'SCUX.SUPPLIER_EVALUATION.PUBLISH',
+      searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_PUBLISH',
+      queryData: {
+        queryType: 'UN_RELEASE'
       }
     },
     {
@@ -52,13 +74,20 @@ export const getTabValue = (key: TabKeyType, target?: string) => {
 };
 
 export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
-  selection: tabKey === 'ALL' ? DataSetSelection.multiple : undefined,
+  selection: tabKey === 'MAINTAIN' ? DataSetSelection.single : DataSetSelection.multiple,
   autoQuery: false,
   cacheSelection: true,
   primaryKey: getTabValue(tabKey, 'primaryKey'),
   pageSize: 20,
   queryFields: [
-    {
+    tabKey === 'MAINTAIN' && {
+      name: 'numOrTitle',
+      label: intl.get(`${prefix}.field.numOrTitle`).d('招标计划单号、招标名称'),
+      type: FieldType.string,
+      display: true,
+      merge: true,
+    },
+    tabKey !== 'MAINTAIN' && {
       name: 'numOrTitle',
       label: intl.get(`${prefix}.field.numOrTitle1`).d('入围单编号、招标名称'),
       type: FieldType.string,
@@ -87,9 +116,9 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     {
       name: 'bidDirector',
       type: FieldType.object,
-      lovCode: 'SCUX.HPFM.TW..EMPLOYEE',
+      lovCode: 'HIAM.TENANT.USER',
       display: true,
-      label: intl.get(`${prefix}.field.tenderManager`).d('入围负责人'),
+      label: intl.get(`${prefix}.field.tenderManager`).d('招标经理'),
     },
     {
       name: 'createStartDate',
@@ -116,23 +145,16 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'templateId', type: FieldType.number, label: intl.get(`${prefix}.field.templateId`).d('招标流程') },
     { name: 'templateName', type: FieldType.string, label: intl.get(`${prefix}.field.templateName`).d('招标流程') },
     { name: 'bidDirector', type: FieldType.number, label: intl.get(`${prefix}.field.bidDirector`).d('招标经理ID') },
-    { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('入围负责人') },
-    { name: 'financePersonName', type: FieldType.string, label: intl.get(`${prefix}.field.financePersonName`).d('财务人员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
-    { name: 'technicalPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPersonName`).d('技术人员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
-    { name: 'supManagerPersonName', type: FieldType.string, label: intl.get(`${prefix}.field.supManagerPersonName`).d('供应商专管员'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
-    { name: 'technologyUserFlag', type: FieldType.string, label: intl.get(`${prefix}.field.technologyUserFlag`).d('技术评审权限') },
-    { name: 'businessUserFlag', type: FieldType.string, label: intl.get(`${prefix}.field.businessUserFlag`).d('商务评审权限') },
-    { name: 'financeUserFlag', type: FieldType.string, label: intl.get(`${prefix}.field.financeUserFlag`).d('财务评审权限') },
-    { name: 'reviewType', type: FieldType.string, label: intl.get(`${prefix}.field.reviewType`).d('标的类型'), lookupCode: 'SCUX.TWNF_BID_BUS_TYPE' },
+    { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('招标经理') },
+    { name: 'financePerson', type: FieldType.string, label: intl.get(`${prefix}.field.financePerson`).d('财务人员') },
+    { name: 'technicalPerson', type: FieldType.string, label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
+    { name: 'supManagerPerson', type: FieldType.string, label: intl.get(`${prefix}.field.supManagerPerson`).d('供应商专管员') },
+    { name: 'reviewType', type: FieldType.string, label: intl.get(`${prefix}.field.reviewType`).d('入围评审类型') },
     { name: 'caseRequirementCount', type: FieldType.number, label: intl.get(`${prefix}.field.caseRequirementCount`).d('案例要求数量') },
-    { name: 'functionalHeadUser', type: FieldType.string, label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), textField:"name", valueField:"employeeId", lovCode: 'SCUX.HPFM.TW..EMPLOYEE' },
+    { name: 'functionalHeadUser', type: FieldType.string, label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人') },
     { name: 'warrantyPolicy', type: FieldType.string, label: intl.get(`${prefix}.field.warrantyPolicy`).d('质保政策') },
     { name: 'nominationAttachmentUuid', type: FieldType.string, label: intl.get(`${prefix}.field.nominationAttachmentUuid`).d('入围标准附件') },
     { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.createDate`).d('创建时间') },
-    { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
-    { name: 'fbcNumber', type: FieldType.string, label: intl.get(`${prefix}.field.fbcNumber`).d('FBC单据') },
-    { name: 'fbcUrl', type: FieldType.string, label: intl.get(`${prefix}.field.fbcUrl`).d('审批URL') },
-    { name: 'fbcResult', type: FieldType.string, label: intl.get(`${prefix}.field.fbcResult`).d('审批结果字段') },
   ],
   transport: {
     read: ({ params }) => {

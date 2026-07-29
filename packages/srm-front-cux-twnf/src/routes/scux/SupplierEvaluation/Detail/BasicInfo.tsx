@@ -1,6 +1,6 @@
 import React from 'react';
 import { DataSet } from 'choerodon-ui/pro';
-import FormPro from '../../../../components/FormPro';
+import FormPro from 'srm-front-cux-twnf/src/components/FormPro';
 import { prefix } from './initialDs';
 
 interface BasicInfoProps {
@@ -17,7 +17,7 @@ const BasicInfo: React.FC<BasicInfoProps> = ({ dataSet }) => {
         { name: 'companyName' },
         { name: 'sourceProjectName' },
         { name: 'bidDirectorName' },
-        { name: 'reviewType', label: '标的类型' },
+        { name: 'technicalPersonName' },
       ]}
     />
   );

@@ -50,7 +50,6 @@ function FormPro(props) {
           label,
           rowSpan,
           colSpan,
-          newLine,
           modalTitle,
           FormField,
           renderer,
@@ -68,7 +67,6 @@ function FormPro(props) {
             name,
             rowSpan,
             colSpan,
-            newLine,
           };
           if ('label' in curField) formFieldProps.label = label;
           if (_type === 'empty') {

@@ -93,7 +93,6 @@ module.exports = [
       },
     ],
   },
-  // 采购方式变更查询
   {
     path: '/scux/purchase-method-change',
     components: [
@@ -107,4 +106,10 @@ module.exports = [
       },
     ],
   },
+
+  {
+    path: '/scux/reportWorkbench',
+    component: () => import('../routes/scux/ReportWorkbench/index.js'),
+  },
+
 ];

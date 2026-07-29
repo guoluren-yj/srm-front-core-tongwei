@@ -16,19 +16,13 @@ import { supplierEvaluationDetailPostApi } from '../../../../../services/scux/su
 
 const { Panel } = Collapse;
 
-export const openBusinessReviewModal = async (record: any, type?: string, dataSet?: any, basicInfoDs?: any) => {
+export const openBusinessReviewModal = async (record: any, type?: string, dataSet?: any) => {
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
   let modal;
   const reviewInfoDs = new DataSet(businessReviewDS(nominationHeaderId, nominationSupLineId, record));
   await reviewInfoDs.query();
   const isReadOnly = type === 'unreleasedReadOnly' || reviewInfoDs.current?.get('reviewStatus') === '2';
-
-  const supplierName = record.get('supplierCompanyName') || '';
-  const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';
-  const reviewTypeField = basicInfoDs?.getField('reviewType');
-  const reviewTypeText = reviewTypeCode ? (reviewTypeField?.getText(reviewTypeCode) || reviewTypeCode) : '';
-  const title = `商务入围评审${reviewTypeText ? ` - ${reviewTypeText}` : ''}${supplierName ? ` - ${supplierName}` : ''}`;
   const supplierInfoFields = [
     { name: 'supplierCompanyName', _type: 'TextField', disabled: true },
     { name: 'contactName', _type: 'TextField', disabled: true },
@@ -37,18 +31,17 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'contactMail', _type: 'TextField', disabled: true },
     { name: 'registeredCapital', _type: 'NumberField', disabled: true },
     { name: 'paidInCapital', _type: 'NumberField', disabled: true },
-    { name: 'buildDate', _type: 'DateTimePicker', disabled: true, label: '成立日期' },
+    { name: 'buildDate', _type: 'NumberField', disabled: true },
     { name: 'insuredNumber', _type: 'NumberField', disabled: true },
     { name: 'taxLevel', _type: 'Select', disabled: true },
     { name: 'supplierRating', _type: 'Select', disabled: true },
-    { name: 'employeeName', _type: 'TextField', disabled: true },
-    { name: 'employeeCompanyName', _type: 'TextField', disabled: true },
+    { name: 'businessReferrerUserLov', _type: 'Lov' },
+    { name: 'businessReferrerCompanyName', _type: 'TextField', disabled: true },
     { name: 'caseRequirementCount', _type: 'NumberField', disabled: true },
     { name: 'warrantyPolicy', _type: 'TextField', disabled: true },
   ];
 
   const reviewInfoFields = [
-    { name: 'businessReviewResult', _type: 'Select' },
     { name: 'businessQualificationReview', _type: 'TextArea' },
     { name: 'businessCreditLawReview', _type: 'TextArea' },
     { name: 'businessLegalAction', _type: 'TextArea' },
@@ -56,12 +49,19 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'businessReviewDesc', _type: 'TextArea' },
   ];
 
+  const resultFields = [
+    { name: 'businessReviewResultDesc', _type: 'TextArea', colSpan: 2 },
+    { name: 'businessReviewResult', _type: 'Select' },
+    { name: 'businessSubmitUserName', _type: 'TextField', disabled: true },
+    { name: 'businessSubmitDate', _type: 'DateTimePicker', disabled: true },
+  ];
+
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
     const valid = await reviewInfoDs.validate();
     if (!valid) {
       return false;
     }
-    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, !!submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
+    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData()  } }, !!submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
@@ -76,12 +76,12 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
   modal = Modal.open({
     key: Modal.key(),
     drawer: true,
-    title,
+    title: intl.get(`${prefix}.view.businessReview`).d('商务入围评审'),
     style: { width: 1080 },
     closeable: true,
     children: (
       <div className={styles['detail-container']}>
-      <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['supplierInfo', 'reviewInfo']}>
+      <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['supplierInfo', 'reviewInfo', 'reviewResult']}>
         <Panel header={intl.get(`${prefix}.view.panel.supplierInfo`).d('供应商信息')} key="supplierInfo">
           <FormPro
             dataSet={reviewInfoDs}
@@ -90,11 +90,19 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
             readOnly={isReadOnly}
           />
         </Panel>
-        <Panel header={intl.get(`${prefix}.view.panel.businessReviewInfo`).d('商务评审信息')} key="reviewInfo">
+        <Panel header={intl.get(`${prefix}.view.panel.businessReviewInfo`).d('商务审查信息')} key="reviewInfo">
           <FormPro
             dataSet={reviewInfoDs}
             columns={1}
             fields={reviewInfoFields}
+            readOnly={isReadOnly}
+          />
+        </Panel>
+        <Panel header={intl.get(`${prefix}.view.panel.businessReviewResult`).d('商务入围评审结果')} key="reviewResult">
+          <FormPro
+            dataSet={reviewInfoDs}
+            columns={3}
+            fields={resultFields}
             readOnly={isReadOnly}
           />
         </Panel>
@@ -105,9 +113,9 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
       <div>
         {!isReadOnly && (
           <>
-            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
               {intl.get('hzero.common.button.save').d('保存')}
-            </Button> */}
+            </Button>
             <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
               {intl.get('hzero.common.button.submit').d('提交')}
             </Button>
