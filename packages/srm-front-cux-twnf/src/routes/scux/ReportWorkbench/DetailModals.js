@@ -5,7 +5,7 @@ import intl from 'hzero-front/lib/utils/intl';
 const categoryDetailDS = (organizationId, categoryCode, comparePeriod) => ({
   autoQuery: false,
   selection: false,
-  paging: false,
+  pageSize: 10,
   fields: [
     { name: 'categoryCode', label: intl.get('scux.reportWorkbench.field.categoryCode').d('品名') },
     { name: 'categoryName', label: intl.get('scux.reportWorkbench.field.categoryName').d('品名描述') },
@@ -22,10 +22,10 @@ const categoryDetailDS = (organizationId, categoryCode, comparePeriod) => ({
     { name: 'amountPeriodOnPeriod', label: intl.get('scux.reportWorkbench.field.amountPeriodOnPeriod').d('金额环比') },
   ],
   transport: {
-    read: () => ({
+    read: ({ params }) => ({
       url: `/marmot/v1/${organizationId}/marmot-api/RNSM1ViakicjXcJ14ib3HeMicXlPtnYYv6fKdKqwPicIGiccqI8Ot5Oag1BiauJb5ibicicJAD`,
       method: 'POST',
-      data: { categoryCode, comparePeriod },
+      data: { categoryCode, comparePeriod, ...params },
     }),
   },
 });
@@ -33,7 +33,7 @@ const categoryDetailDS = (organizationId, categoryCode, comparePeriod) => ({
 const supplierDetailDS = (organizationId, supplierCode, comparePeriod, compareDimension) => ({
   autoQuery: false,
   selection: false,
-  paging: false,
+  pageSize: 10,
   fields: [
     { name: 'supplierCode', label: intl.get('scux.reportWorkbench.field.supplierCode').d('供应商编码') },
     { name: 'supplierName', label: intl.get('scux.reportWorkbench.field.supplierName2').d('供应商名称') },
@@ -43,10 +43,10 @@ const supplierDetailDS = (organizationId, supplierCode, comparePeriod, compareDi
     { name: 'supplyRate', label: intl.get('scux.reportWorkbench.field.supplyRate').d('供应占比') },
   ],
   transport: {
-    read: () => ({
+    read: ({ params }) => ({
       url: `/marmot/v1/${organizationId}/marmot-api/RNSM1ViakicjXcJ14ib3HeMicXlPtnYYv6fKdKqwPicIGiccp1yc524bhFjuQh5JUwa0Ob`,
       method: 'GET',
-      params: { supplierCode, comparePeriod, compareDimension },
+      params: { supplierCode, comparePeriod, compareDimension, ...params },
     }),
   },
 });
