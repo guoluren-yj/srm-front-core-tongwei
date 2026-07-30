@@ -176,7 +176,7 @@ const PageHeader: React.FC<any> = () => {
       <Button icon="transfer" wait={1000} onClick={() => operateTransferModal(true)} disabled={pageLoading}>
         {intl.get(`ssrc.inquiryHall.view.message.button.transfer`).d('转交')}
       </Button>,
-      scoreTeam === 'PRICE' && Number(evaluateLeaderFlag) === 1 && (
+      pageType === 'price' && (
         <Button wait={1000} disabled={pageLoading} onClick={handleBusinessNegotiate}>
           {intl.get(`${prefix}.view.button.businessNegotiate`).d('商务谈判')}
         </Button>
@@ -255,16 +255,17 @@ const PageHeader: React.FC<any> = () => {
 
   // 标题
   const pageTitle = useMemo(() => {
-    if (pageType === 'view') {
-      return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationDetail').d('查看评标');
-    };
-    if (!scoreTeam) {
-      return '';
-    };
-    const recordField = evaluationHeaderDs?.current?.getField('scoreTeam');
-    const prefixTitle = recordField?.getText(scoreTeam);
-    return `${prefixTitle || ''}${intl.get('scux.bidEvaluationManagement.view.title.evaluate').d('评标')}`
-  }, [scoreTeam, pageType, evaluationHeaderDs?.current]);
+    switch (pageType) {
+      case 'tech':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationUpdate').d('技术评标');
+      case 'price':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.technicalSummary').d('技术综评');
+      case 'view':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationDetail').d('查看评标');
+      default:
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationUpdate').d('技术评标');
+    }
+  }, [editorFlag]);
 
   return (
     <Header
