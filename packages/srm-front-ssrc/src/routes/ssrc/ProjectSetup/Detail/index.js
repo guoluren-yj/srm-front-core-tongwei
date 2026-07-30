@@ -78,7 +78,7 @@ const Index = observer((props) => {
   // 查询进度条
   const fetchProgress = () => {
     const rfxHeaderId = null;
-     queryProgressNew({
+    queryProgressNew({
       organizationId,
       rfxHeaderId,
       configKeys: [
@@ -96,7 +96,7 @@ const Index = observer((props) => {
       const result = getResponse(res);
       if (result && !result.failed) {
         // 设置值
-        const processBar = result.processBar.map(item => ({...item, currentStep: item.nodeStatus, currentNodeFlag: item.nodeFlag === 0 ? 1 : 0}));
+        const processBar = result.processBar.map(item => ({ ...item, currentStep: item.nodeStatus, currentNodeFlag: item.nodeFlag === 0 ? 1 : 0 }));
         setProgress(processBar);
         const { nodeStatus } = processBar.find((i) => i.currentNodeFlag) || {};
         setCurrentStep(nodeStatus);
@@ -159,8 +159,19 @@ const Index = observer((props) => {
   // 点击步骤条
   const handleClickStep = (record = {}) => {
     const { nodeStatus = null, finishedFlag = 0, nodeFlag } = record || {};
-
+    const id = headerInfo.sourceHeaderId
     if (!finishedFlag && nodeFlag > 0) {
+      if (['RELEASE_PREPARE', 'IN_QUOTATION', 'CHECK_PENDING', 'FINISHED'].includes(nodeStatus) && id) {
+        history.push({
+          pathname: `/ssrc/new-bid-hall/bid-detail/${id}`,
+          search: querystring.stringify({
+            rfxHeaderId: id,
+            sourceCategory: 'RFQ',
+            inComingStatus: nodeStatus,
+          }),
+        });
+        return;
+      }
       notification.warning({
         message: intl
           .get('ssrc.projectSetup.view.warning.noCurrentStatusView')
@@ -347,9 +358,9 @@ const Index = observer((props) => {
 
   const buttons = remoteFunc
     ? remoteFunc.process('SSRC_PROJECT_SETUP_DETAIL_PROCESS_HEADER_BUTTON', preButtons, {
-        currentStep,
-        sourceProjectId,
-      })
+      currentStep,
+      sourceProjectId,
+    })
     : preButtons;
 
   return (

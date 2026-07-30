@@ -72,6 +72,7 @@ export default class Container extends PureComponent {
       remote,
       workFlowMenuPermissionMap = {},
       match,
+      history,
     } = this.props;
     const permissionFlagMap = {
       changePermissionCode,
@@ -103,6 +104,7 @@ export default class Container extends PureComponent {
             {
               record,
               match,
+              history,
               aggregation,
               handleFuncMap,
               permissionFlagMap,

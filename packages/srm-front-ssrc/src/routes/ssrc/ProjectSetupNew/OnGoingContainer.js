@@ -49,7 +49,7 @@ export default class Container extends PureComponent {
    * @param {*} layoutType - 布局类别
    */
   getCommonColunmns(content) {
-    const { match, handleFuncMap, rfTemplateDs, isBid, workFlowMenuPermissionMap } = this.props;
+    const { match, history, handleFuncMap, rfTemplateDs, isBid, workFlowMenuPermissionMap } = this.props;
     const { aggregation1, aggregation2 } = this.state;
     const {
       onRef,
@@ -99,11 +99,13 @@ export default class Container extends PureComponent {
             {
               record,
               match,
+              history,
               handleFuncMap,
               permissionFlagMap,
               rfTemplateDs,
               workFlowMenuPermissionMap,
               projectOldUIFlag,
+              tabKey: content,
             },
             onRef
           ),

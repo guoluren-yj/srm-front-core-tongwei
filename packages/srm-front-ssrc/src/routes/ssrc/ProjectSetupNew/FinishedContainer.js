@@ -37,7 +37,7 @@ export default class Container extends PureComponent {
   };
 
   getCommonColunmns() {
-    const { match, handleFuncMap, rfTemplateDs, isBid } = this.props;
+    const { match, history, handleFuncMap, rfTemplateDs, isBid } = this.props;
     const { aggregation } = this.state;
     const {
       onRef,
@@ -84,6 +84,7 @@ export default class Container extends PureComponent {
             {
               record,
               match,
+              history,
               handleFuncMap,
               aggregation,
               permissionFlagMap,

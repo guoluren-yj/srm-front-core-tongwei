@@ -388,6 +388,7 @@ const renderAction = (
     rfTemplateDs,
     projectOldUIFlag,
     workFlowMenuPermissionMap = {},
+    history,
   },
   onRef
 ) => {
@@ -606,6 +607,21 @@ const renderAction = (
   // 只要发布成功就会有至少一个版本，因此判断立项单状态不是新建、发布审批中、发布审批拒绝即可
   if (!['NEW', 'APPROVING', 'REFUSE'].includes(sourceProjectStatus)) {
     allBtns.push(viewHistoryVersionBtn);
+  }
+
+  // 寻源准备阶段，展示技术文件、招标清单、供应商入围入口
+  if (tabKey === 'waiting' && record.get('attributeVarchar13') === 'SOURCE_PREPARATION') {
+    allBtns.push(
+      <a onClick={() => history.push('/scux/ssrc/technical-documents-workbench')}>
+        {intl.get(`${promptCode}.view.message.button.technicalDocument`).d('技术文件')}
+      </a>,
+      <a onClick={() => history.push('/scux/ssrc/tender-workbench/list')}>
+        {intl.get(`${promptCode}.view.message.button.tenderList`).d('招标清单')}
+      </a>,
+      <a onClick={() => history.push('/scux/supplier-evaluation')}>
+        {intl.get(`${promptCode}.view.message.button.supplierEvaluation`).d('供应商入围')}
+      </a>
+    );
   }
 
   const actionList = [];

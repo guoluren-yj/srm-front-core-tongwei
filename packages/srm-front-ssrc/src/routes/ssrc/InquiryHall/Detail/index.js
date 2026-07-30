@@ -271,8 +271,8 @@ class Detail extends PureComponent {
     return RefreshFlag;
   }
 
-  componentDidUpdate(...params) {
-    if (params[2]) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.location !== this.props.location) {
       this.updateRfxDetailQuery();
     }
   }
@@ -527,7 +527,7 @@ class Detail extends PureComponent {
     }
 
     this.setState({
-      currentStep: state?.autoLocationStepNode || currentStage?.nodeStatus,
+      currentStep: state?.autoLocationStepNode || inComingStatus || currentStage?.nodeStatus,
     });
 
     this.fetchRfxDetailLayout(); // 寻源准备节点，并且老ui,查询横竖版本配置
