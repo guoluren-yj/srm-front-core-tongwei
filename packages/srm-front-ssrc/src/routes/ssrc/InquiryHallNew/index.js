@@ -1739,9 +1739,9 @@ class InquiryHall extends React.Component {
 
   // 投标确认
   openCuxBidConfirmNode = (record) => {
-    const { rfxHeaderId, attributeVarchar20, openEnabledFlag, rfxStatus } =
-      record.get(['rfxHeaderId', 'attributeVarchar20', 'openEnabledFlag', 'rfxStatus']) || {};
-    if (attributeVarchar20 === 'BIDCONFIRM' || attributeVarchar20 === 'SORTITION' || Number(openEnabledFlag) !== 1 || rfxStatus !== 'OPEN_BID_PENDING') return null;
+    const { rfxHeaderId, attributeVarchar20 } =
+      record.get(['rfxHeaderId', 'attributeVarchar20']) || {};
+    if (attributeVarchar20 === 'BIDCONFIRM') return null;
     return (
       <div>
         <a
@@ -2208,8 +2208,7 @@ class InquiryHall extends React.Component {
   // 招标发布
   @Bind()
   handleBidRelease(record) {
-    const bidReleaseModal = Modal.open({
-      key: Modal.key(),
+    const bidReleaseModal = Modal.confirm({
       title: intl.get('scux.ssrc.view.title.modal.bidRelease').d('标书发布'),
       children: intl
         .get('scux.ssrc.view.message.modal.bidReleaseContent')
@@ -2299,7 +2298,6 @@ class InquiryHall extends React.Component {
       attributeVarchar20,
       cuxElectronicSignFlag,
       cuxElectronicSignAttachFlag,
-      offlineWholeFlag,
     } =
       record.get([
         'rfxStatus',
@@ -2308,7 +2306,6 @@ class InquiryHall extends React.Component {
         'attributeVarchar20',
         'cuxElectronicSignFlag',
         'cuxElectronicSignAttachFlag',
-        'offlineWholeFlag',
       ]) || {};
     /**
      * ①电签=Y&状态=「未开始 & 二级状态为空时；
@@ -2367,8 +2364,6 @@ class InquiryHall extends React.Component {
           </a>
         </div>
       ),
-      this.bidFlag && !offlineWholeFlag && this.openCuxBidConfirmNode(record),
-      this.bidFlag && !offlineWholeFlag && this.openingBidNode(record),
     ].filter(Boolean);
   }
 
@@ -2678,8 +2673,9 @@ class InquiryHall extends React.Component {
         mean = this.pushOtherNode(mean, record);
         break;
       case 'OPEN_BID_PENDING': // 待开标
-        if (!this.bidFlag && Number(openEnabledFlag) === 1) {
+        if (Number(openEnabledFlag) === 1) {
           if (!offlineWholeFlag) {
+            mean.push(this.openCuxBidConfirmNode(record));
             mean.push(this.openingBidNode(record));
           }
         }
@@ -3572,7 +3568,8 @@ class InquiryHall extends React.Component {
         mean = this.pushOtherNode(mean, record, onGoingStatus);
         break;
       case 'OPEN_BID_PENDING': // 待开标
-        if (!this.bidFlag && openEnabledFlag === 1 && !offlineWholeFlag) {
+        if (openEnabledFlag === 1 && !offlineWholeFlag) {
+          mean.push(this.openCuxBidConfirmNode(record));
           mean.push(this.openingBidNode(record));
         }
         if (
@@ -5083,7 +5080,7 @@ class InquiryHall extends React.Component {
         pathname: `/scux/ssrc/bid-evaluation-management/list`,
         search: querystring.stringify({
           positionTab: 'toBeEvaluated',
-          sourceNum: record.rfxNum,
+          sourceNum: record.get('rfxNum'),
         }),
       });
       return;

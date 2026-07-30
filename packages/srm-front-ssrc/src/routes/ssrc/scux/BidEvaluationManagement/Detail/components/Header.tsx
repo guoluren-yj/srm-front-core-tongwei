@@ -3,21 +3,18 @@ import { Button } from 'choerodon-ui/pro';
 import { ButtonColor } from "choerodon-ui/pro/lib/button/enum";
 import { useObserver } from 'mobx-react-lite';
 import { isEmpty, isBoolean } from 'lodash';
-import querystring from 'querystring';
 
 import { Header } from 'components/Page';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
-import { getResponse, getCurrentOrganizationId } from 'utils/utils';
+import { getResponse } from 'utils/utils';
 
 import { transfer as transferApi } from '@/services/expertScoringService';
 import ExpertLibraryModal from '@/routes/sbid/ExpertScoring/Update/ExpertLibraryModal';
 import SubAccount from '@/routes/components/SubAccount';
-import { fetchOpenBargain } from '@/services/inquiryHallService';
 
 import {
   techEvaluationSaveAndSubmit,
-  getSourceUrlConfig,
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
 
@@ -39,8 +36,8 @@ const PageHeader: React.FC<any> = () => {
   const [expertModalVisible, setExpertModalVisible] = useState(false);
   const [subAccountVisible, setSubAccountVisible] = useState(false);
 
-  const { expertSource, rfxHeaderId, bargainOfflineFlag, sourceType, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag } = useObserver(() =>
-    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'bargainOfflineFlag', 'sourceType', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag']) || {}
+  const { expertSource, rfxHeaderId, evaluateExpertId } = useObserver(() =>
+    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'evaluateExpertId']) || {}
   );
 
   // 校验页面数据
@@ -142,24 +139,9 @@ const PageHeader: React.FC<any> = () => {
     });
   };
 
-  // 跳转到商务谈判
+  // TODO: 商务谈判 后端未给接口,后端说这个是后面的内容，暂时先不写
   const handleBusinessNegotiate = async () => {
-    if (!quotationHeaderId || !rfxHeaderId) return;
-    const res = await getSourceUrlConfig({ sourceHeaderId: rfxHeaderId });
-    if (getResponse(res) && res.bargainStatus === 'INITIATE') {
-      await fetchOpenBargain({
-        organizationId: getCurrentOrganizationId(),
-        rfxHeaderId,
-        bargainMethod: bargainOfflineFlag === 0 ? 'ONLINE' : sourceType,
-      });
-    }
-    history.push({
-      pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
-      search: querystring.stringify({
-        quotationHeaderId,
-        sourceStatus: 'newInquiryHallToBargain',
-      }),
-    });
+
   };
 
   const getButtons = () => {
@@ -176,7 +158,7 @@ const PageHeader: React.FC<any> = () => {
       <Button icon="transfer" wait={1000} onClick={() => operateTransferModal(true)} disabled={pageLoading}>
         {intl.get(`ssrc.inquiryHall.view.message.button.transfer`).d('转交')}
       </Button>,
-      scoreTeam === 'PRICE' && Number(evaluateLeaderFlag) === 1 && (
+      pageType === 'price' && (
         <Button wait={1000} disabled={pageLoading} onClick={handleBusinessNegotiate}>
           {intl.get(`${prefix}.view.button.businessNegotiate`).d('商务谈判')}
         </Button>
@@ -255,16 +237,17 @@ const PageHeader: React.FC<any> = () => {
 
   // 标题
   const pageTitle = useMemo(() => {
-    if (pageType === 'view') {
-      return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationDetail').d('查看评标');
-    };
-    if (!scoreTeam) {
-      return '';
-    };
-    const recordField = evaluationHeaderDs?.current?.getField('scoreTeam');
-    const prefixTitle = recordField?.getText(scoreTeam);
-    return `${prefixTitle || ''}${intl.get('scux.bidEvaluationManagement.view.title.evaluate').d('评标')}`
-  }, [scoreTeam, pageType, evaluationHeaderDs?.current]);
+    switch (pageType) {
+      case 'tech':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationUpdate').d('技术评标');
+      case 'price':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.technicalSummary').d('技术综评');
+      case 'view':
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationDetail').d('查看评标');
+      default:
+        return intl.get('scux.bidEvaluationManagement.view.title.page.techEvaluationUpdate').d('技术评标');
+    }
+  }, [editorFlag]);
 
   return (
     <Header

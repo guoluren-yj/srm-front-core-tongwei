@@ -398,6 +398,7 @@ export default class OpenBid extends PureComponent {
     );
   }
 
+
   renderCheckInList = () => {
     const { customizeTable = () => { }, rfx = {}, header = {} } = this.props;
     const { OpenBidCollapseKeys = [] } = this.state;

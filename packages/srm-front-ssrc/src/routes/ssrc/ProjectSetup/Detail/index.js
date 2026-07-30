@@ -30,7 +30,7 @@ import { openApproveModal } from '_components/ApproveModal';
 import useOperationRecordModal from '@/routes/components/ProjectOperationRecord/useModal';
 import { withOverride, handleRevokeApproval, getBatchOperationFlag } from '@/utils/utils';
 
-import { queryProgressNew, fetchProjectSetupHeader } from '@/services/projectSetupService'; // queryProgress
+import { queryProgress, fetchProjectSetupHeader } from '@/services/projectSetupService';
 import { fetchConfigSheet } from '@/services/inquiryHallNewService';
 
 // import HistoryVersionListBtn from '@/routes/ssrc/ProjectSetupNew/Components/HistoryVersionListBtn';
@@ -42,7 +42,6 @@ import SPDetail from '../../ProjectSetupNew/SPDetail/indexDetail';
 import styles from './index.less';
 import Sourcing from './Sourcing';
 import Finish from './Finish';
-import BidPreparation from '../BidPreparation';
 
 const { Step } = Steps;
 const organizationId = getCurrentOrganizationId();
@@ -77,28 +76,12 @@ const Index = observer((props) => {
 
   // 查询进度条
   const fetchProgress = () => {
-    const rfxHeaderId = null;
-     queryProgressNew({
-      organizationId,
-      rfxHeaderId,
-      configKeys: [
-        'sourceLayout',
-        'checkPriceWay',
-        `checkPriceWay#${rfxHeaderId}`,
-        'sectionBidSwitchInform',
-      ],
-      tableCode: 'source_old_ui_config',
-      condition: {
-        tenant: getCurrentTenant().tenantNum,
-      },
-      sourceProjectId: match.params.sourceProjectId,
-    }).then((res) => {
+    queryProgress({ sourceProjectId: match.params.sourceProjectId }).then((res) => {
       const result = getResponse(res);
       if (result && !result.failed) {
         // 设置值
-        const processBar = result.processBar.map(item => ({...item, currentStep: item.nodeStatus, currentNodeFlag: item.nodeFlag === 0 ? 1 : 0}));
-        setProgress(processBar);
-        const { nodeStatus } = processBar.find((i) => i.currentNodeFlag) || {};
+        setProgress(result);
+        const { nodeStatus } = result?.find((i) => i.currentNodeFlag) || {};
         setCurrentStep(nodeStatus);
       }
     });
@@ -158,9 +141,9 @@ const Index = observer((props) => {
 
   // 点击步骤条
   const handleClickStep = (record = {}) => {
-    const { nodeStatus = null, finishedFlag = 0, nodeFlag } = record || {};
+    const { nodeStatus = null, finishedFlag = 0, currentNodeFlag = 0 } = record || {};
 
-    if (!finishedFlag && nodeFlag > 0) {
+    if (!finishedFlag && !currentNodeFlag) {
       notification.warning({
         message: intl
           .get('ssrc.projectSetup.view.warning.noCurrentStatusView')
@@ -389,16 +372,13 @@ const Index = observer((props) => {
           <div className="project-card-warp">
             <div className="project-card-content">{renderSteps()}</div>
           </div>
-          {currentStep === 'BID_PLAN' &&
+          {currentStep === 'RELEASE' &&
             getOverrideSupplierTab({
               history,
               match,
               location,
               newDetailPageFlag: 1,
             })}
-          {currentStep === 'BID_PREPARE' && headerInfo?.subjectMatterRule && (
-            <BidPreparation sourceProjectId={sourceProjectId} />
-          )}
           {currentStep === 'SOURCING' && headerInfo?.subjectMatterRule && (
             <Sourcing
               history={history}

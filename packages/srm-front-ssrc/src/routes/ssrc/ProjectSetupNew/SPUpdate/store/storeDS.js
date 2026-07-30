@@ -7,7 +7,7 @@ import {
   getCurrentUser,
 } from 'utils/utils';
 import { EMAIL, NOT_CHINA_PHONE, PHONE } from 'utils/regExp';
-import { isNil, isEmpty, isArray } from 'lodash';
+import { isNil, isEmpty } from 'lodash';
 import { math } from 'choerodon-ui/dataset';
 
 import { getQtyName, getUomName } from '@/utils/utils';
@@ -135,13 +135,6 @@ const getPurAndOrgFields = (payload) => {
       transformResponse: (value) => {
         return value || currentUserInfo.realName;
       },
-    },
-    {
-      label: intl.get('ssrc.projectSetup.model.projectSetup.position').d('岗位'),
-      name: 'attributeVarchar12',
-      lovCode: 'SCUX_TWNF_LOV_POSITION',
-      textField: 'positionName',
-      valueField: 'positionId',
     },
     {
       label: intl
@@ -440,74 +433,6 @@ const headerDS = (payload) => {
         };
       },
     },
-  };
-};
-
-// 招标计划 - 招标节点
-const bidPlanNodeDS = () => {
-  return {
-    primaryKey: 'nodeId',
-    autoQuery: false,
-    selection: false,
-    paging: false,
-    forceValidate: true,
-    fields: [
-      {
-        name: 'nodeName',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.nodeName`).d('节点名称'),
-      },
-      {
-        name: 'nodeOrder',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.nodeOrder`).d('节点顺序'),
-        lookupCode: 'NODE_ORDER',
-      },
-      {
-        name: 'userInCharge',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.userInCharge`).d('负责人'),
-        type: "object",
-        lovCode: 'SCUX.HPFM.TW.BATCH.EMPLOYEE',
-        required: true,
-        multiple: true,
-        valueField: 'employeeId',
-        textField: 'name',
-        transformRequest: (value) => (isArray(value) ? value.map(v => v.employeeId).join(',') : value),
-        transformResponse(value, object) {
-          const valueArr = value ? value.split(',') : null;
-          const valueMeaningArr = value ? (object.userInChargeMeaning || '').split(',') : null;
-          return valueArr ? valueArr.map((v, i) => ({
-            employeeId: Number(v),
-            name: valueMeaningArr[i] || v,
-          })) : null;
-        },
-      },
-      {
-        name: 'planFinishDate',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.planFinishDate').d('计划完成时间'),
-        type: "date",
-        required: true,
-      },
-      {
-        name: 'adjustFlag',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.adjustFlag').d('计划调整记录'),
-      },
-      {
-        name: 'limitDays',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.limitDays').d('工作时限（天）'),
-      },
-      {
-        name: 'finishedDate',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.finishedDate').d('实际完成时间'),
-        type: "date",
-      },
-      {
-        name: 'differDays',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.differDays').d('时间差异（天）'),
-      },
-      {
-        name: 'remark',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.remark').d('备注'),
-      },
-    ],
   };
 };
 
@@ -1475,7 +1400,6 @@ const supplierLovDS = (payload) => {
 
 export {
   headerDS,
-  bidPlanNodeDS,
   itemLineDS,
   sectionOrPacketInfoDS,
   allotItemLineDS,

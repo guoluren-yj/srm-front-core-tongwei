@@ -30,9 +30,7 @@ function getQueryFields({ queryType = '' } = {}) {
     {
       name: 'scoreStatus',
       label: intl.get('scux.bidEvaluationManagement.model.twnf.evaluationStatus').d('状态'),
-      type: FieldType.string,
       display: true,
-      lookupCode: 'SCUX.TWNF_BID_EXP_EVA_STATUS',
       dynamicProps: {
         lookupCode: () => {
           if (queryType === 'SCORING') {
@@ -89,22 +87,22 @@ const tableDataSet = ({ queryType }): DataSetProps => {
         label: intl.get('scux.bidEvaluationManagement.model.twnf.bidName').d('项目名称'),
         type: FieldType.string,
       },
-      ...(queryType !== 'SUMMARY' ? [{
+      {
         name: 'scoreTeam',
         label: intl.get(`scux.bidEvaluationManagement.model.twnf.evaluationGroup`).d('评分组别'),
         type: FieldType.string,
         lookupCode: 'SCUX.TWNF_BID_EXPERT_TEAM',
-      }] : []),
+      },
       {
         name: 'companyName',
         label: intl.get('scux.bidEvaluationManagement.model.twnf.companyName').d('公司'),
         type: FieldType.string,
       },
-      ...(queryType !== 'SUMMARY' ? [{
+      {
         name: 'supplierCompanyName',
         label: intl.get('scux.bidEvaluationManagement.model.twnf.supplierName').d('供应商名称'),
         type: FieldType.string,
-      }] : []),
+      },
       {
         name: 'attributeLongtext20',
         label: intl.get('scux.bidEvaluationManagement.model.twnf.openingOrder').d('开标顺序'),

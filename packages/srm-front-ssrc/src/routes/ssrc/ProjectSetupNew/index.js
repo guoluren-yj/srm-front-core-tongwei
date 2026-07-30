@@ -25,8 +25,6 @@ import { Bind, Debounce } from 'lodash-decorators';
 import { isArray, isEmpty, isNil } from 'lodash';
 // import classnames from 'classnames';
 import querystring from 'querystring';
-import { FieldType } from 'choerodon-ui/dataset/data-set/enum';
-import { LabelLayout } from 'choerodon-ui/pro/lib/form/enum';
 import DynamicButtons from '_components/DynamicButtons';
 import { openApproveModal } from '_components/ApproveModal';
 import SearchBar from 'srm-front-boot/lib/components/SearchBarTable/SearchBar';
@@ -402,8 +400,14 @@ class ProjectSetup extends Component {
 
   @Bind()
   async purchaseRequestOk() {
+    const { dispatch, location } = this.props;
+    const { projectOldUIFlag } = this.state;
     const { selected } = this.purchaseRequestDs;
     const selectedRowKeys = selected.map((ele) => ele.toData().prLineId);
+    const { routeFrom } = querystring.parse(location.search.substr(1));
+    const search = querystring.stringify({
+      current: routeFrom,
+    });
     if (selectedRowKeys.length === 0) {
       notification.warning({
         message: intl
@@ -412,55 +416,6 @@ class ProjectSetup extends Component {
       });
       return false;
     }
-
-    // 打开模板选择弹框
-    const formDs = new DataSet({
-      autoCreate: true,
-      fields: [
-        {
-          name: 'templateId',
-          label: intl.get('ssrc.inquiryHall.model.inquiryHall.sourcingTemplate').d('寻源模板'),
-          lovCode: 'SSRC.TEMPLATE_NAME',
-          type: FieldType.object,
-          required: true,
-          transformRequest: (value) => value ? value.templateId : null,
-          lovPara: {
-            sourceCategory: 'RFX',
-            secondarySourceCategory: 'NEW_BID',
-          },
-        },
-      ],
-    });
-    await C7nProModal.open({
-      destroyOnClose: true,
-      title: intl.get('scux.bidPlanWorkBench.view.title.modal.selectTemplate').d('选择模板'),
-      children: (
-        <Form dataSet={formDs} labelLayout={LabelLayout.float} columns={1}>
-          <Lov name="templateId" />
-        </Form>
-      ),
-      onOk: async () => {
-        if (await formDs.validate()) {
-          const templateId = formDs.current?.get('templateId')?.templateId;
-          if (!templateId) {
-            return false;
-          }
-          return this.handleQuoteApprovalWithTemplate({ selectedRowKeys, templateId });
-        }
-      },
-    });
-    return false;
-  }
-
-  // 引用申请立项-选择模板确认事件
-  @Bind()
-  async handleQuoteApprovalWithTemplate({ selectedRowKeys, templateId }) {
-    const { dispatch, location } = this.props;
-    const { projectOldUIFlag } = this.state;
-    const { routeFrom } = querystring.parse(location.search.substr(1));
-    const search = querystring.stringify({
-      current: routeFrom,
-    });
     const res = await newBatchValidatePurchase({
       organizationId,
       prLineIdList: selectedRowKeys,
@@ -476,29 +431,29 @@ class ProjectSetup extends Component {
         return createQuoteApproval({
           organizationId,
           prLineIdList: selectedRowKeys,
-          attributeVarchar10: templateId,
-          attributeBigint10: 1,
         }).then((response) => {
           if (getResponse(response)) {
             notification.success();
             const { sourceProject = {} } = response;
             const { sourceProjectId = '' } = sourceProject;
-            if (sourceProjectId) {
-              this.quoteApprovalModal.close();
-              if (projectOldUIFlag) {
-                dispatch(
-                  routerRedux.replace({
-                    pathname: `/ssrc/new-project-setup/update/${sourceProjectId}`,
-                    search,
-                  })
-                );
-              } else {
-                dispatch(
-                  routerRedux.replace({
-                    pathname: `/ssrc/new-project-setup/sp-update/${sourceProjectId}`,
-                  })
-                );
-              }
+            if (!sourceProjectId) {
+              return;
+            }
+            // 老ui
+            if (projectOldUIFlag) {
+              dispatch(
+                routerRedux.replace({
+                  pathname: `/ssrc/new-project-setup/update/${sourceProjectId}`,
+                  search,
+                })
+              );
+            } else {
+              // 新立项c7nui
+              dispatch(
+                routerRedux.replace({
+                  pathname: `/ssrc/new-project-setup/sp-update/${sourceProjectId}`,
+                })
+              );
             }
           } else {
             return false;
@@ -545,29 +500,29 @@ class ProjectSetup extends Component {
         const result = await createQuoteApproval({
           organizationId,
           prLineIdList: selectedRowKeys,
-          attributeVarchar10: templateId,
-          attributeBigint10: 1,
         });
         if (getResponse(result)) {
           notification.success();
           const { sourceProject = {} } = result;
           const { sourceProjectId = '' } = sourceProject;
-          if (sourceProjectId) {
-            this.quoteApprovalModal.close();
-            if (projectOldUIFlag) {
-              dispatch(
-                routerRedux.replace({
-                  pathname: `/ssrc/new-project-setup/update/${sourceProjectId}`,
-                  search,
-                })
-              );
-            } else {
-              dispatch(
-                routerRedux.replace({
-                  pathname: `/ssrc/new-project-setup/sp-update/${sourceProjectId}`,
-                })
-              );
-            }
+          if (!sourceProjectId) {
+            return;
+          }
+          // 老ui
+          if (projectOldUIFlag) {
+            dispatch(
+              routerRedux.replace({
+                pathname: `/ssrc/new-project-setup/update/${sourceProjectId}`,
+                search,
+              })
+            );
+          } else {
+            // 新立项c7nui
+            dispatch(
+              routerRedux.replace({
+                pathname: `/ssrc/new-project-setup/sp-update/${sourceProjectId}`,
+              })
+            );
           }
         } else {
           return false;
@@ -662,7 +617,7 @@ class ProjectSetup extends Component {
           history,
           remote,
         };
-        this.quoteApprovalModal = C7nProModal.open({
+        C7nProModal.open({
           destroyOnClose: true,
           key: modalKey,
           drawer: true,

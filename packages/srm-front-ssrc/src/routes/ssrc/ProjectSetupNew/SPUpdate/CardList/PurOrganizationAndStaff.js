@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Lov, TextField, TelField, Form } from 'choerodon-ui/pro';
+import { Lov, TextField, TelField } from 'choerodon-ui/pro';
 import { observer } from 'mobx-react-lite';
 import CollapseForm from '_components/CollapseForm';
 import { getResponse } from 'utils/utils';
@@ -58,12 +58,11 @@ const PurOrganizationAndStaffDemandCmp = observer((props) => {
       code: getCustomizeUnitCode('purOrgDemandForm'),
       dataSet: headerDs,
     },
-    <Form dataSet={headerDs} columns={3} labelLayout="float" useWidthPercent>
+    <CollapseForm dataSet={headerDs} columns={3} labelLayout="float" useWidthPercent>
       <Lov name="companyId" onChange={handleChangeCompany} />
       <Lov name="unitId" />
       <TextField name="createdByName" />
-      <Lov name="attributeVarchar12" />
-    </Form>
+    </CollapseForm>
   );
 });
 

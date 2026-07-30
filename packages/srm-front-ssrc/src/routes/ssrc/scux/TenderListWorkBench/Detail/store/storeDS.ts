@@ -1,4 +1,4 @@
-import { FieldType, FieldIgnore } from 'choerodon-ui/dataset/data-set/enum';
+import { FieldType } from 'choerodon-ui/dataset/data-set/enum';
 import type { DataSetProps } from 'choerodon-ui/dataset/data-set/DataSet';
 import { DataSetSelection } from 'choerodon-ui/dataset/data-set/enum';
 
@@ -6,7 +6,6 @@ import intl from "utils/intl";
 import { getCurrentOrganizationId } from 'utils/utils';
 import { SRM_SSRC } from "srm-front-boot/lib/utils/config";
 import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
-const organizationId = getCurrentOrganizationId();
 
 // 技术文件 - 头ds
 const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
@@ -32,7 +31,7 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
       },
       {
         name: 'bidDirectorName',
-        label: intl.get('scux.tenderDetail.model.twnf.createdByName').d('招标经理'),
+        label: intl.get('scux.tenderDetail.model.twnf.biddingPrincipal').d('招标负责人'),
       },
       {
         name: 'catelogNum',
@@ -40,7 +39,7 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
       },
       {
         name: 'createdByName',
-        label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('清单负责人'),
+        label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('创建人'),
       },
       {
         name: 'creationDate',
@@ -87,15 +86,6 @@ const tenderListSectionDS = ({ bidCatalogId, baseInfoDs }): DataSetProps => {
         name: 'sectionName',
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.sectionName`).d('标段名称'),
         required: true,
-      },
-      {
-        name: 'itemName',
-        required: true,
-        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.itemName`).d('项目名称'),
-      },
-      {
-        name: 'remark',
-        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.remark`).d('备注'),
       },
     ],
     transport: {
@@ -212,14 +202,10 @@ const bidPlanContentDS = ({ sourceProjectId }): DataSetProps => {
       },
     ],
     transport: {
-      read: ({ params }) => {
+      read: ({}) => {
         return {
           url: `${SRM_SSRC}/v1/${getCurrentOrganizationId()}/source-projects/${sourceProjectId}/items`,
           method: 'GET',
-          params: {
-            ...params,
-            attributeVarchar10: 0,
-          },
         };
       },
     },
@@ -241,51 +227,8 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
       },
       {
         name: 'itemName',
-        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('招标项目描述'),
+        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('项目名称（描述）'),
         required: true,
-      },
-      {
-        label: intl.get('small.common.model.itemCategory').d('物料类别'),
-        name: 'itemCategoryLov',
-        required: true,
-        type: FieldType.object,
-        ignore: FieldIgnore.always,
-        textField: 'categoryName',
-        valueField: 'categoryCode',
-        // lovCode: 'SMDM.ITEM_CATEGORY_BY_ITEM_ID',
-        lovCode: 'SMDM.CATEGORY.LEVEL_CONTROL_TREE',
-        dynamicProps: {
-          lovPara: () => ({
-            tenantId: organizationId,
-            businessObjectCode: 'SRM_C_SRM_AGREEMENT',
-            enabledFlag: 1,
-            hzeroUIFlag: 0,
-          }),
-        },
-        optionsProps: {
-          // 根据业务规则 - 品类值集选择范围， 判断数据是否能选中
-          record: {
-            dynamicProps: {
-              // 预定义不能启用禁用（头上按钮）
-              selectable: (record) => record.get('isCheck') !== false,
-            },
-          },
-        },
-      },
-      {
-        name: 'itemCategoryId',
-        type: FieldType.string,
-        bind: 'itemCategoryLov.categoryId',
-      },
-      {
-        name: 'itemCategoryCode',
-        type: FieldType.string,
-        bind: 'itemCategoryLov.categoryCode',
-      },
-      {
-        name: 'itemCategoryName',
-        type: FieldType.string,
-        bind: 'itemCategoryLov.categoryName',
       },
       {
         name: 'uomId',
@@ -312,6 +255,7 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
       {
         name: 'taxId',
         label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.taxRate').d('税率'),
+        required: true,
         type: FieldType.object,
         lovCode: 'SMDM.TAX',
         transformRequest: (value) => value?.taxId,
@@ -328,30 +272,9 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
         label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.remark').d('备注'),
       },
       {
-        label: intl.get(`ssrc.inquiryHall.model.inquiryHall.quotationTemplate`).d('报价模板'),
-        name: 'quotationTemplateIdLov',
-        type: FieldType.object,
-        ignore: FieldIgnore.always,
-        lovCode: 'SSRC.QUOTATION_TEMPLATE',
-        textField: 'templateName',
-        valueField: 'quotationTemplateId',
-        dynamicProps: {
-          lovPara() {
-            return {
-              tenantId: organizationId,
-            };
-          },
-        },
-      },
-      {
         name: 'quotationTemplateId',
+        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.quotationTemplate').d('报价模板'),
         type: FieldType.string,
-        bind: 'quotationTemplateIdLov.templateId',
-      },
-      {
-        name: 'templateName',
-        type: FieldType.string,
-        bind: 'quotationTemplateIdLov.templateName',
       },
     ],
     transport: {

@@ -21,10 +21,8 @@ import {
   RequirementOnSupplier,
   SecAndPacketTable,
   SourceDemand,
-  // PlanLineTable,
+  PlanLineTable,
 } from './CardList';
-
-import BidPlanNode from './CardList/BidPlanNode';
 import { StoreContext } from './store/StoreProvider';
 
 import Style from './index.less';
@@ -263,19 +261,13 @@ const Page = () => {
         >
           <SourceDemand />
         </TopSection>
-        {/* <TopSection
+        <TopSection
           title={intl.get('ssrc.projectSetup.view.title.spChange.planList').d('项目计划')}
           code={getCustomizeUnitCode('projectPlanCard')}
           getHocInstance={getHocInstance}
           className={Style['sp-common-top-section-card']}
         >
           <PlanLineTable />
-        </TopSection> */}
-        <TopSection
-          title={intl.get('ssrc.projectSetup.view.title.spChange.biddingNode').d('招标节点')}
-          className={Style['sp-common-top-section-card']}
-        >
-          <BidPlanNode sourceProjectId={sourceProjectId} dataVersion={routerParams?.dataVersion} />
         </TopSection>
         <TopSection
           title={intl.get('hzero.common.upload.modal.title').d('附件')}

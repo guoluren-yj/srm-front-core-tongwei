@@ -21,7 +21,6 @@ import {
   bidAnnouncementRuleDS,
   processNodeDS,
   invitationControlDS,
-  bidPlanFormDS,
   rfApproveRuleDS,
   rfReleaseDS,
   rfQuotationDS,
@@ -100,8 +99,6 @@ export function StoreProvider(props) {
   const processNodeDs = useDataSet(() => processNodeDS(), []);
   // 招投标 - 招标计划 - 邀请控制ds
   const invitationControlDs = useDataSet(() => invitationControlDS(), []);
-  // 招投标 - 招标计划 - 招标准备表单ds
-  const bidPlanFormDs = useDataSet(() => bidPlanFormDS(), []);
   const releaseRuleDs = useDataSet(() => releaseRuleDS({ baseInfoDs }), [baseInfoDs]);
   const quotationRuleDs = useDataSet(() => quotationRuleDS({ baseInfoDs }), [baseInfoDs]);
   const auctionBidDs = useDataSet(() => auctionBidDS({ quotationRuleDs, baseInfoDs }), [
@@ -140,7 +137,6 @@ export function StoreProvider(props) {
       attachRequirementDs,
       processNodeDs,
       invitationControlDs,
-      bidPlanFormDs,
       releaseRuleDs,
       quotationRuleDs,
       auctionBidDs,

@@ -21,7 +21,6 @@ import {
   releaseInterFace,
   deleteSupplierLines,
   fetchQualificationInfo,
-  querySourceProjects,
 } from '@/services/projectSetupService';
 
 import {
@@ -39,8 +38,6 @@ import { StoreContext } from './store/StoreProvider';
 
 import Style from './index.less';
 
-import BidPlanNode from './CardList/BidPlanNode';
-
 const Page = () => {
   const {
     commonDs: {
@@ -49,7 +46,6 @@ const Page = () => {
       sectionOrPacketInfoDs,
       supplierLineTableDs,
       planLineTableDs,
-      bidPlanNodeDs,
     } = {},
     getHocInstance,
     getCustomizeUnitCode,
@@ -153,11 +149,6 @@ const Page = () => {
       ];
 
       await Promise.all(list);
-      // 刷新招标节点数据
-      const bidPlanNodeRes = await querySourceProjects(sourceProjectId);
-      if (bidPlanNodeRes && !bidPlanNodeRes.failed) {
-        bidPlanNodeDs.loadData(bidPlanNodeRes || []);
-      }
       handleSetOperateLoading(false);
     } catch (e) {
       handleSetOperateLoading(false);
@@ -169,7 +160,6 @@ const Page = () => {
   const validatePageData = () => {
     const list = [
       headerDs?.validate(),
-      bidPlanNodeDs?.validate(),
       itemLineDs?.validate(),
       subjectMatterRule === 'PACK' ? sectionOrPacketInfoDs?.validate() : true,
       sourceMethod === 'INVITE' ? supplierLineTableDs?.validate() : true,
@@ -189,7 +179,6 @@ const Page = () => {
       projectLineSections: sectionOrPacketInfoDs?.toJSONData(),
       projectLineSuppliers: supplierLineTableDs?.toJSONData(),
       sourceProject: headerDs?.toJSONData()?.[0],
-      bidNodeList: bidPlanNodeDs?.toJSONData(),
       customizeUnitCode: getCustomizeUnitCode([
         'baseInfoForm',
         'purOrgDemandForm',
@@ -214,7 +203,6 @@ const Page = () => {
     }
     const flag =
       headerDs.dirty ||
-      bidPlanNodeDs.dirty ||
       itemLineDs.dirty ||
       sectionOrPacketInfoDs.dirty ||
       supplierLineTableDs.dirty ||
@@ -256,11 +244,9 @@ const Page = () => {
       return;
     }
     const pageData = getPageData({ pageChangeFlag });
-    // handleSetOperateLoading(true);
+    handleSetOperateLoading(true);
     try {
-      if(!await validatePageData()) return;
-
-      handleSetOperateLoading(true);
+      await validatePageData();
       // 处理保存成功后的处理逻辑
       const handlePageAfterSaveOperate = () => {
         notification.success();
@@ -625,12 +611,12 @@ const Page = () => {
               >
                 <PurOrganizationAndStaffDemandCmp {...commonProps} />
               </SecondSection>
-              {/* <SecondSection
+              <SecondSection
                 title={intl.get('ssrc.projectSetup.view.subTitle.spChange.executor').d('执行人')}
                 code="executor"
               >
                 <PurOrganizationAndStaffExecutorCmp />
-              </SecondSection> */}
+              </SecondSection>
             </TopSection>
           )}
           {getTopSectionShowFlag({ cardKeykey: 'itemInfoCard' }) && (
@@ -658,7 +644,7 @@ const Page = () => {
               )}
             </TopSection>
           )}
-          {/* <TopSection
+          <TopSection
             code={getCustomizeUnitCode('reqOnSupplierCard')}
             getHocInstance={getHocInstance}
             title={intl
@@ -677,20 +663,14 @@ const Page = () => {
             className={Style['sp-common-top-section-card']}
           >
             <SourceDemand />
-          </TopSection> */}
-          {/* <TopSection
+          </TopSection>
+          <TopSection
             code={getCustomizeUnitCode('projectPlanCard')}
             getHocInstance={getHocInstance}
             title={intl.get('ssrc.projectSetup.view.title.spChange.planList').d('项目计划')}
             className={Style['sp-common-top-section-card']}
           >
             <PlanLineTable {...commonProps} />
-          </TopSection> */}
-          <TopSection
-            title={intl.get('ssrc.projectSetup.view.title.spChange.biddingNode').d('招标节点')}
-            className={Style['sp-common-top-section-card']}
-          >
-            <BidPlanNode sourceProjectId={sourceProjectId} />
           </TopSection>
           <TopSection
             title={intl.get('hzero.common.upload.modal.title').d('附件')}

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useMemo, useEffect, } from 'react';
 import { Table, Button, useDataSet, Modal, DataSet } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
@@ -17,12 +17,11 @@ interface DetailMaintenanceProps {
   bidCatalogSectionId: string;
   baseInfoDs: DataSet;
   editorFlag: boolean;
-  sectionName?: string;
 };
 
-function DetailMaintenanceInner(props: any, ref: any) {
+const DetailMaintenance: React.FC<DetailMaintenanceProps> = (props) => {
 
-  const { bidCatalogSectionId, baseInfoDs, editorFlag, sectionName } = props;
+  const { bidCatalogSectionId, baseInfoDs, editorFlag } = props;
   // 明细维护 ds
   const detailMaintenanceDs = useDataSet(() => detailMaintenanceDS({ baseInfoDs }), []);
 
@@ -48,7 +47,6 @@ function DetailMaintenanceInner(props: any, ref: any) {
       quotationTemplateId,
       lovDs,
       editorFlag,
-      hideSelectTemplate: true,
     };
     if (quotationTemplateId && lovDs.current) {
       lovDs.current.set('quotationTemplateId', quotationTemplateId);
@@ -77,12 +75,8 @@ function DetailMaintenanceInner(props: any, ref: any) {
       },
       {
         name: 'itemName',
-        // editor: editorFlag,
-        width: 130,
-      },
-      {
-        name: 'itemCategoryLov',
         editor: editorFlag,
+        width: 130,
       },
       {
         name: 'uomId',
@@ -97,15 +91,11 @@ function DetailMaintenanceInner(props: any, ref: any) {
         editor: editorFlag,
       },
       {
-        name: 'quotationTemplateIdLov',
-        editor: editorFlag,
-      },
-      {
         name: 'detail',
-        header: intl.get('scux.tenderDetail.model.twnf.tenderDetail.detailList').d('报价明细'),
+        header: intl.get('scux.tenderDetail.model.twnf.tenderDetail.detailList').d('明细清单'),
         renderer: ({ record }) => (
           <Button funcType={FuncType.link} wait={1000} onClick={() => handleOpenDetail(record)}>
-            {intl.get('scux.tenderDetail.model.twnf.tenderDetail.viewDetailList').d('查看')}
+            {editorFlag ? intl.get('scux.tenderDetail.model.twnf.tenderDetail.inventoryEdit').d('清单维护') : intl.get('scux.tenderDetail.model.twnf.tenderDetail.viewDetailList').d('清单查看')}
           </Button>
         ),
       },
@@ -156,23 +146,16 @@ function DetailMaintenanceInner(props: any, ref: any) {
   // 表格按钮
   const buttons: any[] = useMemo(() => {
     return editorFlag ? [
-      ['add', {
-        onClick: () => detailMaintenanceDs.create({ itemName: sectionName }, 0),
-      }],
+      'add',
       ['delete', {
         icon: 'delete_sweep',
         onClick: handleDelete,
       }],
-      ['save', {
-        icon: 'save',
-        onClick: handleSaveLine,
-      }],
+      <Button funcType={FuncType.link} wait={1000} onClick={handleSaveLine}>
+        {intl.get('hzero.common.button.save').d('保存')}
+      </Button>,
     ] : [];
-  }, [handleDelete, handleSaveLine, sectionName, detailMaintenanceDs]);
-
-  useImperativeHandle(ref, () => ({
-    save: handleSaveLine,
-  }), [handleSaveLine]);
+  }, [handleDelete, handleSaveLine]);
 
   return (
     <Table
@@ -183,7 +166,5 @@ function DetailMaintenanceInner(props: any, ref: any) {
     />
   );
 };
-
-const DetailMaintenance = forwardRef(DetailMaintenanceInner);
 
 export default DetailMaintenance;

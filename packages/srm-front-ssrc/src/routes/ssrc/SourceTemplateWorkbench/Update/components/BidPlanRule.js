@@ -1,7 +1,7 @@
 import React, { useMemo, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Table, Switch, Form, NumberField, Select } from 'choerodon-ui/pro';
-import { noop, isEmpty } from 'lodash';
+import { Table, Switch } from 'choerodon-ui/pro';
+import { noop } from 'lodash';
 
 import intl from 'utils/intl';
 
@@ -11,7 +11,7 @@ import SecLevelTitle from '../../components/SecLevelTitle';
 const BidPlanRule = (props) => {
   const { setPageLoading = noop } = props;
   const {
-    commonDs: { processNodeDs, invitationControlDs, bidPlanFormDs },
+    commonDs: { processNodeDs, invitationControlDs },
   } = useContext(Store);
 
   const processNodeColumns = useMemo(
@@ -128,16 +128,6 @@ const BidPlanRule = (props) => {
     <div>
       <div>
         <SecLevelTitle
-          title={intl.get('sscux.ssrc.view.title.sourceTemplate.twnf.bidPreparation').d('招标准备')}
-          style={{ marginTop: '20px' }}
-        />
-        <Form dataSet={bidPlanFormDs} columns={3} labelLayout="float" useWidthPercent>
-          <NumberField name="minSupplierCount" showHelp="tooltip" />
-          <Select name="supplierMainApproveMethod" clearButton={false} showHelp="tooltip" />
-        </Form>
-      </div>
-      <div>
-        <SecLevelTitle
           title={intl.get('sscux.ssrc.view.title.sourceTemplate.twnf.processNode').d('流程节点')}
           style={{ marginTop: '20px' }}
         />
@@ -148,7 +138,7 @@ const BidPlanRule = (props) => {
           customizedCode="SCUX_TWNF_SSRC_SOURCE_TEMPLATE_PROCESS_NODE_TABLE"
         />
       </div>
-      {/* <div>
+      <div>
         <SecLevelTitle
           title={intl
             .get('sscux.ssrc.view.title.sourceTemplate.twnf.invitationControl')
@@ -164,7 +154,7 @@ const BidPlanRule = (props) => {
           ]}
           customizedCode="SCUX_TWNF_SSRC_SOURCE_TEMPLATE_INVITATION_CONTROL_TABLE"
         />
-      </div> */}
+      </div>
     </div>
   );
 };

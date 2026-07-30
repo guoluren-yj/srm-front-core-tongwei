@@ -153,8 +153,7 @@ const PageHeader: React.FC<any> = () => {
       tableUrl={`${SRM_MARMOT}/v1/${getCurrentOrganizationId()}/marmot-api/v8iakAicH6oqZZdRutibdBmeGpSic9wlxicU2YbsJ0UQiaBVM`}
       tableOtherParams={{
         postType: "ACTION",
-        sourceId: techFileId,
-        actionType: "TECH_FILE",
+        techFileId,
       }}
       operateTransportParams={{
         method: "POST",
@@ -176,9 +175,9 @@ const PageHeader: React.FC<any> = () => {
           <Button icon="save" wait={1000} onClick={handleSave} disabled={pageLoading}>
             {intl.get('hzero.common.button.save').d('保存')}
           </Button>
-          {/* <Button icon="delete" wait={1000} onClick={handleDelete} disabled={pageLoading}>
+          <Button icon="delete" wait={1000} onClick={handleDelete} disabled={pageLoading}>
             {intl.get('hzero.common.button.delete').d('删除')}
-          </Button> */}
+          </Button>
           {operationBtn}
         </>
       ) : operationBtn}

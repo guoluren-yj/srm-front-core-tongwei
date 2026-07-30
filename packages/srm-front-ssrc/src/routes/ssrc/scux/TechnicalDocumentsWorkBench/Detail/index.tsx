@@ -70,13 +70,19 @@ const Page: React.FC<any> = () => {
   const showDomNodeFlag = useMemo(() => !bidPageDetailFlag, [bidPageDetailFlag]);
 
   return (
-    <div className={Style['scux-technical-documents-detail-wrapper']}>
+    <div className={`${Style['scux-technical-documents-detail-wrapper']} ${showDomNodeFlag ? '' : 'scux-technical-documents-detail-wrapper-no-header'}`}>
       <Spin spinning={pageLoading}>
-        <PageHeader />
+        {showDomNodeFlag && (<PageHeader />)}
         <div className={Style['scux-technical-documents-detail-content-wrapper']}>
           <div className={Style['scux-technical-documents-content']}>
-            {showDomNodeFlag && <PageSteps />}
-            <PageContent />
+            {showDomNodeFlag ? (
+              <>
+                <PageSteps />
+                <PageContent />
+              </>
+            ): (
+              <PageContent />
+            )}
           </div>
         </div>
       </Spin>

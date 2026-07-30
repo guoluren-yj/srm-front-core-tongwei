@@ -222,7 +222,7 @@ const Index: React.FC<any> = (props) => {
         name: 'rfxTitle',
         width: 180,
       },
-      tabKey !== 'evaluationSummary' && {
+      {
         name: 'scoreTeam',
         width: 120,
       },
@@ -230,7 +230,7 @@ const Index: React.FC<any> = (props) => {
         name: 'companyName',
         width: 120,
       },
-      tabKey !== 'evaluationSummary' && {
+      {
         name: 'supplierCompanyName',
         width: 120,
       },
@@ -261,56 +261,53 @@ const Index: React.FC<any> = (props) => {
       {
         name: 'versionNumber',
       },
-    ].filter(Boolean) as ColumnProps[];
+    ];
   };
 
   // 表格
   const getTableComponent = ({ tabKey, tableDs }) => {
     return (
-      <div style={{ height: 'calc(100vh - 242px)' }}>
-        <FilterBarTable
-          columns={getColumns(tabKey)}
-          dataSet={tableDs}
-          border={false}
-          cacheState
-          style={{ maxHeight: 'calc(100% - 22px)' }}
-          filterBarRef={(ref) => {
-            if (ref) {
-              (searchRef as React.MutableRefObject<SearchRefType | null>).current = ref;
-            }
-          }}
-          filterBarConfig={{
-            cacheKey: `cux_${tabKey}_bidEvaluationManagement_list`,
-            autoQuery: true,
-            left: {
-              render: (ds) => {
-                if (ds && (!ds.getField('numOrTitle') || !ds.getField('numOrTitle')?.get('transformRequest'))) {
-                  ds.addField('numOrTitle', {
-                    transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
-                      }
-                      return '';
-                    },
-                  });
-                };
-                return (
-                  <MultipleTextSplitInput
-                    name="numOrTitle"
-                    dataSet={ds}
-                    placeholder={intl
-                      .get('scux.bidEvaluationManagement.view.placeholder.multiBidNumOrName')
-                      .d('招标编号，项目名称')}
-                    style={{ width: '3rem' }}
-                  />
-                );
-              },
+      <FilterBarTable
+        columns={getColumns(tabKey)}
+        dataSet={tableDs}
+        border={false}
+        cacheState
+        filterBarRef={(ref) => {
+          if (ref) {
+            (searchRef as React.MutableRefObject<SearchRefType | null>).current = ref;
+          }
+        }}
+        filterBarConfig={{
+          cacheKey: `cux_${tabKey}_bidEvaluationManagement_list`,
+          autoQuery: true,
+          left: {
+            render: (ds) => {
+              if (ds && (!ds.getField('numOrTitle') || !ds.getField('numOrTitle')?.get('transformRequest'))) {
+                ds.addField('numOrTitle', {
+                  transformRequest: (value) => {
+                    if (value) {
+                      return value.join(',');
+                    }
+                    return '';
+                  },
+                });
+              };
+              return (
+                <MultipleTextSplitInput
+                  name="numOrTitle"
+                  dataSet={ds}
+                  placeholder={intl
+                    .get('scux.bidEvaluationManagement.view.placeholder.multiBidNumOrName')
+                    .d('招标编号，项目名称')}
+                  style={{ width: '3rem' }}
+                />
+              );
             },
-          }}
-          customizable
-          customizedCode={customizedCodes[tabKey]}
-        />
-      </div>
+          },
+        }}
+        customizable
+        customizedCode={customizedCodes[tabKey]}
+      />
     );
   };
 

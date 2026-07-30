@@ -11,7 +11,6 @@ import PurchaseRequestDS from '../../PurchaseRequestDS';
 
 import {
   headerDS,
-  bidPlanNodeDS,
   itemLineDS,
   sectionOrPacketInfoDS,
   allotItemLineDS,
@@ -50,9 +49,6 @@ function StoreProvider(props = {}) {
       }),
     []
   );
-
-  const bidPlanNodeDs = useDataSet(() => bidPlanNodeDS(), []);
-
   const itemLineDs = useDataSet(
     () =>
       itemLineDS({
@@ -153,7 +149,6 @@ function StoreProvider(props = {}) {
     () => ({
       commonDs: {
         headerDs,
-        bidPlanNodeDs,
         itemLineDs,
         sectionOrPacketInfoDs,
         supplierLineTableDs,
@@ -170,7 +165,6 @@ function StoreProvider(props = {}) {
     }),
     [
       headerDs,
-      bidPlanNodeDs,
       itemLineDs,
       sectionOrPacketInfoDs,
       supplierLineTableDs,

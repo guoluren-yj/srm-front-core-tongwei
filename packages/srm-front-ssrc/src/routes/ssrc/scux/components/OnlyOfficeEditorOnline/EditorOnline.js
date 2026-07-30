@@ -35,7 +35,6 @@ export default class EditorOnline extends Component {
       if (getResponse(url)) {
         this.writeFrameDocumentWps(url);
       }
-
     } else {
       this.initFetch();
     }

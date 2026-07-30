@@ -4,7 +4,6 @@ import { Tabs } from 'choerodon-ui';
 import { Button, DataSet } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
-import { getTableFixSelfAdaptStyle } from '@/utils/utils';
 import { omit } from 'lodash';
 import querystring from 'querystring';
 
@@ -13,7 +12,7 @@ import { Header, Content } from 'components/Page';
 import intl from 'utils/intl';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import notification from 'utils/notification';
-import { getCurrentOrganizationId, filterNullValueObject, getResponse, getCurrentUser } from 'utils/utils';
+import { getCurrentOrganizationId, filterNullValueObject, getResponse } from 'utils/utils';
 import MultipleTextSplitInput from 'srm-front-boot/lib/components/MultipleTextSplitInput';
 import withProps from 'utils/withProps';
 import { downloadFileByAxios } from 'srm-front-boot/lib/services/MarmotDownloadButtonServices';
@@ -41,7 +40,6 @@ const Index: React.FC<any> = (props) => {
   } = props;
 
   const [activeKey, setActiveKey] = useState('toBeReleased');
-  const currentUser = getCurrentUser();
 
   // 编辑
   const handleEdit = (record) => {
@@ -55,47 +53,20 @@ const Index: React.FC<any> = (props) => {
     });
   };
 
-  // 变更
-  const handleChange = async (record) => {
-    const { sourceProjectId, techFileId } = record.get(['techFileId', 'sourceProjectId']);
-    if (!sourceProjectId || !techFileId) return;
-    const res = await technicalDocumentsApi({
-      postType: 'CHANGE',
-      techFileId,
-    });
-    if (getResponse(res)) {
-      history.push({
-        pathname: `/scux/ssrc/technical-documents-workbench/tech-update/${techFileId}`,
-        search: querystring.stringify({
-          sourceProjectId,
-        }),
-      });
-    }
-  };
-
   // 列表按钮
   const getListButtons = ({ record }) => {
     const techFileStatus = record.get('techFileStatus');
-    const isTechPerson = (record.get('userInCharge') || '').split(',').includes(`${currentUser.id}`);
-    if (!isTechPerson) return null;
     const commonButtonsProps = {
       funcType: FuncType.link,
       wait: 500,
     };
+    if (techFileStatus === 'APPROVED') {
+      return null;
+    };
     return [
-      techFileStatus === 'NEW' && (
+      ['NEW'].includes(techFileStatus) && (
         <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.edit').d('编辑')}
-        </Button>
-      ),
-      techFileStatus === 'APPROVED' && (
-        <Button {...commonButtonsProps} onClick={() => handleChange(record)}>
-          {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
-        </Button>
-      ),
-      techFileStatus === 'CHANGING' && (
-        <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
-          {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
         </Button>
       ),
     ].filter(Boolean);
@@ -104,10 +75,10 @@ const Index: React.FC<any> = (props) => {
   // 跳转招标计划明细页面
   const handleJumpBidPlanDetail = (record) => {
     if (!record) return;
-    const { sourceProjectId } = record.get(['sourceProjectId', 'rfxHeaderId']);
+    const { sourceProjectId, rfxHeaderId } = record.get(['sourceProjectId', 'rfxHeaderId']);
     if (!sourceProjectId) return;
     history.push({
-      pathname: `/ssrc/new-project-setup/detail/${sourceProjectId}`,
+      pathname: `/scux/ssrc/bid-plan-workbench/bid-full-process-detail/${sourceProjectId}/${rfxHeaderId || -1}`,
     });
   };
 
@@ -117,10 +88,7 @@ const Index: React.FC<any> = (props) => {
     const { sourceProjectId, techFileId } = record.get(['sourceProjectId', 'techFileId']);
     if (!sourceProjectId || !techFileId) return;
     history.push({
-      pathname: `/scux/ssrc/technical-documents-workbench/tech-detail/${techFileId}`,
-      search: querystring.stringify({
-        sourceProjectId,
-      }),
+      pathname: `/scux/ssrc/technical-documents-workbench/bid-full-process-detail/${sourceProjectId}/${techFileId}`,
     });
   };
 
@@ -190,45 +158,42 @@ const Index: React.FC<any> = (props) => {
   // 表格
   const getTableComponent = ({ tabKey, tableDs }) => {
     return (
-      <div style={getTableFixSelfAdaptStyle(true)?.wrapperCalcHeight}>
-        <FilterBarTable
-          columns={getColumns(tabKey)}
-          dataSet={tableDs}
-          border={false}
-          cacheState
-          filterBarConfig={{
-            cacheKey: `cux_${tabKey}_technicalDocumentsWorkBench_list`,
-            autoQuery: true,
-            left: {
-              render: (ds) => {
-                if (ds && (!ds.getField('multiProjectNumOrTitle') || !ds.getField('multiProjectNumOrTitle')?.get('transformRequest'))) {
-                  ds.addField('multiProjectNumOrTitle', {
-                    transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
-                      }
-                      return '';
-                    },
-                  });
-                };
-                return (
-                  <MultipleTextSplitInput
-                    name="multiProjectNumOrTitle"
-                    dataSet={ds}
-                    placeholder={intl
-                      .get('scux.technicalDocumentsWorkBench.view.placeholder.multiProjectNumOrTitle')
-                      .d('招标计划单号，招标名称，技术文件编号')}
-                    style={{ width: '3rem' }}
-                  />
-                );
-              },
+      <FilterBarTable
+        columns={getColumns(tabKey)}
+        dataSet={tableDs}
+        border={false}
+        cacheState
+        filterBarConfig={{
+          cacheKey: `cux_${tabKey}_technicalDocumentsWorkBench_list`,
+          autoQuery: true,
+          left: {
+            render: (ds) => {
+              if (ds && (!ds.getField('multiProjectNumOrTitle') || !ds.getField('multiProjectNumOrTitle')?.get('transformRequest'))) {
+                ds.addField('multiProjectNumOrTitle', {
+                  transformRequest: (value) => {
+                    if (value) {
+                      return value.join(',');
+                    }
+                    return '';
+                  },
+                });
+              };
+              return (
+                <MultipleTextSplitInput
+                  name="multiProjectNumOrTitle"
+                  dataSet={ds}
+                  placeholder={intl
+                    .get('scux.technicalDocumentsWorkBench.view.placeholder.multiProjectNumOrTitle')
+                    .d('招标计划单号，招标名称，技术文件编号')}
+                  style={{ width: '3rem' }}
+                />
+              );
             },
-          }}
-          customizable
-          customizedCode={customizedCodes[tabKey]}
-          style={getTableFixSelfAdaptStyle(true)?.searchBarTableMaxHeight}
-        />
-      </div>
+          },
+        }}
+        customizable
+        customizedCode={customizedCodes[tabKey]}
+      />
     );
   };
 
@@ -315,15 +280,19 @@ const Index: React.FC<any> = (props) => {
   return (
     <>
       <Header title={intl.get('scux.technicalDocumentsWorkBench.view.title.list.technicalDocumentsWorkBench').d('技术文件（含图纸）')}>
-        {/* <Button icon="add" onClick={handleAddNewFile}>
-          {intl.get('hzero.common.button.create').d('新建')}
-        </Button> */}
-        <Button icon="export" wait={500} onClick={handleExport}>
-          {intl.get('hzero.common.button.export').d('导出')}
-        </Button>
+        {activeKey === 'toBeProcessed' && (
+          <Button icon="add" onClick={handleAddNewFile}>
+            {intl.get('hzero.common.button.create').d('新建')}
+          </Button>
+        )}
+        {activeKey === 'all' && (
+          <Button icon="export" wait={500} onClick={handleExport}>
+            {intl.get('hzero.common.button.export').d('导出')}
+          </Button>
+        )}
       </Header>
       <Content>
-        {/* <Tabs activeKey={activeKey} onChange={handleChangeTab}>
+        <Tabs activeKey={activeKey} onChange={handleChangeTab}>
           {tabs.map(tab => (
             <TabPane
               key={tab.key}
@@ -333,8 +302,7 @@ const Index: React.FC<any> = (props) => {
               {tab.component}
             </TabPane>
           ))}
-        </Tabs> */}
-        {getTableComponent({ tabKey: 'all', tableDs: allDs })}
+        </Tabs>
       </Content>
     </>
   );

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Tabs, Card, Spin } from 'choerodon-ui';
-import { observer, useObserver } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 
 import formatterCollections from 'utils/intl/formatterCollections';
 import intl from 'utils/intl';
@@ -21,27 +21,12 @@ const { TabPane } = Tabs;
 const PageContent: React.FC<any> = () => {
   const {
     sourceProjectId,
-    commonDs,
   } = useStore();
-
-  const baseInfoTitle = useObserver(() => {
-    const num = commonDs?.baseInfoDs?.current?.get('sourceProjectNum');
-    const name = commonDs?.baseInfoDs?.current?.get('sourceProjectName');
-    return (
-      <span>
-        {(num || name) && (
-          <span>
-            {num}{num && name && ' - '}{name}
-          </span>
-        )}
-      </span>
-    );
-  });
 
   return (
     <>
       <Card
-        title={<CommonLevel title={baseInfoTitle} />}
+        title={<CommonLevel title={intl.get(`scux.tenderDetail.view.card.title.basicInfo`).d('基础信息')} />}
         id="cuxBasicInfo"
         bordered={false}
       >

@@ -526,25 +526,6 @@ export async function queryProgress(params) {
   );
 }
 
-export async function queryProgressNew(body) {
-  return request(
-    `${SRM_SSRC}/v2/${getCurrentOrganizationId()}/rfx/progress`,
-    {
-      method: 'POST',
-      body,
-    }
-  );
-}
-
-export async function querySourceProjects(sourceProjectId, dataVersion) {
-  return request(
-    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/1zbbDrfhFX1MFmTrmEm7icKzJaprdD8f2RdpHo6n3d9Y?sourceProjectId=${sourceProjectId}${dataVersion ? `&dataVersion=${dataVersion}` : ''}`,
-    {
-      method: 'GET',
-    }
-  );
-}
-
 /**
  * 明细-寻源项目明细表格
  * @export

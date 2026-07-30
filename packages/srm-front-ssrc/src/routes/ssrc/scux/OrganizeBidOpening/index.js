@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
-import { useDataSet, Modal } from 'choerodon-ui/pro';
+import { useDataSet, Modal, useComputed } from 'choerodon-ui/pro';
 import { Card } from 'choerodon-ui';
-import { useObserver, observer } from 'mobx-react-lite';
 
 import formatterCollections from 'utils/intl/formatterCollections';
 import { Header, Content } from 'components/Page';
@@ -10,7 +9,7 @@ import notification from 'utils/notification';
 import DynamicButtons from '_components/DynamicButtons';
 import intl from 'utils/intl';
 
-import { showCheckInCode, cuxOpenBidNew, checkDrawLots } from '@/services/inquiryHallService';
+import { showCheckInCode, cuxOpenBid, checkDrawLots } from '@/services/inquiryHallService';
 
 import { openBidListDS, baseInfoDS, prefix } from './store/ds';
 import BaseInfo from './components/BaseInfo';
@@ -41,8 +40,9 @@ const OrganizeBidOpening = (props) => {
     openBidListDs.query();
   };
 
-  const { attributeVarchar20, bidOpenFlag } = useObserver(
-    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag']) || {}
+  const { attributeVarchar20, bidOpenFlag } = useComputed(
+    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag']) || {},
+    [baseInfoDs]
   );
 
   // 内部签到\供应商签到
@@ -90,7 +90,7 @@ const OrganizeBidOpening = (props) => {
         const res = getResponse(await checkDrawLots({ rfxHeaderId }));
         if (res) {
           notification.success();
-          history.push('/ssrc/new-bid-hall/list');
+          openBidListDs.query();
         }
         return false;
       },
@@ -101,7 +101,7 @@ const OrganizeBidOpening = (props) => {
   const handleCuxOpenBid = async () => {
     const { bidOpenSupplier, bidOpenTeam } =
       baseInfoDs?.current?.get(['bidOpenSupplier', 'bidOpenTeam']) || {};
-    const bidRes = await cuxOpenBidNew({
+    const bidRes = await cuxOpenBid({
       rfxHeaderId,
       validateFlag: 1, // 值为1时只校验
       bidOpenSupplier,
@@ -130,7 +130,7 @@ const OrganizeBidOpening = (props) => {
               .get('scux.ssrc.view.message.inquiryHall.twnf.bidTender')
               .d('标书')}`,
         onOk: () => {
-          return cuxOpenBidNew({ rfxHeaderId, bidOpenSupplier, bidOpenTeam }).then((res) => {
+          return cuxOpenBid({ rfxHeaderId, bidOpenSupplier, bidOpenTeam }).then((res) => {
             if (getResponse(res)) {
               notification.success();
               initData();
@@ -195,7 +195,7 @@ const OrganizeBidOpening = (props) => {
               child: intl.get(`${prefix}.view.message.button.openingBid`).d('开标'),
               btnProps: {
                 wait: 1500,
-                color: 'primary',
+                funcType: 'flat',
                 onClick: handleCuxOpenBid,
               },
             },
@@ -245,4 +245,4 @@ const OrganizeBidOpening = (props) => {
 
 export default formatterCollections({
   code: ['scux.ssrc', 'scux.organizeBidOpening'],
-})(observer(OrganizeBidOpening));
+})(OrganizeBidOpening);

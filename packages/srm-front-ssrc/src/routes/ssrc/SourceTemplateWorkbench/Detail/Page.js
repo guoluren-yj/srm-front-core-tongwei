@@ -62,7 +62,6 @@ const Page = () => {
       bidAnnouncementRuleDs, // 唱标规则
       processNodeDs,
       invitationControlDs,
-      bidPlanFormDs,
       // RF
       rfApproveRuleDs,
       rfReleaseDs,
@@ -153,10 +152,8 @@ const Page = () => {
         if (res.secondarySourceCategory === 'NEW_BID') {
           processNodeDs.setQueryParameter('templateId', params.templateId);
           invitationControlDs.setQueryParameter('templateId', params.templateId);
-          bidPlanFormDs.setQueryParameter('templateId', params.templateId);
           processNodeDs.query();
           invitationControlDs.query();
-          bidPlanFormDs.query();
         }
       }
       queryHistoryVersion(res?.templateNum);
@@ -218,21 +215,27 @@ const Page = () => {
   // sourceCategory
   const getBiddingFlag = useCallback(() => {
     return baseInfoDs?.current?.get('sourceCategory') === 'RFA';
-  }, [baseInfoDs]);
+  }, [
+    baseInfoDs,
+  ]);
 
   // biddingMode
   const getBiddingMode = useCallback(() => {
     const { current } = baseInfoDs || {};
 
-    const { biddingMode } = current ? current.get(['biddingMode']) : {};
+    const { biddingMode } = current ? current.get([
+      'biddingMode',
+    ]) : {};
 
     return biddingMode;
-  }, [baseInfoDs]);
+  }, [
+    baseInfoDs,
+  ]);
 
   const japanBiddingFlag = () => {
     const biddingMode = getBiddingMode();
 
-    const flag = biddingMode === 'JAPANESE_BIDDING' && getBiddingFlag();
+    const flag = biddingMode === "JAPANESE_BIDDING" && getBiddingFlag();
     return flag;
   };
 
@@ -240,8 +243,7 @@ const Page = () => {
   const japOrDutchBidding = () => {
     const biddingMode = getBiddingMode();
 
-    const flag =
-      (biddingMode === 'JAPANESE_BIDDING' || biddingMode === 'DUTCH_BIDDING') && getBiddingFlag();
+    const flag = (biddingMode === "JAPANESE_BIDDING" || biddingMode === 'DUTCH_BIDDING') && getBiddingFlag();
     return flag;
   };
 
@@ -249,7 +251,7 @@ const Page = () => {
   const britishBidding = () => {
     const biddingMode = getBiddingMode();
 
-    const flag = biddingMode === 'BRITISH_BIDDING' && getBiddingFlag();
+    const flag = biddingMode === "BRITISH_BIDDING" && getBiddingFlag();
     return flag;
   };
 
@@ -620,11 +622,7 @@ const Page = () => {
                   })
                   .d('{ruleType}规则'),
                 component: (
-                  <QuotationRule
-                    serviceChargeFlag={serviceChargeFlag}
-                    nodeValue={node.value}
-                    {...commonProps}
-                  />
+                  <QuotationRule serviceChargeFlag={serviceChargeFlag} nodeValue={node.value} {...commonProps} />
                 ),
                 disabled: !node.clickableFlag,
               });

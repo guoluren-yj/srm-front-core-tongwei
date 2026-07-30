@@ -238,7 +238,7 @@ const getPermissionButtonNode = ({
             }}
           >
             <span className={styles.createRfx}>
-              {intl.get(`${promptCode}.view.message.button.createtenDocument`).d('新建招标文件')}
+              {intl.get(`${promptCode}.view.message.button.createRfx`).d('新建寻源')}
             </span>
           </Lov>
         ) : record.get('createRFIFlag') ? (
@@ -255,14 +255,14 @@ const getPermissionButtonNode = ({
             }}
           >
             <span className={styles.createRfx}>
-              {intl.get(`${promptCode}.view.message.button.createtenDocument`).d('新建招标文件')}
+              {intl.get(`${promptCode}.view.message.button.createRfx`).d('新建寻源')}
             </span>
           </Lov>
         ) : (
-          intl.get(`${promptCode}.view.message.button.createtenDocument`).d('新建招标文件')
+          intl.get(`${promptCode}.view.message.button.createRfx`).d('新建寻源')
         )
       ) : (
-        intl.get(`${promptCode}.view.message.button.createtenDocument`).d('新建招标文件')
+        intl.get(`${promptCode}.view.message.button.createRfx`).d('新建寻源')
       ),
     // createList为1且创建rfq 或者 createList大于1
     onClick: () =>
@@ -278,7 +278,7 @@ const getPermissionButtonNode = ({
   // });
   // const createRfxBtn = renderCustPermissionButton({
   //   ...commonBtnProps,
-  //   children: intl.get(`${promptCode}.view.message.button.createtenDocument`).d('新建招标文件'),
+  //   children: intl.get(`${promptCode}.view.message.button.createRfx`).d('新建寻源'),
   // });
   const approveBtn = renderCustPermissionButton({
     ...commonBtnProps,
@@ -557,9 +557,6 @@ const renderAction = (
       if (createBtn) {
         allBtns.push(createBtn);
       }
-      if (changeBtn) {
-        allBtns.push(changeBtn);
-      }
       if (manageBtn) {
         allBtns.push(manageBtn);
       }
@@ -653,7 +650,7 @@ const getComputedBtn = ({
   workFlowMenuPermissionMap = {},
 }) => {
   // changePermissionCode: 0, // 变更权限
-  // createRfxPermissionCode: 0, // 新建招标文件权限
+  // createRfxPermissionCode: 0, // 新建寻源权限
   // manageRfxPermissionCode: 0, // 寻源管理权限
   // approveDetailPermissionCode: 0, // 审批详情权限
   // approvePermissionCode: 0, // 审批权限

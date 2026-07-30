@@ -56,9 +56,7 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
-      dynamicProps: {
-        readOnly: ({ record }) => record.get('attributeVarchar1') === '1',
-      },
+      readOnly: true,
     },
   ].filter(Boolean),
   transport: {
@@ -75,8 +73,7 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
           sourceCategory: 'RFX',
           sourceId,
           attributeLongtext11: 'PUR',
-          // attributeVarchar1: 1,
-          attachmentType: "SSRC.BID_HALL.NEW_EDIT.RFQ_ATTACHMENT_FORM|ssrc_rfx_header|businessAttachmentUuid"
+          attributeVarchar1: 1,
         },
       };
     },

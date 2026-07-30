@@ -1,58 +1,38 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { Table, Button, Modal } from 'choerodon-ui/pro';
-import { Alert } from 'choerodon-ui';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { isEmpty } from 'lodash';
-import { FuncType, ButtonColor } from 'choerodon-ui/pro/lib/button/enum';
+import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 
 import intl from 'utils/intl';
-import notification from 'utils/notification';
-import { getResponse } from 'utils/utils';
 
 import { useStore } from '../store/StoreProvider';
 import DetailMaintenance from './DetailMaintenance';
-import { tenderListBillCommonApi } from '../../api';
 
 const TenderListSection = () => {
 
   const {
     commonDs: { baseInfoDs, tenderListSectionDs } = {},
     editorFlag,
-    initData = () => {},
   } = useStore();
 
   if (!tenderListSectionDs) return null;
 
-  const detailRef = useRef<any>(null);
-
   // 打开明细维护弹框
   const handleOpenDetail = (record) => {
     const bidCatalogSectionId = record.get('bidCatalogSectionId');
-    const sectionName = record.get('sectionName');
     if (!baseInfoDs) return;
-    const modal = Modal.open({
+    Modal.open({
       title: editorFlag ? intl.get('ssrc.tenderDetail.view.title.detailEdit').d('明细维护') : intl.get('ssrc.tenderDetail.view.title.viewDetail').d('明细查看'),
       drawer: true,
       destroyOnClose: true,
       closable: true,
       style: {
-        width: 850,
+        width: 800,
       },
-      footer: (okBtn: any, cancelBtn: any) => (
-        <>
-          <Button
-            color={ButtonColor.primary}
-            onClick={async () => {
-              await detailRef.current?.save();
-              modal.close();
-            }}
-          >
-            {intl.get('hzero.common.button.ok').d('确认')}
-          </Button>
-          {cancelBtn}
-        </>
-      ),
-      children: <DetailMaintenance ref={detailRef} baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} sectionName={sectionName} />,
+      okButton: false,
+      cancelText: intl.get('hzero.common.button.close').d('关闭'),
+      children: <DetailMaintenance baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} />,
     });
   };
 
@@ -67,16 +47,8 @@ const TenderListSection = () => {
         editor: editorFlag,
       },
       {
-        name: 'itemName',
-        editor: editorFlag,
-      },
-      {
-        name: 'remark',
-        editor: editorFlag,
-      },
-      {
         name: 'detailRender',
-        header: intl.get('scux.tenderDetail.modal.tenderDetail.detailRender').d('明细维护'),
+        header: intl.get('scux.tenderDetail.modal.tenderDetail.detailRender').d('明细'),
         renderer: ({ record }) => {
           return record?.get('bidCatalogSectionId') ? (
             <Button funcType={FuncType.link} wait={500} onClick={() => handleOpenDetail(record)}>
@@ -110,58 +82,24 @@ const TenderListSection = () => {
     }
   };
 
-  const catalogStatus = baseInfoDs?.current?.get('catalogStatus');
-
-  const handleSave = async () => {
-    if (!tenderListSectionDs?.length) {
-      notification.warning({
-        message: intl.get('scux.tenderDetail.view.tip.sectionRequired').d('至少维护一条标段数据'),
-      });
-      return;
-    }
-    const res = await tenderListBillCommonApi({
-      operationType: 'SAVE_CATALOG',
-      catalogHeader: baseInfoDs?.current?.toData() || {},
-      sectionList: tenderListSectionDs?.toData(),
-    });
-    if (getResponse(res)) {
-      notification.success({});
-      initData();
-    }
-  };
-
   const buttons : any[] = useMemo(() => {
-    if (!editorFlag || catalogStatus === 'SOURCE_CHANGING') return [];
-    return [
+    return editorFlag ? [
       'add',
       ['delete', {
         icon: 'delete_sweep',
         onClick: handleDelete,
       }],
-      ['save', {
-        icon: 'save',
-        onClick: handleSave,
-      }],
-    ];
-  }, [editorFlag, catalogStatus]);
+    ] : [];
+  }, [editorFlag]);
 
   return (
-    <>
-      {catalogStatus === 'SOURCE_CHANGING' && (
-        <Alert
-          type="info"
-          message="提示: 招标文件已创建，不允许进行标段的增减!"
-          style={{ marginBottom: 8 }}
-        />
-      )}
-      <Table
-        dataSet={tenderListSectionDs}
-        columns={columns}
-        buttons={buttons}
-        customizable
-        customizedCode="'SCUX_TWNF_TENDER_LIST_DETAIL_TENDER_LIST"
-      />
-    </>
+    <Table
+      dataSet={tenderListSectionDs}
+      columns={columns}
+      buttons={buttons}
+      customizable
+      customizedCode="'SCUX_TWNF_TENDER_LIST_DETAIL_TENDER_LIST"
+    />
   );
 };
 

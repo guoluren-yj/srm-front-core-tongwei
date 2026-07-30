@@ -2,7 +2,7 @@ import intl from 'utils/intl';
 import { PRIVATE_BUCKET, SRM_SSRC } from '_utils/config';
 import { getCurrentOrganizationId, getDateTimeFormat, getDateFormat } from 'utils/utils';
 import { EMAIL, NOT_CHINA_PHONE, PHONE } from 'utils/regExp';
-import { isNil, isEmpty, isArray } from 'lodash';
+import { isNil, isEmpty } from 'lodash';
 import { math } from 'choerodon-ui/dataset';
 
 import { getQtyName, getUomName } from '@/utils/utils';
@@ -75,74 +75,6 @@ const getBaseInfoDSFields = () => {
       maxLength: 1000,
     },
   ];
-};
-
-// 招标计划 - 招标节点
-const bidPlanNodeDS = () => {
-  return {
-    primaryKey: 'nodeId',
-    autoQuery: false,
-    selection: false,
-    paging: false,
-    forceValidate: true,
-    fields: [
-      {
-        name: 'nodeName',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.nodeName`).d('节点名称'),
-      },
-      {
-        name: 'nodeOrder',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.nodeOrder`).d('节点顺序'),
-        lookupCode: 'NODE_ORDER',
-      },
-      {
-        name: 'userInCharge',
-        label: intl.get(`scux.bidPlanDetail.model.twnf.processNode.userInCharge`).d('负责人'),
-        type: "object",
-        lovCode: 'SCUX.HPFM.TW.BATCH.EMPLOYEE',
-        required: true,
-        multiple: true,
-        valueField: 'employeeId',
-        textField: 'name',
-        transformRequest: (value) => (isArray(value) ? value.map(v => v.employeeId).join(',') : value),
-        transformResponse(value, object) {
-          const valueArr = value ? value.split(',') : null;
-          const valueMeaningArr = value ? (object.userInChargeMeaning || '').split(',') : null;
-          return valueArr ? valueArr.map((v, i) => ({
-            employeeId: Number(v),
-            name: valueMeaningArr[i] || v,
-          })) : null;
-        },
-      },
-      {
-        name: 'planFinishDate',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.planFinishDate').d('计划完成时间'),
-        type: "date",
-        required: true,
-      },
-      {
-        name: 'adjustFlag',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.adjustFlag').d('计划调整记录'),
-      },
-      {
-        name: 'limitDays',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.limitDays').d('工作时限（天）'),
-      },
-      {
-        name: 'finishedDate',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.finishedDate').d('实际完成时间'),
-        type: "date",
-      },
-      {
-        name: 'differDays',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.differDays').d('时间差异（天）'),
-      },
-      {
-        name: 'remark',
-        label: intl.get('scux.bidPlanDetail.model.twnf.processNode.remark').d('备注'),
-      },
-    ],
-  };
 };
 
 // 采购组织及人员字段
@@ -247,7 +179,7 @@ const getPurAndOrgFields = (payload) => {
     {
       label: intl.get(`ssrc.projectSetup.model.projectSetup.contactMobilephone`).d('联系人电话'),
       name: 'contactMobilephone',
-      // required: true,
+      required: true,
       type: 'tel',
       regionField: 'internationalTelCode',
       validator: (value, _, record) => {
@@ -266,7 +198,7 @@ const getPurAndOrgFields = (payload) => {
     {
       label: intl.get('ssrc.projectSetup.model.projectSetup.contactMail').d('联系人邮箱'),
       name: 'contactMail',
-      // required: true,
+      required: true,
       validator: (value, _, record) => {
         if (value && !EMAIL.test(record.get('contactMail'))) {
           return intl.get('hzero.common.validation.email').d('邮箱格式不正确');
@@ -1500,5 +1432,4 @@ export {
   supplierLineTableDS,
   planLineTableDS,
   supplierLovDS,
-  bidPlanNodeDS,
 };

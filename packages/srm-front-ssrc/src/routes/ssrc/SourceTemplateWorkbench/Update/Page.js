@@ -74,7 +74,6 @@ const Page = (props) => {
       bidAnnouncementRuleDs, // 唱标规则DS
       processNodeDs,
       invitationControlDs,
-      bidPlanFormDs,
       // RF
       rfApproveRuleDs,
       rfReleaseDs,
@@ -325,7 +324,6 @@ const Page = (props) => {
         if (res.secondarySourceCategory === 'NEW_BID') {
           processNodeDs.setQueryParameter('templateId', _templateId || templateId);
           invitationControlDs.setQueryParameter('templateId', _templateId || templateId);
-          bidPlanFormDs.setQueryParameter('templateId', _templateId || templateId);
           queryBidPlan({ templateId });
           statusMap = {
             ...statusMap,
@@ -670,8 +668,7 @@ const Page = (props) => {
                 ...statusMap,
                 BID_PLAN:
                   processNodeDs.getValidationErrors()?.length ||
-                  !!invitationControlDs.getValidationErrors()?.length ||
-                  !!bidPlanFormDs.getValidationErrors()?.length
+                  !!invitationControlDs.getValidationErrors()?.length
                     ? 'orange'
                     : 'green',
               };
@@ -795,7 +792,6 @@ const Page = (props) => {
             case 'BID_PLAN':
               list.push(processNodeDs.validate());
               list.push(invitationControlDs.validate());
-              list.push(bidPlanFormDs.validate());
               break;
             default:
               break;
@@ -913,7 +909,6 @@ const Page = (props) => {
                 ...params,
                 processNodeList: processNodeDs?.toData(),
                 inviteControlList: invitationControlDs?.toData(),
-                cuxBidPrepareConf: bidPlanFormDs?.current?.toData(),
               };
               break;
             default:
@@ -1085,7 +1080,6 @@ const Page = (props) => {
     processNodeDs.query(); // 创建的时候需要查询此接口获取配置表数据
     if (templateId) {
       invitationControlDs.query();
-      bidPlanFormDs.query();
     }
   };
 

@@ -1,5 +1,5 @@
 import request from 'hzero-front/lib/utils/request';
-import { SRM_MARMOT, SRM_SSRC } from 'srm-front-boot/lib/utils/config';
+import { SRM_MARMOT } from 'srm-front-boot/lib/utils/config';
 import { getCurrentOrganizationId } from 'hzero-front/lib/utils/utils';
 
 // 评标汇总 - 确认及汇总
@@ -17,11 +17,3 @@ export const techEvaluationSaveAndSubmit = (params) => {
     body: params,
   });
 };
-
-// 寻源新老地址跳转
-export async function getSourceUrlConfig(params) {
-  const { sourceHeaderId } = params;
-  return request(`${SRM_SSRC}/v1/${getCurrentOrganizationId()}/rfx/simple/${sourceHeaderId}`, {
-    method: 'GET',
-  });
-}

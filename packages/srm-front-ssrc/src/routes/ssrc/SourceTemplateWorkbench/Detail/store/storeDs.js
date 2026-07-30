@@ -1669,54 +1669,6 @@ const rfExpertScoreDS = () => ({
   ],
 });
 
-// 招投标 - 招标计划 - 招标准备表单ds
-const bidPlanFormDS = () => ({
-  autoQuery: false,
-  autoCreate: true,
-  dataToJSON: 'all',
-  fields: [
-    {
-      name: 'minSupplierCount',
-      label: intl
-        .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.minSupplierCount`)
-        .d('最少邀请供应商数'),
-      type: 'number',
-      min: 1,
-      step: 1,
-      help: intl
-        .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.minSupplierCount.help`)
-        .d('供应商入围维护时，邀请的供应商最少数量'),
-    },
-    {
-      name: 'supplierMainApproveMethod',
-      label: intl
-        .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.supplierMainApproveMethod`)
-        .d('供应商入围审批方式'),
-      lookupCode: 'SCUX.TWNF_REVIEW_APV_METHOD',
-      help: intl
-        .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.supplierMainApproveMethod.help`)
-        .d(
-          '用于配置供应商入围评审提交时的审批类型，包括自审批（自动审批通过）、外部系统审批（与外部系统对接进行审批）'
-        ),
-    },
-  ],
-  transport: {
-    read: ({ dataSet }) => {
-      const {
-        queryParameter: { templateId },
-      } = dataSet;
-      if (!templateId || templateId === 'null') return;
-      return {
-        url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/T0Pc8tFhR9BdqVBhzaBvoZy5lJsd7B04gUN16nicrouu6JJxXJOzEYxmicXUgw9Bb3sYGkX7Pu2qBQicdrIGibgia3w`,
-        method: 'GET',
-        params: {
-          templateId,
-        },
-      };
-    },
-  },
-});
-
 export {
   baseInfoDS,
   approveRuleDS,
@@ -1733,7 +1685,6 @@ export {
   bidAnnouncementRuleDS,
   processNodeDS,
   invitationControlDS,
-  bidPlanFormDS,
   // RF的DS
   rfApproveRuleDS,
   rfReleaseDS,

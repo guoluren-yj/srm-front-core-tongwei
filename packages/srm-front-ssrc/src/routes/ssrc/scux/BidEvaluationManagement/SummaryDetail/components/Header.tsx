@@ -49,7 +49,7 @@ const PageHeader: React.FC<any> = () => {
       if (getResponse(res)) {
         notification.success({});
         history.push({
-          pathname: '/scux/ssrc/bid-evaluation-management/list',
+          pathname: '`/scux/ssrc/bid-evaluation-management/list`',
         });
       };
     }).finally(() => {

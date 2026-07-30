@@ -23,7 +23,6 @@ import {
   deleteSupplierLines,
   fetchProjectSetupHeader,
   cancelProjectSetup,
-  querySourceProjects,
 } from '@/services/projectSetupService';
 
 import {
@@ -39,15 +38,12 @@ import {
 } from './CardList';
 import { StoreContext } from './store/StoreProvider';
 
-import BidPlanNode from './CardList/BidPlanNode';
-
 import Style from './index.less';
 
 const Page = () => {
   const {
     commonDs: {
       headerDs,
-      bidPlanNodeDs,
       itemLineDs,
       sectionOrPacketInfoDs,
       supplierLineTableDs,
@@ -186,7 +182,6 @@ const Page = () => {
     refreshSectionFieldsFlag = false,
     refreshSectionFields = [],
   } = {}) => {
-    console.log('fetchPageData 被调用了');
     try {
       handleSetOperateLoading(true);
       const res = await fetchHeader({ refreshSectionFieldsFlag, refreshSectionFields });
@@ -197,11 +192,6 @@ const Page = () => {
           : [false];
 
       const list = [
-        querySourceProjects(sourceProjectId).then((nodeRes) => {
-          if (nodeRes && !nodeRes.failed) {
-            bidPlanNodeDs?.loadData(nodeRes || []);
-          }
-        }),
         itemLineDs?.query(),
         res?.subjectMatterRule === 'PACK' ? sectionOrPacketInfoDs?.query() : false,
         planLineTableDs?.query(),
@@ -219,7 +209,6 @@ const Page = () => {
   const validatePageData = () => {
     const list = [
       headerDs?.validate(),
-      bidPlanNodeDs?.validate(),
       itemLineDs?.validate(),
       subjectMatterRule === 'PACK' ? sectionOrPacketInfoDs?.validate() : true,
       sourceMethod === 'INVITE' ? supplierLineTableDs?.validate() : true,
@@ -239,7 +228,6 @@ const Page = () => {
       projectLineSections: sectionOrPacketInfoDs?.toJSONData(),
       projectLineSuppliers: supplierLineTableDs?.toJSONData(),
       sourceProject: headerDs?.toJSONData()?.[0],
-      bidNodeList: bidPlanNodeDs?.toJSONData(),
       customizeUnitCode: getCustomizeUnitCode([
         'baseInfoForm',
         'purOrgDemandForm',
@@ -332,25 +320,20 @@ const Page = () => {
   // 保存
   const handleSave = async () => {
     const pageData = getPageData();
+    handleSetOperateLoading(true);
     try {
-      if(! await validatePageData()) return;
-
-      handleSetOperateLoading(true);
+      await validatePageData();
 
       // 处理保存成功后的处理逻辑
       const handlePageAfterSaveOperate = () => {
-        console.log('handlePageAfterSaveOperate 被调用，准备刷新');
         notification.success();
         // 刷新页面数据
         fetchPageData();
       };
       return saveEditData(pageData)
         .then((res) => {
-          console.log('saveEditData 返回:', res);
           const result = getResponse(res);
           if (!result) {
-            console.log('getResponse 返回 falsy，未刷新');
-            handleSetOperateLoading(false);
             handleSetOperateLoading(false);
             return;
           }
@@ -685,12 +668,12 @@ const Page = () => {
             >
               <PurOrganizationAndStaffDemandCmp {...commonProps} />
             </SecondSection>
-            {/* <SecondSection
+            <SecondSection
               title={intl.get('ssrc.projectSetup.view.subTitle.spChange.executor').d('执行人')}
               code="executor"
             >
               <PurOrganizationAndStaffExecutorCmp />
-            </SecondSection> */}
+            </SecondSection>
           </TopSection>
           <TopSection
             code={getCustomizeUnitCode('itemInfoCard')}
@@ -715,7 +698,7 @@ const Page = () => {
               </SecondSection>
             )}
           </TopSection>
-          {/* <TopSection
+          <TopSection
             code={getCustomizeUnitCode('reqOnSupplierCard')}
             getHocInstance={getHocInstance}
             title={intl
@@ -724,8 +707,8 @@ const Page = () => {
             className={Style['sp-common-top-section-card']}
           >
             <RequirementOnSupplier fetchSupplierInfo={fetchSupplierInfo} {...commonProps} />
-          </TopSection> */}
-          {/* <TopSection
+          </TopSection>
+          <TopSection
             code={getCustomizeUnitCode('sourceDemandCard')}
             getHocInstance={getHocInstance}
             title={intl
@@ -734,20 +717,14 @@ const Page = () => {
             className={Style['sp-common-top-section-card']}
           >
             <SourceDemand />
-          </TopSection> */}
-          {/* <TopSection
+          </TopSection>
+          <TopSection
             code={getCustomizeUnitCode('projectPlanCard')}
             getHocInstance={getHocInstance}
             title={intl.get('ssrc.projectSetup.view.title.spChange.planList').d('项目计划')}
             className={Style['sp-common-top-section-card']}
           >
             <PlanLineTable {...commonProps} />
-          </TopSection> */}
-          <TopSection
-            title={intl.get('ssrc.projectSetup.view.title.spChange.biddingNode').d('招标节点')}
-            className={Style['sp-common-top-section-card']}
-          >
-            <BidPlanNode sourceProjectId={sourceProjectId} />
           </TopSection>
           <TopSection
             title={intl.get('hzero.common.upload.modal.title').d('附件')}
