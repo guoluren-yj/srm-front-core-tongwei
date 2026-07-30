@@ -8,14 +8,16 @@ import querystring from 'querystring';
 import { Header } from 'components/Page';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
-import { getResponse } from 'utils/utils';
+import { getResponse, getCurrentOrganizationId } from 'utils/utils';
 
 import { transfer as transferApi } from '@/services/expertScoringService';
 import ExpertLibraryModal from '@/routes/sbid/ExpertScoring/Update/ExpertLibraryModal';
 import SubAccount from '@/routes/components/SubAccount';
+import { fetchOpenBargain } from '@/services/inquiryHallService';
 
 import {
   techEvaluationSaveAndSubmit,
+  getSourceUrlConfig,
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
 
@@ -37,8 +39,8 @@ const PageHeader: React.FC<any> = () => {
   const [expertModalVisible, setExpertModalVisible] = useState(false);
   const [subAccountVisible, setSubAccountVisible] = useState(false);
 
-  const { expertSource, rfxHeaderId, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag } = useObserver(() =>
-    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag']) || {}
+  const { expertSource, rfxHeaderId, bargainOfflineFlag, sourceType, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag } = useObserver(() =>
+    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'bargainOfflineFlag', 'sourceType', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag']) || {}
   );
 
   // 校验页面数据
@@ -141,8 +143,16 @@ const PageHeader: React.FC<any> = () => {
   };
 
   // 跳转到商务谈判
-  const handleBusinessNegotiate = () => {
+  const handleBusinessNegotiate = async () => {
     if (!quotationHeaderId || !rfxHeaderId) return;
+    const res = await getSourceUrlConfig({ sourceHeaderId: rfxHeaderId });
+    if (getResponse(res) && res.bargainStatus === 'INITIATE') {
+      await fetchOpenBargain({
+        organizationId: getCurrentOrganizationId(),
+        rfxHeaderId,
+        bargainMethod: bargainOfflineFlag === 0 ? 'ONLINE' : sourceType,
+      });
+    }
     history.push({
       pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
       search: querystring.stringify({
