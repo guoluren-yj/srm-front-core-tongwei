@@ -40,8 +40,8 @@ const OrganizeBidOpening = (props) => {
     openBidListDs.query();
   };
 
-  const { attributeVarchar20, bidOpenFlag } = useComputed(
-    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag']) || {},
+  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType } = useComputed(
+    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag', 'bargainOfflineFlag', 'sourceType']) || {},
     [baseInfoDs]
   );
 
@@ -207,8 +207,10 @@ const OrganizeBidOpening = (props) => {
     return {
       rfxHeaderId,
       history,
+      bargainOfflineFlag,
+      sourceType,
     };
-  }, [rfxHeaderId]);
+  }, [rfxHeaderId, bargainOfflineFlag, sourceType]);
 
   // 头标题
   const headerTitle = useMemo(() => {
