@@ -161,6 +161,7 @@ export default class PartsRecDemandPool extends Component {
     const prNumList = data?.map((e) => `${e.displayPrNum}-${e.displayLineNum}`).join(',');
     await createProject({
       prLineIdList,
+      attributeBigint10: 1,
       attributeVarchar10: templateId,
       configCenterCode: 'SITE.SSRC.PROJECT_PURCHASE_MERGE_RULE',
       sourceDocumentType: !isOldUser ? 'PROJECT' : null,
