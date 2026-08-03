@@ -94,8 +94,9 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
 
   const resultFields = [
     { name: 'technologyReviewResult', _type: 'Select' },
-    { name: 'technologySubmitUserName', _type: 'TextField', disabled: true },
-    { name: 'technologySubmitDate', _type: 'DateTimePicker', disabled: true },
+    { name: 'technologyReviewDesc', _type: 'TextArea' },
+    // { name: 'technologySubmitUserName', _type: 'TextField', disabled: true },
+    // { name: 'technologySubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
@@ -196,7 +197,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
         <Panel header={intl.get(`${prefix}.view.panel.reviewResult`).d('技术入围评审结果')} key="reviewResult">
           <FormPro
             dataSet={formDs}
-            columns={3}
+            columns={2}
             fields={resultFields}
             readOnly={isReadOnly}
           />

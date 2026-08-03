@@ -558,12 +558,13 @@ export const technicalReviewFormDS = (nominationHeaderId, nominationSupLineId): 
     { name: 'techSalesResponseDesc', type: FieldType.string, label: intl.get(`${prefix}.field.techSalesResponseDesc`).d('说明'), dynamicProps: { required: ({ record }) => record.get('techSalesResponseMeet') === 'N' } },
     { name: 'techInspectionEvaluation', type: FieldType.string, label: intl.get(`${prefix}.field.techInspectionEvaluation`).d('考察评价') },
     { name: 'techInspectionMethod', type: FieldType.string, label: intl.get(`${prefix}.field.techInspectionMethod`).d('考察方式'), lookupCode: 'SCUX_TWNF_EXAMINATION_FORMAT', required: true },
-    { name: 'techInspectionEvaluationDesc', type: FieldType.string, label: intl.get(`${prefix}.field.techInspectionEvaluationDesc`).d('技术评审说明'), required: true },
+    { name: 'techInspectionEvaluationDesc', type: FieldType.string, label: intl.get(`${prefix}.field.techInspectionEvaluationDesc`).d('说明'), required: true },
 
     // 技术评审结果
     { name: 'technologyReviewResult', type: FieldType.string, label: intl.get(`${prefix}.field.technologyReviewResult`).d('技术评审结果'), lookupCode: 'SCUX_TWNF_REVIEW_RESULTS', required: true },
-    { name: 'technologySubmitUserName', type: FieldType.string, label: intl.get(`${prefix}.field.technologySubmitUserName`).d('提交人') },
-    { name: 'technologySubmitDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.technologySubmitDate`).d('提交时间') },
+    { name: 'technologyReviewDesc', type: FieldType.string, label: intl.get(`${prefix}.field.technologyReviewDesc`).d('技术评审说明'), required: true },
+    // { name: 'technologySubmitUserName', type: FieldType.string, label: intl.get(`${prefix}.field.technologySubmitUserName`).d('提交人') },
+    // { name: 'technologySubmitDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.technologySubmitDate`).d('提交时间') },
   ],
   transport: {
     read: ({ params }) => ({
