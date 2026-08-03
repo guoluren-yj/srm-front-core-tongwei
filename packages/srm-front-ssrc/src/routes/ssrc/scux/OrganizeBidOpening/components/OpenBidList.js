@@ -29,7 +29,7 @@ const OpenBidList = (props) => {
       pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
       search: querystring.stringify({
         quotationHeaderId,
-        sourceStatus: 'newInquiryHallToBargain',
+        sourceStatus: 'checkPrice',
       }),
     });
   };
