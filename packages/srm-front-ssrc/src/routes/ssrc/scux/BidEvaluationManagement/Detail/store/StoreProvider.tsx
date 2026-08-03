@@ -34,6 +34,7 @@ interface EvaluationScoreItem {
 interface StoreContextValue {
   editorFlag: boolean;
   evaluateScoreId?: string | number;
+  evaluateSummaryId?: string | number;
   commonDs?: {
     evaluationHeaderDs: DataSet;
     evaluationItemsDs: DataSet;
@@ -49,6 +50,7 @@ interface StoreContextValue {
 const StoreContext = createContext<StoreContextValue>({
   editorFlag: false,
   evaluateScoreId: '',
+  evaluateSummaryId: '',
   pageType: '', // tech 技术评标、price 价格评标、summary 评标汇总
 });
 
@@ -81,14 +83,19 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const {
     match = { params: {} },
     children,
-    // location = { pathname: '', search: '' },
+    location = { pathname: '', search: '' },
     history,
   } = props;
 
   const { params } = match;
-  // const { pathname, search } = location;
+  const { search } = location;
 
   const { evaluateScoreId, pageType } = (params || {});
+  const routerParams = search ? querystring.parse(search.substr(1)) : {};
+  const rawEvaluateSummaryId = routerParams.evaluateSummaryId;
+  const evaluateSummaryId = Array.isArray(rawEvaluateSummaryId)
+    ? rawEvaluateSummaryId[0]
+    : (rawEvaluateSummaryId || '');
 
   // 页面编辑标识
   const editorFlag = useMemo(() => {
@@ -206,6 +213,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       editorFlag,
       history,
       evaluateScoreId,
+      evaluateSummaryId,
       pageLoading,
       setPageLoading,
       initData,
@@ -221,6 +229,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       editorFlag,
       history,
       evaluateScoreId,
+      evaluateSummaryId,
       pageLoading,
       setPageLoading,
       initData,

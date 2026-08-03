@@ -74,6 +74,9 @@ const Index: React.FC<any> = (props) => {
     if (!evaluateScoreId) return;
     history.push({
       pathname: `/scux/ssrc/bid-evaluation-management/evaluation/tech/${evaluateScoreId}`,
+      search: querystring.stringify({
+        evaluateSummaryId: record.get('evaluateSummaryId'),
+      }),
     });
   };
 
@@ -83,6 +86,9 @@ const Index: React.FC<any> = (props) => {
     if (!evaluateScoreId) return;
     history.push({
       pathname: `/scux/ssrc/bid-evaluation-management/evaluation/view/${evaluateScoreId}`,
+      search: querystring.stringify({
+        evaluateSummaryId: record.get('evaluateSummaryId'),
+      }),
     });
   };
 

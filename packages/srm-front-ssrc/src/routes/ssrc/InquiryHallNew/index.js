@@ -5297,6 +5297,7 @@ class InquiryHall extends React.Component {
       projectLineSectionId,
       sealedQuotationFlag,
       openerFlag,
+      rfxNum
     } = record || {};
     const search = querystring.stringify({
       evaluateLeaderFlag,
@@ -5318,7 +5319,7 @@ class InquiryHall extends React.Component {
         pathname: `/scux/ssrc/bid-evaluation-management/list`,
         search: querystring.stringify({
           positionTab: 'evaluationSummary',
-          sourceNum: record.get('rfxNum'),
+          sourceNum: rfxNum,
         }),
       });
       return;

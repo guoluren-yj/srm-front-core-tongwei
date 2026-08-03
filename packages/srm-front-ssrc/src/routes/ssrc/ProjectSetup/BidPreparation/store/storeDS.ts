@@ -14,14 +14,14 @@ export const tenderHeaderDS = (): DataSetProps => {
     autoQuery: false,
     fields: [
       {
+        name: 'catelogNum',
+        label: intl.get(`scux.tenderListWorkbench.model.twnf.tenderListNum`).d('招标清单编号'),
+      },
+      {
         name: 'catalogStatus',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.tenderListSourceProjectStatus').d('招标清单状态'),
         type: FieldType.string,
         lookupCode: 'SCUX_TWNF_NOMINATION_STATUS',
-      },
-      {
-        name: 'catelogNum',
-        label: intl.get(`scux.tenderListWorkbench.model.twnf.tenderListNum`).d('招标清单编号'),
       },
     ],
   };

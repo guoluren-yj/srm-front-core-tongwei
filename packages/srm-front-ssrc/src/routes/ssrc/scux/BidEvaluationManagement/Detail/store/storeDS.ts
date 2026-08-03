@@ -48,6 +48,16 @@ export const evaluationHeaderDataSet = ({ evaluateScoreId }): DataSetProps => {
         lookupCode: 'SCUX.TWNF_BID_EXPERT_TEAM',
       },
       {
+        name: 'techLeader',
+        label: intl.get(`${prefix}.model.twnf.techLeader`).d('技术负责人ID'),
+        type: FieldType.string,
+      },
+      {
+        name: 'evaluateSummaryId',
+        label: intl.get(`${prefix}.model.twnf.evaluateSummaryId`).d('技术综评单ID'),
+        type: FieldType.string,
+      },
+      {
         name: 'supplierCompanyName',
         label: intl.get(`${prefix}.model.twnf.supplierName`).d('供应商名称'),
         type: FieldType.string,

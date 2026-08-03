@@ -11,12 +11,12 @@ const OpenBidList = (props) => {
 
   // 跳转到商务谈判
   const handleJumpToBusinessBattle = (record) => {
-    const { quotationHeaderId } = record.get('quotationHeaderId');
-    if (!quotationHeaderId || !rfxHeaderId) return;
+    const quotationHeaderId = record.get('quotationHeaderId');
+    console.log(quotationHeaderId, rfxHeaderId);
+    if (!rfxHeaderId) return;
     history.push({
       pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
       search: querystring.stringify({
-        quotationHeaderId,
         sourceStatus: 'checkPrice',
       }),
     });
@@ -43,7 +43,7 @@ const OpenBidList = (props) => {
         name: 'businessBattle',
         renderer: ({ record }) => {
           return record.get('priceBid') === '已开启' ? (
-            <Button funcType="link" onClick={() => handleJumpToBusinessBattle}>
+            <Button funcType="link" onClick={() => {handleJumpToBusinessBattle(record)}}>
               {intl.get(`${prefix}.model.twnf.businessBattle`).d('商务谈判')}
             </Button>
           ) : null;

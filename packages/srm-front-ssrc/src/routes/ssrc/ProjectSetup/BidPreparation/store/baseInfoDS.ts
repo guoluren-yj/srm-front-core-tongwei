@@ -67,7 +67,7 @@ const baseInfoDS = ({ sourceProjectId }): DataSetProps => {
         name: 'attributeVarchar11',
         label: intl.get('scux.bidPlanDetail.model.twnf.itemType').d('标的类型'),
         type: FieldType.string,
-        lookupCode: 'SUBJECT_TYPE',
+        lookupCode: 'SCUX.TWNF_BID_BUS_TYPE',
         required: true,
       },
       {

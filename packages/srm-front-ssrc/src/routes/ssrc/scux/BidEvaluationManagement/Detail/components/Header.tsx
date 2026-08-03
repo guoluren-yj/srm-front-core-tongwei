@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Button } from 'choerodon-ui/pro';
+import { Button, Modal } from 'choerodon-ui/pro';
 import { ButtonColor } from "choerodon-ui/pro/lib/button/enum";
 import { useObserver } from 'mobx-react-lite';
 import { isEmpty, isBoolean } from 'lodash';
@@ -8,7 +8,7 @@ import querystring from 'querystring';
 import { Header } from 'components/Page';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
-import { getResponse } from 'utils/utils';
+import { getResponse, getCurrentUserId } from 'utils/utils';
 
 import { transfer as transferApi } from '@/services/expertScoringService';
 import ExpertLibraryModal from '@/routes/sbid/ExpertScoring/Update/ExpertLibraryModal';
@@ -18,6 +18,7 @@ import {
   techEvaluationSaveAndSubmit,
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
+import TechnicalSummary from './TechnicalSummary';
 
 const PageHeader: React.FC<any> = () => {
   const {
@@ -32,14 +33,32 @@ const PageHeader: React.FC<any> = () => {
     pageType = '',
     history,
     prefix,
+    evaluateSummaryId = '',
   } = useStore();
 
   const [expertModalVisible, setExpertModalVisible] = useState(false);
   const [subAccountVisible, setSubAccountVisible] = useState(false);
 
-  const { expertSource, rfxHeaderId, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag } = useObserver(() =>
-    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag']) || {}
+  const { expertSource, rfxHeaderId, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag, techLeader } = useObserver(() =>
+    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag', 'techLeader']) || {}
   );
+
+
+  const isTechLeader = String(techLeader) === String(getCurrentUserId());
+
+  // 查看评标（技术综评只读弹框）
+  const handleViewEvaluation = () => {
+    if (!evaluateSummaryId) return;
+    Modal.open({
+      title: intl.get('scux.bidEvaluationManagement.view.title.technicalSummary').d('技术综评'),
+      drawer: true,
+      closable: true,
+      destroyOnClose: true,
+      footer: null,
+      style: { width: 800 },
+      children: <TechnicalSummary readOnly evaluateSummaryId={evaluateSummaryId} />,
+    });
+  };
 
   // 校验页面数据
   const validatePageData = async () => {
@@ -261,6 +280,11 @@ const PageHeader: React.FC<any> = () => {
       title={pageTitle}
       backPath='/scux/ssrc/bid-evaluation-management/list'
     >
+      {isTechLeader && (
+        <Button wait={1000} disabled={pageLoading} onClick={handleViewEvaluation}>
+          {intl.get(`${prefix}.view.button.viewEvaluation`).d('查看综评')}
+        </Button>
+      )}
       {!editorFlag ? [] : getButtons()}
       {expertModalVisible && <ExpertLibraryModal {...expertModalProps} />}
       {subAccountVisible && <SubAccount {...subAccountProps} />}

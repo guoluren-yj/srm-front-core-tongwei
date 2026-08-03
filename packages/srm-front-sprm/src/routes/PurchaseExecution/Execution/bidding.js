@@ -55,6 +55,7 @@ export default class TransferBidding extends Component {
         return false;
       }
     }
+    console.log(2222222222222222222)
     await checkApplyToInquiry({
       prLineIdList,
       sourceDocumentType: !isOldUser ? 'BID' : null,

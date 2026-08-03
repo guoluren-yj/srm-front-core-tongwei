@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Modal, Tooltip, Button } from 'choerodon-ui/pro';
+import { Modal, DataSet, Tooltip, Button } from 'choerodon-ui/pro';
 import { Bind } from 'lodash-decorators';
 import SearchBarTable from 'srm-front-boot/lib/components/SearchBarTable';
 import formatterCollections from 'utils/intl/formatterCollections';
@@ -13,6 +13,8 @@ import { routerRedux } from 'dva/router';
 import ViewFilter from '@/routes/components/ViewFilter';
 import MutlTextFieldSearch from '@/routes/components/MutlTextFieldSearch';
 import urgentImg from '@/assets/icon-expedited.svg';
+import Template from './../components/Template';
+import { templateModalDs } from './executionDs/inquiryQuotationDs';
 
 const commonPrompt = 'sprm.common.model.common';
 @formatterCollections({
@@ -89,7 +91,7 @@ export default class PartsRecDemandPool extends Component {
           res.currencyInconsistentFlag === 0 &&
           res.unitInconsistentFlag === 0
         ) {
-          await this.handleCreateQuoteAppoval();
+          await this.openTemplateModal();
         }
         if (
           res.companyInconsistentFlag === 1 &&
@@ -107,18 +109,45 @@ export default class PartsRecDemandPool extends Component {
             ),
             title: intl.get('hzero.common.message.confirm.title').d('提示'),
             onOk: async () => {
-              await this.handleCreateQuoteAppoval();
+              await this.openTemplateModal();
             },
           });
         } else {
-          await this.handleCreateQuoteAppoval();
+          await this.openTemplateModal();
         }
       }
     });
   }
 
+  // 选择寻源模板
+  openTemplateModal = async () => {
+    const ds = new DataSet(templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL' }, {secondarySourceCategory: 'NEW_BID'}));
+    const { remote } = this.props;
+    if (remote) {
+      await remote.event.fireEvent('beforeCreateTemplate', {
+        templateDs: ds,
+        tabkey: 'quoteApproval',
+      });
+    }
+    Modal.open({
+      key: Modal.key(),
+      destroyOnClose: true,
+      title: intl.get(`ssrc.inquiryHall.view.message.title.selectSourceTemplate`).d('选择寻源模板'),
+      children: <Template ds={ds} />,
+      onOk: async () => {
+        const validateFlag = await ds.validate();
+        if (validateFlag) {
+          const { templateId } = ds.toData() ? ds.toData()[0] : {};
+          this.handleCreateQuoteAppoval(templateId);
+        } else {
+          return false;
+        }
+      },
+    });
+  };
+
   @Bind()
-  async handleCreateQuoteAppoval() {
+  async handleCreateQuoteAppoval(templateId) {
     const {
       quoteApprovalDs,
       dispatch,
@@ -132,6 +161,7 @@ export default class PartsRecDemandPool extends Component {
     const prNumList = data?.map((e) => `${e.displayPrNum}-${e.displayLineNum}`).join(',');
     await createProject({
       prLineIdList,
+      attributeVarchar10: templateId,
       configCenterCode: 'SITE.SSRC.PROJECT_PURCHASE_MERGE_RULE',
       sourceDocumentType: !isOldUser ? 'PROJECT' : null,
     }).then((res) => {

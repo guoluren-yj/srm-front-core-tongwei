@@ -24,7 +24,7 @@ const BaseInfo: React.FC<any> = () => {
       <TextField name="techFileNum" />
       {/* <TextField name="confirmedByName" />
       <TextField name="confirmedDate" /> */}
-      <TextField name="technicalManager" />
+      <TextField name="userInChargeMeaning" />
       <Select name="techFileStatus" />
       <TextArea name="remark" resize={ResizeType.vertical} newLine colSpan={2} />
     </Form>
@@ -38,7 +38,7 @@ const BaseInfo: React.FC<any> = () => {
     >
       <Output name="techFileNum" />
       {/* <Output name="confirmedByName" /> */}
-      <Output name="technicalManager" />
+      <Output name="userInChargeMeaning" />
       <Output name="techFileStatus" />
       {/* <Output name="confirmedDate" /> */}
       <Output name="remark" newLine colSpan={2} />

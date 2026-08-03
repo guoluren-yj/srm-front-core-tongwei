@@ -247,14 +247,14 @@ const Page = () => {
   // 保存
   const handleSave = async () => {
     const pageChangeFlag = getPageChangeFlag();
-    if (pageChangeFlag === 0) {
-      notification.warning({
-        message: intl
-          .get('ssrc.projectSetup.view.spChange.submitValidateMessage')
-          .d('操作失败，失败原因是当前页面未发生任何变更，请修改后保存或提交！'),
-      });
-      return;
-    }
+    // if (pageChangeFlag === 0) {
+    //   notification.warning({
+    //     message: intl
+    //       .get('ssrc.projectSetup.view.spChange.submitValidateMessage')
+    //       .d('操作失败，失败原因是当前页面未发生任何变更，请修改后保存或提交！'),
+    //   });
+    //   return;
+    // }
     const pageData = getPageData({ pageChangeFlag });
     // handleSetOperateLoading(true);
     try {
@@ -306,14 +306,14 @@ const Page = () => {
   // 发布
   const handleRelease = async () => {
     const pageChangeFlag = getPageChangeFlag();
-    if (pageChangeFlag === 0) {
-      notification.warning({
-        message: intl
-          .get('ssrc.projectSetup.view.spChange.submitValidateMessage')
-          .d('操作失败，失败原因是当前页面未发生任何变更，请修改后保存或提交！'),
-      });
-      return;
-    }
+    // if (pageChangeFlag === 0) {
+    //   notification.warning({
+    //     message: intl
+    //       .get('ssrc.projectSetup.view.spChange.submitValidateMessage')
+    //       .d('操作失败，失败原因是当前页面未发生任何变更，请修改后保存或提交！'),
+    //   });
+    //   return;
+    // }
     handleSetOperateLoading(true);
     const pageData = getPageData({ pageChangeFlag });
     try {

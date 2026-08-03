@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Button, useDataSet, Select, Attachment, TextArea } from 'choerodon-ui/pro';
+import { Form, Button, useDataSet, Select, Attachment, TextArea, Output } from 'choerodon-ui/pro';
 import { ButtonColor } from 'choerodon-ui/pro/lib/button/enum';
 import { LabelLayout } from 'choerodon-ui/pro/lib/form/enum';
 
@@ -9,7 +9,7 @@ import notification from 'utils/notification';
 import { techSummaryDataSet } from '../store/storeDS';
 
 const TechnicalSummary = (props) => {
-  const { modal, listDS, evaluateSummaryId } = props;
+  const { modal, listDS, evaluateSummaryId, readOnly = false } = props;
 
   const techSummaryDS = useDataSet(() => techSummaryDataSet({ evaluateSummaryId }), [evaluateSummaryId]);
 
@@ -48,7 +48,7 @@ const TechnicalSummary = (props) => {
   };
 
   useEffect(() => {
-    if (modal) {
+    if (modal && !readOnly) {
       modal.update({
         footer: () => (
           <>
@@ -62,7 +62,17 @@ const TechnicalSummary = (props) => {
         ),
       });
     };
-  }, [modal]);
+  }, [modal, readOnly]);
+
+  if (readOnly) {
+    return (
+      <Form dataSet={techSummaryDS} labelLayout={LabelLayout.vertical} columns={2} className="c7n-pro-vertical-form-display">
+        <Output name="invalidFlag" />
+        <Output name="attributeLongtext1" />
+        <Output name="invalidReason" colSpan={2} />
+      </Form>
+    );
+  }
 
   return (
     <Form dataSet={techSummaryDS} labelLayout={LabelLayout.float} columns={2}>

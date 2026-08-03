@@ -86,6 +86,13 @@ const BidManagementAttachment = (props) => {
         : [
             {
               name: 'attributeVarchar19',
+              renderer: ({ value, record }) => {
+                const hideFlag = record.get('hideFlag');
+                if (hideFlag === '1' && value) {
+                  return value.replace(/./g, '*');
+                }
+                return value;
+              },
             },
             {
               name: 'attachmentTypeMeaning',

@@ -59,8 +59,8 @@ const TenderListSection:React.FC<TenderListSectionProps> = (props) => {
   return (
     <>
       <Form dataSet={tenderHeaderDs} columns={3}>
-        <Output name="catalogStatus" />
         <Output name="catelogNum" />
+        <Output name="catalogStatus" />
       </Form>
       <Table
         dataSet={tenderListSectionDs}

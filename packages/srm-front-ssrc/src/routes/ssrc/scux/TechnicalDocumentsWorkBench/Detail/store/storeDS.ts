@@ -44,8 +44,8 @@ const baseInfoDS = ({ techFileId }): DataSetProps => {
       //   disabled: true,
       // },
       {
-        name: 'technicalManager',
-        label: intl.get('scux.technicalDocumentsDetail.model.twnf.technicalManager').d('技术负责人'),
+        name: 'userInChargeMeaning',
+        label: intl.get('scux.technicalDocumentsDetail.model.twnf.userInChargeMeaning').d('技术负责人'),
         disabled: true,
       },
       {
