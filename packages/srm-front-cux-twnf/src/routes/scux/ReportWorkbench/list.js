@@ -16,7 +16,7 @@ import ExcelExportPro from './ExcelExportPro';
 
 import { openCategoryDetail, openSupplierDetail } from './DetailModals';
 
-const List = ({ headerNum, organizationId, autoQuery, queryFieldsLimit, exportFlag }) => {
+const List = ({ headerNum, headerName, organizationId, autoQuery, queryFieldsLimit, exportFlag }) => {
   const [Ds, setDs] = useState(null);
 
   const [columns, setColumns] = useState([]);
@@ -45,11 +45,11 @@ const List = ({ headerNum, organizationId, autoQuery, queryFieldsLimit, exportFl
       label: fieldName,
       type: 'string',
       width: Number(fieldLength || 100),
-      ...(fieldNum === 'categoryCode' ? {
+      ...(headerName === '供应商合作明细表' && fieldNum === 'categoryCode' ? {
         renderer: ({ value, record }) => (
           <a onClick={() => openCategoryDetail(organizationId, value, record.get('comparePeriod'))}>{value}</a>
         ),
-      } : fieldNum === 'supplierCode' ? {
+      } : headerName === '供应商合作明细表' && fieldNum === 'supplierCode' ? {
         renderer: ({ value, record }) => (
           <a onClick={() => openSupplierDetail(organizationId, value, record.get('comparePeriod'), record.get('compareDimension'))}>{value}</a>
         ),
