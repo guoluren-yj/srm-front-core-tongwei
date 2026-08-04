@@ -88,6 +88,8 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
       name: 'bidDirector',
       type: FieldType.object,
       lovCode: 'SCUX.HPFM.TW..EMPLOYEE',
+      textField:"name",
+      valueField:"employeeId",
       display: true,
       label: intl.get(`${prefix}.field.tenderManager`).d('入围负责人'),
     },
