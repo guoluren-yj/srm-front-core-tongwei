@@ -56,13 +56,15 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
       },
     ],
     transport: {
-      read: () => {
+      read: ({ dataSet }) => {
+        const bidCatalogHistoryId = dataSet?.getQueryParameter('bidCatalogHistoryId');
         return {
           url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/ajqkRsFQfIvKnAJaX676LMuS2jN0vaD10XhDTcdxVA8TiahDph05Jw6ZvrFaHxk0u`,
           method: 'GET',
           data: {
-            queryType: 'HEADER',
+            queryType: bidCatalogHistoryId ? 'HEADER_HISTORY' : 'HEADER',
             bidCatalogId,
+            ...(bidCatalogHistoryId ? { bidCatalogHistoryId, asyncCountFlag: 'DEFAULT' } : {}),
           },
         };
       },
@@ -99,13 +101,15 @@ const tenderListSectionDS = ({ bidCatalogId, baseInfoDs }): DataSetProps => {
       },
     ],
     transport: {
-      read: () => {
+      read: ({ dataSet }) => {
+        const bidCatalogHistoryId = dataSet?.getQueryParameter('bidCatalogHistoryId');
         return {
           url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/ajqkRsFQfIvKnAJaX676LMuS2jN0vaD10XhDTcdxVA8TiahDph05Jw6ZvrFaHxk0u`,
           method: 'GET',
           data: {
-            queryType: 'SECTION',
+            queryType: bidCatalogHistoryId ? 'SECTION_HISTORY' : 'SECTION',
             bidCatalogId,
+            ...(bidCatalogHistoryId ? { bidCatalogHistoryId, asyncCountFlag: 'DEFAULT' } : {}),
           },
         };
       },
@@ -227,7 +231,7 @@ const bidPlanContentDS = ({ sourceProjectId }): DataSetProps => {
 };
 
 // 明细维护 - 明细维护表格
-const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
+const detailMaintenanceDS = ({ baseInfoDs, bidCatalogSectionHistoryId = '', bidVersion = '' }): DataSetProps => {
   return {
     primaryKey: 'bidCatalogLineId',
     autoQuery: false,
@@ -356,12 +360,15 @@ const detailMaintenanceDS = ({ baseInfoDs }): DataSetProps => {
     ],
     transport: {
       read: ({ data }) => {
+        const isHistory = !!bidCatalogSectionHistoryId;
         return {
           url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/ajqkRsFQfIvKnAJaX676LMuS2jN0vaD10XhDTcdxVA8TiahDph05Jw6ZvrFaHxk0u`,
           method: 'GET',
           data: {
-            queryType: 'LINE',
-            ...(data || {}),
+            queryType: isHistory ? 'LINE_HISTORY' : 'LINE',
+            ...(isHistory
+              ? { bidCatalogSectionHistoryId, asyncCountFlag: 'DEFAULT', bidVersion }
+              : { ...(data || {}) }),
           },
         };
       },

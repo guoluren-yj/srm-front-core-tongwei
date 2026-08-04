@@ -19,6 +19,7 @@ const TenderListSection = () => {
     commonDs: { baseInfoDs, tenderListSectionDs } = {},
     editorFlag,
     initData = () => {},
+    bidVersion,
   } = useStore();
 
   if (!tenderListSectionDs) return null;
@@ -28,6 +29,7 @@ const TenderListSection = () => {
   // 打开明细维护弹框
   const handleOpenDetail = (record) => {
     const bidCatalogSectionId = record.get('bidCatalogSectionId');
+    const bidCatalogSectionHistoryId = record.get('bidCatalogSectionHistoryId');
     const sectionName = record.get('sectionName');
     if (!baseInfoDs) return;
     const modal = Modal.open({
@@ -40,19 +42,21 @@ const TenderListSection = () => {
       },
       footer: (okBtn: any, cancelBtn: any) => (
         <>
-          <Button
-            color={ButtonColor.primary}
-            onClick={async () => {
-              await detailRef.current?.save();
-              modal.close();
-            }}
-          >
-            {intl.get('hzero.common.button.ok').d('确认')}
-          </Button>
+          {editorFlag && (
+            <Button
+              color={ButtonColor.primary}
+              onClick={async () => {
+                await detailRef.current?.save();
+                modal.close();
+              }}
+            >
+              {intl.get('hzero.common.button.ok').d('确认')}
+            </Button>
+          )}
           {cancelBtn}
         </>
       ),
-      children: <DetailMaintenance ref={detailRef} baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} editorFlag={editorFlag} sectionName={sectionName} />,
+      children: <DetailMaintenance ref={detailRef} baseInfoDs={baseInfoDs} bidCatalogSectionId={bidCatalogSectionId} bidCatalogSectionHistoryId={bidCatalogSectionHistoryId} bidVersion={bidVersion} editorFlag={editorFlag} sectionName={sectionName} />,
     });
   };
 

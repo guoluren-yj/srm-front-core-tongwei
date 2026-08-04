@@ -15,6 +15,8 @@ import { tenderListBillCommonApi } from '../../api';
 
 interface DetailMaintenanceProps {
   bidCatalogSectionId: string;
+  bidCatalogSectionHistoryId?: string;
+  bidVersion?: string;
   baseInfoDs: DataSet;
   editorFlag: boolean;
   sectionName?: string;
@@ -22,9 +24,12 @@ interface DetailMaintenanceProps {
 
 function DetailMaintenanceInner(props: any, ref: any) {
 
-  const { bidCatalogSectionId, baseInfoDs, editorFlag, sectionName } = props;
+  const { bidCatalogSectionId, bidCatalogSectionHistoryId, bidVersion, baseInfoDs, editorFlag, sectionName } = props;
   // 明细维护 ds
-  const detailMaintenanceDs = useDataSet(() => detailMaintenanceDS({ baseInfoDs }), []);
+  const detailMaintenanceDs = useDataSet(
+    () => detailMaintenanceDS({ baseInfoDs, bidCatalogSectionHistoryId, bidVersion }),
+    [bidCatalogSectionHistoryId, bidVersion]
+  );
 
   useEffect(() => {
     detailMaintenanceDs.setQueryParameter('bidCatalogSectionId', bidCatalogSectionId);

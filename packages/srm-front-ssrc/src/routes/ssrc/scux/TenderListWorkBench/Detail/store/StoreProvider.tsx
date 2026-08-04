@@ -1,10 +1,13 @@
-import React, { createContext, FunctionComponent, useMemo, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, FunctionComponent, useMemo, ReactNode, useContext, useEffect, useState, useCallback } from 'react';
 import { useDataSet, DataSet } from 'choerodon-ui/pro';
 import { useLocalStore, useObserver } from 'mobx-react-lite';
 import { isNil } from 'lodash';
 import querystring from 'querystring';
 import { set, get, toJS } from 'mobx';
 import { DataSetSelection } from 'choerodon-ui/dataset/data-set/enum';
+
+import { getCurrentOrganizationId, getResponse } from 'utils/utils';
+import request from 'utils/request';
 
 import {
   baseInfoDS,
@@ -81,16 +84,26 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const sourceProjectId = Array.isArray(rawSourceProjectId)
     ? rawSourceProjectId[0]
     : (rawSourceProjectId || '');
+  const rawBidCatalogHistoryId = routerParams.bidCatalogHistoryId;
+  const bidCatalogHistoryId = Array.isArray(rawBidCatalogHistoryId)
+    ? rawBidCatalogHistoryId[0]
+    : (rawBidCatalogHistoryId || '');
+  const rawBidVersion = routerParams.bidVersion;
+  const bidVersion = Array.isArray(rawBidVersion)
+    ? rawBidVersion[0]
+    : (rawBidVersion || '');
 
   const [pageLoading, setPageLoading] = useState(false);
   // 基础信息
-  const baseInfoDs = useDataSet(() => baseInfoDS({ bidCatalogId }), []);
+  const baseInfoDs = useDataSet(() => baseInfoDS({ bidCatalogId }), [bidCatalogId]);
 
   const catalogStatus = useObserver(() => baseInfoDs.current?.get('catalogStatus'));
-  // 页面编辑标识
+  // 页面编辑标识：版本查看时不可编辑
   const editorFlag = useMemo(() => {
-    return ['NEW', 'APPROVED', 'CHANGING', 'SOURCE_CHANGING'].includes(catalogStatus) && pathname.includes('/scux/ssrc/tender-workbench/update');
-  }, [catalogStatus, pathname]);
+    return !bidCatalogHistoryId
+      && ['NEW', 'APPROVED', 'CHANGING', 'SOURCE_CHANGING'].includes(catalogStatus)
+      && pathname.includes('/scux/ssrc/tender-workbench/update');
+  }, [catalogStatus, pathname, bidCatalogHistoryId]);
 
   // 招标清单标段列表ds
   const tenderListSectionDs = useDataSet(() => tenderListSectionDS({ bidCatalogId, baseInfoDs }), [bidCatalogId, baseInfoDs]);
@@ -103,9 +116,57 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
     return pathname.includes('/scux/ssrc/technical-documents-workbench/tech-detail');
   }, [pathname]);
 
+  // 初始化数据
+  const initData = useCallback(async (historyId = bidCatalogHistoryId, version = bidVersion) => {
+    setPageLoading(true);
+    try {
+      // 头信息手动请求并加载，确保版本查看时必然请求 HEADER_HISTORY
+      const headerRes = getResponse(
+        await request(
+          `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/ajqkRsFQfIvKnAJaX676LMuS2jN0vaD10XhDTcdxVA8TiahDph05Jw6ZvrFaHxk0u`,
+          {
+            method: 'GET',
+            query: {
+              queryType: historyId ? 'HEADER_HISTORY' : 'HEADER',
+              bidCatalogId,
+              ...(historyId
+                ? { bidCatalogHistoryId: historyId, asyncCountFlag: 'DEFAULT', bidVersion: version }
+                : {}),
+            },
+          }
+        )
+      );
+      if (baseInfoDs) {
+        baseInfoDs.loadData(headerRes ? [headerRes] : []);
+      }
+
+      // 标段列表
+      if (tenderListSectionDs) {
+        tenderListSectionDs.setQueryParameter('bidCatalogHistoryId', historyId);
+        await tenderListSectionDs.query();
+      }
+    } finally {
+      setPageLoading(false);
+    }
+  }, [baseInfoDs, tenderListSectionDs, bidCatalogId, bidCatalogHistoryId, bidVersion]);
+
   useEffect(() => {
     initData();
-  }, []);
+    const unlisten = history?.listen(() => {
+      // 兜底：非重建场景下从最新 location 解析版本参数
+      const currentSearch = history.location.search
+        ? querystring.parse(history.location.search.substr(1))
+        : {};
+      const raw = currentSearch.bidCatalogHistoryId;
+      const newHistoryId = Array.isArray(raw) ? raw[0] : (raw || '');
+      const rawVersion = currentSearch.bidVersion;
+      const newVersion = Array.isArray(rawVersion) ? rawVersion[0] : (rawVersion || '');
+      initData(newHistoryId, newVersion);
+    });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [initData, history]);
 
   useEffect(() => {
     // 只读页面无需显示勾选框
@@ -116,17 +177,6 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       tenderListSectionDs.selection = DataSetSelection.multiple;
     };
   }, [editorFlag]);
-
-  // 初始化数据
-  const initData = () => {
-    setPageLoading(true);
-    Promise.all([
-      baseInfoDs?.query(),
-      tenderListSectionDs?.query(),
-    ]).finally(() => {
-      setPageLoading(false);
-    });
-  };
 
   const reactionStoreData = useLocalStore(() => ({
     storeData: {},
@@ -150,6 +200,8 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       bidPageDetailFlag,
       history,
       bidCatalogId,
+      bidCatalogHistoryId,
+      bidVersion,
       sourceProjectId,
       pageLoading,
       setPageLoading,
@@ -166,6 +218,8 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       bidPageDetailFlag,
       history,
       bidCatalogId,
+      bidCatalogHistoryId,
+      bidVersion,
       sourceProjectId,
       pageLoading,
       setPageLoading,
