@@ -110,7 +110,7 @@ function getComprehensiveScoreFields() {
     },
     {
       name: 'allScoreSum',
-      type: FieldType.number,
+      type: FieldType.string,
       dynamicProps: {
         label: ({ dataSet }) => {
           const { scoreWay } = dataSet.getState('headerDs')?.current?.get(['scoreWay']) || {};

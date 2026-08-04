@@ -107,4 +107,8 @@ module.exports = [
       },
     ],
   },
+  {
+    path: '/scux/reportWorkbench',
+    component: () => import('../routes/scux/ReportWorkbench/index.js'),
+  },
 ];

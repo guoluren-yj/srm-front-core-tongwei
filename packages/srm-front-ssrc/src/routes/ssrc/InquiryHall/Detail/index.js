@@ -601,10 +601,10 @@ class Detail extends PureComponent {
 
     currentStepNode = remote
       ? remote.process('INQUIRY_HALL_DETAIL_INITRFXDETAILQUERY_CURRENTSTAGESTEP', currentStepNode, {
-        that: this,
-        incomingStage,
-        AllConfigs,
-      })
+          that: this,
+          incomingStage,
+          AllConfigs,
+        })
       : currentStepNode;
 
     if (remote?.event) {
@@ -1265,15 +1265,15 @@ class Detail extends PureComponent {
             <span>
               {serviceChargeFlag && bidFileExpenseReturnFlag
                 ? intl
-                  .get('ssrc.inquiryHall.view.title.refundOfExpensesConfirm', {
-                    checkPriceName: this.checkPriceName,
-                  })
-                  .d('本项目存在寻源费用，请确定是否退回至{checkPriceName}')
+                    .get('ssrc.inquiryHall.view.title.refundOfExpensesConfirm', {
+                      checkPriceName: this.checkPriceName,
+                    })
+                    .d('本项目存在寻源费用，请确定是否退回至{checkPriceName}')
                 : intl
-                  .get(`ssrc.inquiryHall.view.title.commonModalConfirm`, {
-                    checkPriceName: this.checkPriceName,
-                  })
-                  .d('本单据将退回至{checkPriceName}，是否确认？')}
+                    .get(`ssrc.inquiryHall.view.title.commonModalConfirm`, {
+                      checkPriceName: this.checkPriceName,
+                    })
+                    .d('本单据将退回至{checkPriceName}，是否确认？')}
             </span>
           ),
           footer: (
@@ -1533,19 +1533,22 @@ class Detail extends PureComponent {
     let path = '';
     switch (activetabKey) {
       case '/ssrc/new-project-setup':
-        path = `${activetabKey}/${this.bidFlag ? 'bid' : 'rfx'
-          }-quotation-detail/${rfxId}/${supplierCompanyId}`;
+        path = `${activetabKey}/${
+          this.bidFlag ? 'bid' : 'rfx'
+        }-quotation-detail/${rfxId}/${supplierCompanyId}`;
         break;
       case '/ssrc/query-rfq':
-        path = `${activetabKey}/${this.bidFlag ? 'detail' : 'rfx-quotation-detail'
-          }/${rfxId}/${supplierCompanyId}`;
+        path = `${activetabKey}/${
+          this.bidFlag ? 'detail' : 'rfx-quotation-detail'
+        }/${rfxId}/${supplierCompanyId}`;
         break;
       case '/ssrc/new-bid-hall':
         path = `${activetabKey}/detail/${rfxId}/${supplierCompanyId}`;
         break;
       default:
-        path = `${activetabKey}/${this.bidFlag ? 'bid-quotation-detail' : 'detail'
-          }/${rfxId}/${supplierCompanyId}`;
+        path = `${activetabKey}/${
+          this.bidFlag ? 'bid-quotation-detail' : 'detail'
+        }/${rfxId}/${supplierCompanyId}`;
         break;
     }
 
@@ -1683,8 +1686,9 @@ class Detail extends PureComponent {
       payload: {
         quotationLineId,
         organizationId,
-        customizeUnitCode: `SSRC.${modelName === INQUIRY ? INQUIRY : 'NEW_BID'
-          }_HALL_CHECK_PRICE.LADDER_INQUIRY_TABLE`,
+        customizeUnitCode: `SSRC.${
+          modelName === INQUIRY ? INQUIRY : 'NEW_BID'
+        }_HALL_CHECK_PRICE.LADDER_INQUIRY_TABLE`,
       },
     });
   }
@@ -1761,10 +1765,10 @@ class Detail extends PureComponent {
     this.fetchBusinessInfo(businessKey);
     const industryVisible = remote
       ? remote.process(
-        'SSRC_INQUIRY_HALL_DETAIL_PROCESS_INDUSTRYVISIBLE',
-        sourceMethod && sourceMethod !== 'INVITE',
-        { sourceMethod, inviteNoticeFlag: res.inviteNoticeFlag }
-      )
+          'SSRC_INQUIRY_HALL_DETAIL_PROCESS_INDUSTRYVISIBLE',
+          sourceMethod && sourceMethod !== 'INVITE',
+          { sourceMethod, inviteNoticeFlag: res.inviteNoticeFlag }
+        )
       : sourceMethod && sourceMethod !== 'INVITE';
 
     if (industryVisible) {
@@ -2094,10 +2098,12 @@ class Detail extends PureComponent {
     } = this.props;
 
     openTab({
-      key: `/ssrc/inquiry-hall/tender-bid${this.bidFlag ? '-hall' : ''}-notice-preview/${params.rfxId
-        }`,
-      path: `/ssrc/inquiry-hall/tender-bid${this.bidFlag ? '-hall' : ''}-notice-preview/${params.rfxId
-        }`,
+      key: `/ssrc/inquiry-hall/tender-bid${this.bidFlag ? '-hall' : ''}-notice-preview/${
+        params.rfxId
+      }`,
+      path: `/ssrc/inquiry-hall/tender-bid${this.bidFlag ? '-hall' : ''}-notice-preview/${
+        params.rfxId
+      }`,
       // title: intl.get(`ssrc.inquiryHall.view.title.tenderBidNotice`).d('招标公告'),
       title: 'srm.common.tab.title.ssrc.tenderNotice',
       closable: true,
@@ -2622,16 +2628,16 @@ class Detail extends PureComponent {
           ? `/pub/sprm/purchase-platform/erp-detail/${prHeaderId}`
           : `/pub/sprm/purchase-platform/noerp-detail/${prHeaderId}`
         : isErp
-          ? `/sprm/purchase-platform/erp-detail/${prHeaderId}`
-          : `/sprm/purchase-platform/noerp-detail/${prHeaderId}`;
+        ? `/sprm/purchase-platform/erp-detail/${prHeaderId}`
+        : `/sprm/purchase-platform/noerp-detail/${prHeaderId}`;
     } else {
       pathUrl = isPub
         ? isErp
           ? `/pub/sprm/purchase-requisition-inquiry/erp-detail/${prHeaderId}`
           : `/pub/sprm/purchase-requisition-inquiry/not-erp-detail/${prHeaderId}`
         : isErp
-          ? `/sprm/purchase-requisition-inquiry/erp-detail/${prHeaderId}`
-          : `/sprm/purchase-requisition-inquiry/not-erp-detail/${prHeaderId}`;
+        ? `/sprm/purchase-requisition-inquiry/erp-detail/${prHeaderId}`
+        : `/sprm/purchase-requisition-inquiry/not-erp-detail/${prHeaderId}`;
     }
 
     dispatch(
@@ -2732,7 +2738,7 @@ class Detail extends PureComponent {
     return isTechExpertFlag
       ? null
       : currentStep === 'FINISHED' || currentStep === 'CHECK_PENDING'
-        ? {
+      ? {
           name: 'priceAssistant',
           btnType: 'c7n-pro',
           btnProps: {
@@ -2747,7 +2753,7 @@ class Detail extends PureComponent {
             </>
           ),
         }
-        : null;
+      : null;
   };
 
   // 判断是否是本模块的/pub页面
@@ -3019,10 +3025,10 @@ class Detail extends PureComponent {
           {titleNode}
           {remote
             ? remote.render(
-              'SSRC_INQUIRY_HALL_DETAIL_RENDER_HEADER_EXPAND_INFOS',
-              null,
-              remoteProps
-            )
+                'SSRC_INQUIRY_HALL_DETAIL_RENDER_HEADER_EXPAND_INFOS',
+                null,
+                remoteProps
+              )
             : null}
         </IMChatDraggable>
       </span>
@@ -3046,8 +3052,8 @@ class Detail extends PureComponent {
       this.rfx.sourceKey === BID
         ? `/ssrc/bid-clarification-letter`
         : visibleOldPrepareConfigSheet
-          ? `/ssrc/clarification-letter`
-          : `/ssrc/new-clarification-letter`;
+        ? `/ssrc/clarification-letter`
+        : `/ssrc/new-clarification-letter`;
     const url = `${tabKey}/inter-question/${rfxHeaderId}/${rfxNum}/sourceTitle/${companyId}/1`;
     const search = querystring.stringify({
       createFlag: record.createFlag,
@@ -3084,7 +3090,7 @@ class Detail extends PureComponent {
 
     const tabKey =
       getActiveTabKey().indexOf('/ssrc/query-rfq') > -1 ||
-        getActiveTabKey().indexOf('/ssrc/new-project-setup') > -1
+      getActiveTabKey().indexOf('/ssrc/new-project-setup') > -1
         ? `/ssrc/new-${this.bidFlag ? 'bid' : 'inquiry'}-hall`
         : getActiveTabKey();
 
@@ -3199,7 +3205,7 @@ class Detail extends PureComponent {
       children: this.renderQuotationChangeRecords(QuotationChangeRecordsProps),
       closable: true,
       style: { width: '742px' },
-      onOk: () => { },
+      onOk: () => {},
       okText: intl.get('ssrc.inquiryHall.model.inquiryHall.closed').d('关闭'),
       footer: (okBtn) => <div>{okBtn}</div>,
       drawer: true,
@@ -3362,10 +3368,11 @@ class Detail extends PureComponent {
           permissionList: [
             {
               code: ['/ssrc/new-inquiry-hall', '/ssrc/new-bid-hall'].includes(activetabKey)
-                ? `${this.bidFlag
-                  ? 'ssrc.new-bid-hall.button.'
-                  : 'ssrc.new-inquiry-hall.list.button.'
-                }inquiry.backtocheckprice`
+                ? `${
+                    this.bidFlag
+                      ? 'ssrc.new-bid-hall.button.'
+                      : 'ssrc.new-inquiry-hall.list.button.'
+                  }inquiry.backtocheckprice`
                 : 'ssrc.query-rfq.rfx-detail.-rfxid.button.backtocheckprice',
               type: 'button',
               meaning:
@@ -3409,33 +3416,33 @@ class Detail extends PureComponent {
       },
       currentStep === 'CHECK_PENDING' || currentStep === 'FINISHED'
         ? {
-          name: 'copyPrint',
-          btnType: 'c7n-pro',
-          btnComp: PermissionButton,
-          btnProps: {
-            icon: 'print-o',
-            type: 'c7n-pro',
-            funcType: 'flat',
-            style: {
-              paddingLeft: 0,
-            },
-            onClick: this.handlePrint,
-            permissionList: [
-              {
-                code: `ssrc.inquiry-hall.list.button.print`,
-                type: 'button',
-                meaning:
-                  intl.get(`ssrc.inquiryHall.view.message.title.RFXDetail`).d('RFX明细') -
-                  intl.get('ssrc.inquiryHall.view.message.button.print').d('打印'),
+            name: 'copyPrint',
+            btnType: 'c7n-pro',
+            btnComp: PermissionButton,
+            btnProps: {
+              icon: 'print-o',
+              type: 'c7n-pro',
+              funcType: 'flat',
+              style: {
+                paddingLeft: 0,
               },
-            ],
-          },
-          otherProps: {
-            uiType: 'c7n-pro',
-            funcType: 'flat',
-          },
-          child: intl.get('ssrc.inquiryHall.view.message.button.print').d('打印'),
-        }
+              onClick: this.handlePrint,
+              permissionList: [
+                {
+                  code: `ssrc.inquiry-hall.list.button.print`,
+                  type: 'button',
+                  meaning:
+                    intl.get(`ssrc.inquiryHall.view.message.title.RFXDetail`).d('RFX明细') -
+                    intl.get('ssrc.inquiryHall.view.message.button.print').d('打印'),
+                },
+              ],
+            },
+            otherProps: {
+              uiType: 'c7n-pro',
+              funcType: 'flat',
+            },
+            child: intl.get('ssrc.inquiryHall.view.message.button.print').d('打印'),
+          }
         : null,
       {
         name: 'infoExport',
@@ -3515,82 +3522,82 @@ class Detail extends PureComponent {
       ((CheckPermissionObject.clarifyquestion !== 'hidden' && existClarifyFlag) ||
         existClarifyNoticeFlag ||
         existPriceClarifyNoticeFlag) &&
-        CheckPermissionObject.clarifyRecords !== 'hidden'
+      CheckPermissionObject.clarifyRecords !== 'hidden'
         ? groupFlag
           ? {
-            name: 'clarifyBtnGroup',
-            group: true,
-            // hidden: CheckPermissionObject.clarifyRecords === 'hidden',
-            // 按钮组显示内容
-            child: (
-              <C7NBtn funcType="flat" icon="contact_support">
-                {intl.get('ssrc.inquiryHall.view.message.button.clarifyGroup').d('澄清记录')}
-                <C7NIcon type="expand_more" style={{ marginTop: '-2px' }} />
-              </C7NBtn>
-            ),
-            children: [
-              CheckPermissionObject.clarifyquestion !== 'hidden' && existClarifyFlag
-                ? {
-                  name: 'clarifyQuestions',
-                  child: (
-                    <>
-                      {intl
-                        .get(`ssrc.inquiryHall.view.message.button.clearAnswer`)
-                        .d('澄清答疑')}
-                    </>
-                  ),
-                  btnProps: {
-                    className: 'no-border-btn',
-                    onClick: (record) =>
-                      this.directQuestionAnswer({ record, rfxId: params.rfxId }),
-                    disabled: remote
-                      ? remote.process(
-                        'INQUIRY_HALL_DETAIL_HEADER_BUTTON_CLARIFY_DISABLED',
-                        disabledAllLinkFlag,
-                        { bidFlag: this.bidFlag }
-                      )
-                      : disabledAllLinkFlag,
-                  },
-                }
-                : null,
-              existClarifyNoticeFlag
-                ? {
-                  name: 'reviewClarify',
-                  child: (
-                    <>
-                      {intl
-                        .get(`ssrc.inquiryHall.view.message.button.reviewClarify`)
-                        .d('评审澄清')}
-                    </>
-                  ),
-                  btnProps: {
-                    className: 'no-border-btn',
-                    onClick: () => this.directReviewClarify({ rfxId: params.rfxId }),
-                    disabled: disabledAllLinkFlag,
-                  },
-                }
-                : null,
-              existPriceClarifyNoticeFlag
-                ? {
-                  name: 'priceClarify',
-                  child: (
-                    <>
-                      {intl
-                        .get(`ssrc.inquiryHall.view.message.button.priceClarify`)
-                        .d('价格澄清')}
-                    </>
-                  ),
-                  btnProps: {
-                    className: 'no-border-btn',
-                    disabled: disabledAllLinkFlag,
-                    onClick: () => this.directPriceClarify({ rfxId: params.rfxId }),
-                  },
-                }
-                : null,
-            ].filter(Boolean),
-          }
+              name: 'clarifyBtnGroup',
+              group: true,
+              // hidden: CheckPermissionObject.clarifyRecords === 'hidden',
+              // 按钮组显示内容
+              child: (
+                <C7NBtn funcType="flat" icon="contact_support">
+                  {intl.get('ssrc.inquiryHall.view.message.button.clarifyGroup').d('澄清记录')}
+                  <C7NIcon type="expand_more" style={{ marginTop: '-2px' }} />
+                </C7NBtn>
+              ),
+              children: [
+                CheckPermissionObject.clarifyquestion !== 'hidden' && existClarifyFlag
+                  ? {
+                      name: 'clarifyQuestions',
+                      child: (
+                        <>
+                          {intl
+                            .get(`ssrc.inquiryHall.view.message.button.clearAnswer`)
+                            .d('澄清答疑')}
+                        </>
+                      ),
+                      btnProps: {
+                        className: 'no-border-btn',
+                        onClick: (record) =>
+                          this.directQuestionAnswer({ record, rfxId: params.rfxId }),
+                        disabled: remote
+                          ? remote.process(
+                              'INQUIRY_HALL_DETAIL_HEADER_BUTTON_CLARIFY_DISABLED',
+                              disabledAllLinkFlag,
+                              { bidFlag: this.bidFlag }
+                            )
+                          : disabledAllLinkFlag,
+                      },
+                    }
+                  : null,
+                existClarifyNoticeFlag
+                  ? {
+                      name: 'reviewClarify',
+                      child: (
+                        <>
+                          {intl
+                            .get(`ssrc.inquiryHall.view.message.button.reviewClarify`)
+                            .d('评审澄清')}
+                        </>
+                      ),
+                      btnProps: {
+                        className: 'no-border-btn',
+                        onClick: () => this.directReviewClarify({ rfxId: params.rfxId }),
+                        disabled: disabledAllLinkFlag,
+                      },
+                    }
+                  : null,
+                existPriceClarifyNoticeFlag
+                  ? {
+                      name: 'priceClarify',
+                      child: (
+                        <>
+                          {intl
+                            .get(`ssrc.inquiryHall.view.message.button.priceClarify`)
+                            .d('价格澄清')}
+                        </>
+                      ),
+                      btnProps: {
+                        className: 'no-border-btn',
+                        disabled: disabledAllLinkFlag,
+                        onClick: () => this.directPriceClarify({ rfxId: params.rfxId }),
+                      },
+                    }
+                  : null,
+              ].filter(Boolean),
+            }
           : CheckPermissionObject.clarifyquestion !== 'hidden' && existClarifyFlag
-            ? {
+          ? {
               name: 'clarifyQuestions',
               child: (
                 <>{intl.get(`ssrc.inquiryHall.view.message.button.clearAnswer`).d('澄清答疑')}</>
@@ -3602,44 +3609,44 @@ class Detail extends PureComponent {
                 icon: 'contact_support',
                 disabled: remote
                   ? remote.process(
-                    'INQUIRY_HALL_DETAIL_HEADER_BUTTON_CLARIFY_DISABLED',
-                    disabledAllLinkFlag,
-                    { bidFlag: this.bidFlag }
-                  )
+                      'INQUIRY_HALL_DETAIL_HEADER_BUTTON_CLARIFY_DISABLED',
+                      disabledAllLinkFlag,
+                      { bidFlag: this.bidFlag }
+                    )
                   : disabledAllLinkFlag,
                 onClick: (record) => this.directQuestionAnswer({ record, rfxId: params.rfxId }),
               },
             }
-            : existClarifyNoticeFlag
-              ? {
-                name: 'reviewClarify',
-                btnType: 'c7n-pro',
-                // hidden: disabledAllLinkFlag,
-                child: (
-                  <>{intl.get(`ssrc.inquiryHall.view.message.button.reviewClarify`).d('评审澄清')}</>
-                ),
-                btnProps: {
-                  disabled: disabledAllLinkFlag,
-                  funcType: 'flat',
-                  icon: 'contact_support',
-                  onClick: () => this.directReviewClarify({ rfxId: params.rfxId }),
-                },
-              }
-              : {
-                name: 'priceClarify',
-                btnType: 'c7n-pro',
-                child: (
-                  <>{intl.get(`ssrc.inquiryHall.view.message.button.priceClarify`).d('价格澄清')}</>
-                ),
-                // hidden: disabledAllLinkFlag,
-                btnProps: {
-                  funcType: 'flat',
-                  icon: 'contact_support',
-                  className: 'no-border-btn',
-                  disabled: disabledAllLinkFlag,
-                  onClick: () => this.directPriceClarify({ rfxId: params.rfxId }),
-                },
-              }
+          : existClarifyNoticeFlag
+          ? {
+              name: 'reviewClarify',
+              btnType: 'c7n-pro',
+              // hidden: disabledAllLinkFlag,
+              child: (
+                <>{intl.get(`ssrc.inquiryHall.view.message.button.reviewClarify`).d('评审澄清')}</>
+              ),
+              btnProps: {
+                disabled: disabledAllLinkFlag,
+                funcType: 'flat',
+                icon: 'contact_support',
+                onClick: () => this.directReviewClarify({ rfxId: params.rfxId }),
+              },
+            }
+          : {
+              name: 'priceClarify',
+              btnType: 'c7n-pro',
+              child: (
+                <>{intl.get(`ssrc.inquiryHall.view.message.button.priceClarify`).d('价格澄清')}</>
+              ),
+              // hidden: disabledAllLinkFlag,
+              btnProps: {
+                funcType: 'flat',
+                icon: 'contact_support',
+                className: 'no-border-btn',
+                disabled: disabledAllLinkFlag,
+                onClick: () => this.directPriceClarify({ rfxId: params.rfxId }),
+              },
+            }
         : null,
       {
         name: 'approval',
@@ -3902,9 +3909,9 @@ class Detail extends PureComponent {
       match,
       match: { params = {}, path = {} },
       form,
-      customizeTable = () => { },
-      customizeForm = () => { },
-      customizeTabPane = () => { },
+      customizeTable = () => {},
+      customizeForm = () => {},
+      customizeTabPane = () => {},
       fetchItemLineLoading,
       fetchLadderLevelLoading,
       fetchSupplierLineLoading,
@@ -3913,7 +3920,7 @@ class Detail extends PureComponent {
       fetchEvaluateIndicAssignLoading,
       fetchPretrialPanelLoading,
       changeRfxDetailLayoutLoading,
-      customizeBtnGroup = () => { },
+      customizeBtnGroup = () => {},
       getHocInstance,
     } = this.props;
 
@@ -4301,8 +4308,8 @@ class Detail extends PureComponent {
 
     allButtons = remote
       ? remote.process('INQUIRY_HALL_DETAIL_PROCESS_HEADER_BUTTONS_ALL', allButtons, {
-        that: this,
-      })
+          that: this,
+        })
       : allButtons;
 
     return (
@@ -4326,59 +4333,59 @@ class Detail extends PureComponent {
             {currentStep && currentStep === 'RELEASE_PREPARE' && !visibleOldPrepareConfigSheet ? (
               this.ReleasePrepareNew(ReleasePrepareProps)
             ) : // 单独提出专家评分节点, 来适配新版C7n卡片样式
-              currentStep === 'SCORING' ? (
-                this.renderExpertScoringNew(ExpertScoringProps)
-              ) : (
-                <div
-                  className="page-content-detail-wrapper"
-                  style={{ height: 'calc(100% - 71px)', overflowY: 'auto' }}
+            currentStep === 'SCORING' ? (
+              this.renderExpertScoringNew(ExpertScoringProps)
+            ) : (
+              <div
+                className="page-content-detail-wrapper"
+                style={{ height: 'calc(100% - 71px)', overflowY: 'auto' }}
+              >
+                <Content
+                  className={classnames(common['page-content-custom'], 'ued-detail-wrapper')}
                 >
-                  <Content
-                    className={classnames(common['page-content-custom'], 'ued-detail-wrapper')}
-                  >
-                    <Spin spinning={fetchInquiryHallUpdateLoading}>
-                      {currentStep === 'RELEASE_PREPARE' ? (
-                        <div className={styles['rfx-detail-layout-button-group']}>
-                          <Button.Group onClick={(e) => this.changeLayout(e)}>
-                            <Button
-                              type={isHorizontal ? 'primary' : ''}
-                              layout="HORIZONTAL"
-                              loading={changeRfxDetailLayoutLoading}
-                            >
-                              {intl.get('ssrc.inquiryHall.view.button.horizontal').d('横版')}
-                            </Button>
-                            <Button
-                              type={!isHorizontal ? 'primary' : ''}
-                              layout="VERTICAL"
-                              loading={changeRfxDetailLayoutLoading}
-                            >
-                              {intl.get('ssrc.inquiryHall.view.button.vertical').d('竖版')}
-                            </Button>
-                          </Button.Group>
-                        </div>
-                      ) : (
-                        ''
-                      )}
-                      {currentStep === 'RELEASE_PREPARE' && (
-                        <ReleasePrepare {...ReleasePrepareProps} />
-                      )}
-                      {currentStep === 'IN_PREQUAL' ? <InPrequal {...InPrequalProps} /> : ''}
-                      {currentStep === 'IN_QUOTATION' && <InQuotation {...InQuotationProps} />}
-                      {currentStep === 'OPEN_BID_PENDING' && <OpenBid {...OpenBidProps} />}
-                      {currentStep === 'PRETRIAL_PENDING' && <Pretrial {...CheckPriceProps} />}
-                      {currentStep === 'CHECK_PENDING' && this.renderCheckPrice(CheckPriceProps)}
-                      {currentStep === 'FINISHED' && this.renderCheckPrice(CheckPriceProps)}
+                  <Spin spinning={fetchInquiryHallUpdateLoading}>
+                    {currentStep === 'RELEASE_PREPARE' ? (
+                      <div className={styles['rfx-detail-layout-button-group']}>
+                        <Button.Group onClick={(e) => this.changeLayout(e)}>
+                          <Button
+                            type={isHorizontal ? 'primary' : ''}
+                            layout="HORIZONTAL"
+                            loading={changeRfxDetailLayoutLoading}
+                          >
+                            {intl.get('ssrc.inquiryHall.view.button.horizontal').d('横版')}
+                          </Button>
+                          <Button
+                            type={!isHorizontal ? 'primary' : ''}
+                            layout="VERTICAL"
+                            loading={changeRfxDetailLayoutLoading}
+                          >
+                            {intl.get('ssrc.inquiryHall.view.button.vertical').d('竖版')}
+                          </Button>
+                        </Button.Group>
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                    {currentStep === 'RELEASE_PREPARE' && (
+                      <ReleasePrepare {...ReleasePrepareProps} />
+                    )}
+                    {currentStep === 'IN_PREQUAL' ? <InPrequal {...InPrequalProps} /> : ''}
+                    {currentStep === 'IN_QUOTATION' && <InQuotation {...InQuotationProps} />}
+                    {currentStep === 'OPEN_BID_PENDING' && <OpenBid {...OpenBidProps} />}
+                    {currentStep === 'PRETRIAL_PENDING' && <Pretrial {...CheckPriceProps} />}
+                    {currentStep === 'CHECK_PENDING' && this.renderCheckPrice(CheckPriceProps)}
+                    {currentStep === 'FINISHED' && this.renderCheckPrice(CheckPriceProps)}
 
-                      {/* TODO */}
-                      {this.WaittingStatus.includes(currentStep) && (
-                        <div className="check-price-wait-forward">
-                          {intl.get('ssrc.inquiryHall.view.message.doLookForwardTo').d('敬请期待')}!
-                        </div>
-                      )}
-                    </Spin>
-                  </Content>
-                </div>
-              )}
+                    {/* TODO */}
+                    {this.WaittingStatus.includes(currentStep) && (
+                      <div className="check-price-wait-forward">
+                        {intl.get('ssrc.inquiryHall.view.message.doLookForwardTo').d('敬请期待')}!
+                      </div>
+                    )}
+                  </Spin>
+                </Content>
+              </div>
+            )}
           </SectionPanel>
         </div>
 
@@ -4485,19 +4492,19 @@ const hocComponent = (Comp, pageSymbol = INQUIRY_HALL) => {
                 getQuotationDetailFieldVisible(otherParams);
               },
               // 初始化ds Event
-              remotePrepareInitDsEvent() { },
+              remotePrepareInitDsEvent() {},
               // 组件卸载清空埋点事件
-              remotePrepareComponentWillUnmountEvent() { },
+              remotePrepareComponentWillUnmountEvent() {},
               // 设置ds参数埋点事件
-              remotePrepareSetQueryParameterDSEvent() { },
+              remotePrepareSetQueryParameterDSEvent() {},
               // load businessData
               remotePrepareLoadDataBusinessData(props = {}) {
                 const { loadBusinessData = noop } = props || {};
                 loadBusinessData(props);
               },
-              remotePreClickProcessAttachment() { },
-              remotePreChangeStep() { },
-              remotePreDirectorQuotation() { },
+              remotePreClickProcessAttachment() {},
+              remotePreChangeStep() {},
+              remotePreDirectorQuotation() {},
               // 发布准备查看适用范围埋点方法
               remoteViewApplicationModalEvent(props = {}) {
                 const { handleViewApplicationModal = noop } = props || {};
@@ -4509,7 +4516,7 @@ const hocComponent = (Comp, pageSymbol = INQUIRY_HALL) => {
                 handleViewApplicationModal(props);
               },
               // 强制切换节点二开
-              remoteHandelSetCurrentStep() { },
+              remoteHandelSetCurrentStep() {},
             },
           }
         )(Comp)

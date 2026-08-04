@@ -152,9 +152,9 @@ const PageHeader: React.FC<any> = () => {
   // 标题
   const pageTitle = useMemo(() => {
     if (editorFlag) {
-      return intl.get('scux.tenderDetail.view.title.page.create').d('招表单清单维护');
+      return intl.get('scux.tenderDetail.view.title.page.create').d('招标清单维护');
     };
-    return intl.get('scux.tenderDetail.view.title.page.detail').d('招表单清详情');
+    return intl.get('scux.tenderDetail.view.title.page.detail').d('招标清单详情');
   }, []);
 
   return (

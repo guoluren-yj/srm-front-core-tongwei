@@ -8,7 +8,7 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Table, Form } from 'hzero-ui';
-import { sum, isEmpty } from 'lodash';
+import { sum, isEmpty, isFunction } from 'lodash';
 import { Bind } from 'lodash-decorators';
 import formatterCollections from 'utils/intl/formatterCollections';
 import UploadModal from 'components/Upload';
@@ -167,6 +167,7 @@ export default class OperationRecord extends Component {
       dataSource,
       handleOperationRecordSearch,
       form,
+      onCancel,
       pagination,
       isExport,
       formHeaderId,
@@ -274,6 +275,13 @@ export default class OperationRecord extends Component {
             }}
             allBody
             method="POST"
+            beforeClick={()=>{
+              if(isFunction(onCancel)){
+                onCancel();
+              }
+              return true;
+            }}
+
           />
         </div>
       </>

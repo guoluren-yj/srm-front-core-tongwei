@@ -263,7 +263,6 @@ export default class OperationRecord extends Component {
     return (
       <Modal
         {...modalProps}
-        zIndex={900}
         footer={
           isExport && (
             <ExcelExportPro
@@ -281,6 +280,10 @@ export default class OperationRecord extends Component {
               }}
               allBody
               method="POST"
+              beforeClick={()=>{
+                hideModal();
+                return true;
+              }}
             />
           )
         }

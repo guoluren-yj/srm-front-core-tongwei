@@ -90,7 +90,7 @@ const PageHeader: React.FC = observer(() => {
   const handleSubmit = async () => {
     const preApproveType = headerDs?.current?.get('preApproveType');
     // 若自审批，弹框提示【提交后自动完成决标审批，请确认】，若走外部审批，进行弹框【定标结果提交至FBC审批，请确认】
-    const confirmMessage = preApproveType === 'EXTERNAL' ? intl.get('scux.preWinningBid.view.message.submitFbcApprovalMessage').d('定标结果提交至FBC审批，请确认') : intl.get('scux.preWinningBid.view.message.submitSelfApprovalMessage').d('提交后自动完成决标审批，请确认');
+    const confirmMessage = preApproveType === 'EXT' ? intl.get('scux.preWinningBid.view.message.submitFbcApprovalMessage').d('定标结果提交至FBC审批，请确认') : intl.get('scux.preWinningBid.view.message.submitSelfApprovalMessage').d('提交后自动完成决标审批，请确认');
     const modalRes = await Modal.confirm({
       title: intl.get('scux.preWinningBid.view.title.bidSubmit').d('定标提交'),
       children: confirmMessage,
@@ -110,7 +110,7 @@ const PageHeader: React.FC = observer(() => {
         });
         if (getResponse(res)) {
           notification.success({});
-          history.push('/scux/ssrc/bid-plan-workbench');
+          history.push('/ssrc/new-bid-hall/list');
         }
       } catch (error) {
         throw error;

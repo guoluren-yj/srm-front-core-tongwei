@@ -352,10 +352,10 @@ export default class Detail extends PureComponent {
     const { detail = {}, lineDetail = [] } = myClaimForm;
     const {formNum} = detail;
     Modal.confirm({
-      title: intl.get(`${prefix}.message.claimForm.cancelMsg`,{
+      title: intl.get(`${prefix}.message.claimForm.cancelMsg`, {
         formNum,
       }).d(`确认取消索赔单${formNum}`),
-      onOk:()=>{
+      onOk: ()=>{
         dispatch({
           type: 'myClaimForm/myClaimFormCancel',
           payload: {
@@ -369,7 +369,7 @@ export default class Detail extends PureComponent {
             this.handleSearch();
           }
         });
-      }
+      },
     });
   }
 
@@ -742,6 +742,7 @@ export default class Detail extends PureComponent {
       visible: operationRecordVisible,
       pagination: operationRecordPagination,
       dataSource: operationRecordList,
+      onCancel: () => this.handleModalVisible('visible', false),
       handleOperationRecordSearch: this.fetchOperationRecord,
       loading: operateRecordLoading,
       isExport: true,
@@ -960,7 +961,7 @@ export default class Detail extends PureComponent {
             </Collapse>
           </Spin>
         </Content>
-        <Modal {...modalProps} zIndex={900}>
+        <Modal {...modalProps}>
           <Tabs onChange={this.tabChange} activeKey={activeKey} animated={false}>
             <Tabs.TabPane
               tab={intl.get('hzero.common.button.operating').d('操作记录')}

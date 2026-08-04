@@ -41,8 +41,8 @@ const OrganizeBidOpening = (props) => {
     openBidListDs.query();
   };
 
-  const { attributeVarchar20, bidOpenFlag } = useObserver(
-    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag']) || {}
+  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType } = useObserver(
+    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag', 'bargainOfflineFlag', 'sourceType']) || {}
   );
 
   // 内部签到\供应商签到
@@ -207,8 +207,10 @@ const OrganizeBidOpening = (props) => {
     return {
       rfxHeaderId,
       history,
+      bargainOfflineFlag,
+      sourceType,
     };
-  }, [rfxHeaderId]);
+  }, [rfxHeaderId, bargainOfflineFlag, sourceType]);
 
   // 头标题
   const headerTitle = useMemo(() => {

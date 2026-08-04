@@ -7,7 +7,7 @@ import { createPagination, filterNullValueObject, getEditTableData } from 'utils
 import { Bind } from 'lodash-decorators';
 // import { routerRedux } from 'dva/router';
 import { math } from 'choerodon-ui/dataset';
- 
+
 import classNames from 'classnames';
 import {
   DETAIL_DEFAULT_CLASSNAME,
@@ -47,7 +47,7 @@ const formItemLayout = {
 };
 
 @remotes({
-  code:"SQAM_CLAIM_APPROVAL_DETAIL"
+  code: "SQAM_CLAIM_APPROVAL_DETAIL",
 })
 @withCustomize({
   unitCode: [
@@ -523,7 +523,7 @@ export default class Detail extends Component {
       handleSearchLine: this.fetchLines,
       onRef: this.handleBindRef,
       customizeFilterForm,
-      custConfig, 
+      custConfig,
     };
     const uploadModalProps = {
       btnText: `${intl.get(`entity.attachment.view`).d('附件查看')}(${
@@ -545,6 +545,7 @@ export default class Detail extends Component {
       pagination: operationRecordPagination,
       dataSource: operationRecordList,
       loading: fetchOperationRecordListLoading,
+      onCancel: () => this.approveAndOperationRecord(false),
       handleOperationRecordSearch: this.fetchOperationRecord,
       isExport: true,
       formHeaderId,
@@ -573,9 +574,9 @@ export default class Detail extends Component {
       // title: intl.get(`hzero.common.button.operating`).d('操作记录'),
     };
     // 审批通过按钮显示逻辑
-    const approvedFlag = remote.process("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTN_APPROVED_FLAG",true,{_this:this});
+    const approvedFlag = remote.process("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTN_APPROVED_FLAG", true, {_this: this});
     // 审批拒绝按钮显示逻辑
-    const rejectFlag = remote.process("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTN_REJECT_FLAG",true,{_this:this});
+    const rejectFlag = remote.process("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTN_REJECT_FLAG", true, {_this: this});
     return (
       <Fragment>
         {notPubType && (
@@ -583,27 +584,27 @@ export default class Detail extends Component {
             title={intl.get(`sqam.common.view.title.claimApproval`).d('索赔单审批')}
             backPath="/sqam/claimApproval/list"
           >
-            {remote.render("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTNS",null,{
-              _this:this,
+            {remote.render("SQAM_CLAIM_APPROVAL_DETAIL_HEADER_BTNS", null, {
+              _this: this,
             })}
             {approvedFlag && (
               <Button
-              icon="check"
-              type="primary"
-              onClick={throttle(this.approval, 1500, { trailing: false })}
-              loading={isLoading}
-            >
-              {intl.get('sqam.common.claimApproval.button.approved').d('审批通过')}
-            </Button>
+                icon="check"
+                type="primary"
+                onClick={throttle(this.approval, 1500, { trailing: false })}
+                loading={isLoading}
+              >
+                {intl.get('sqam.common.claimApproval.button.approved').d('审批通过')}
+              </Button>
             )}
             {rejectFlag && (
               <Button
-              icon="close"
-              onClick={throttle(this.refuse, 1500, { trailing: false })}
-              loading={isLoading}
-            >
-              {intl.get('sqam.common.claimApproval.button.reject').d('审批拒绝')}
-            </Button>
+                icon="close"
+                onClick={throttle(this.refuse, 1500, { trailing: false })}
+                loading={isLoading}
+              >
+                {intl.get('sqam.common.claimApproval.button.reject').d('审批拒绝')}
+              </Button>
             )}
             <UploadModal {...uploadModalProps} />
             <Button
@@ -754,7 +755,7 @@ export default class Detail extends Component {
             </Collapse>
           </Spin>
         </Content>
-        <Modal {...modalProps} zIndex={900}>
+        <Modal {...modalProps}>
           <Tabs onChange={this.tabChange} activeKey={activeKey} animated={false}>
             <Tabs.TabPane
               tab={intl.get('hzero.common.button.operating').d('操作记录')}

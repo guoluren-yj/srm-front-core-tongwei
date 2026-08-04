@@ -505,6 +505,7 @@ export default class Detail extends PureComponent {
       dataSource: operationRecordList,
       loading: operateRecordLoading,
       handleOperationRecordSearch: this.fetchOperationRecord,
+      onCancel: () => this.handleModalVisible('visible', false),
       hideModal: () => this.handleModalVisible('operationRecordVisible', false),
       visible: operationRecordVisible,
       isExport: true,
@@ -700,7 +701,7 @@ export default class Detail extends PureComponent {
             </Collapse>
           </Spin>
         </Content>
-        <Modal {...modalProps} zIndex={900}>
+        <Modal {...modalProps}>
           <Tabs onChange={this.tabChange} activeKey={activeKey} animated={false}>
             <Tabs.TabPane
               tab={intl.get('hzero.common.button.operating').d('操作记录')}

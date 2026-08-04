@@ -2799,6 +2799,18 @@ export async function showCheckInCode(params) {
     responseType: 'blob',
   });
 }
+/**
+ * 开标----通威二开
+ */
+export async function cuxOpenBid(params) {
+  return request(
+    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/xPWJSwNE7yBVnffzKs9tqQYj2EBCywYvCKaicLFEdXlg`,
+    {
+      method: 'POST',
+      body: params,
+    }
+  );
+}
 
 /**
  * 展示签到二维码

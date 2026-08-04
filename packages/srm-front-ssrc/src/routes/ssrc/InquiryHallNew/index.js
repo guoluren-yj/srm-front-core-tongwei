@@ -4393,6 +4393,7 @@ class InquiryHall extends React.Component {
       sourceStatus: 'newInquiryHallToBargain',
       sourcePage: 'RFXList',
       bargainingStage: record.bargainingStage,
+      quotationHeaderId: record?.headerQuotationDetails[0]?.quotationHeaderId,
       projectLineSectionId,
     });
     history.push({

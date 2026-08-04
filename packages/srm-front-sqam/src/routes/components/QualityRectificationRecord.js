@@ -239,7 +239,6 @@ const QualityRectificationRecord = (props) => {
     <Modal
       visible={visible}
       width={900}
-      zIndex={900}
       footer={
         isExport && (activeKey === 'operator' || !isApprovalShow) ? (
           <ExcelExportPro
@@ -249,6 +248,10 @@ const QualityRectificationRecord = (props) => {
             otherButtonProps={{
               type: 'c7n-pro',
               color: 'primary',
+            }}
+            beforeClick={()=>{
+              hideModal();
+              return true;
             }}
             requestUrl={`/sqam/v1/operation-historys/${problemHeaderId}/${tenantId}/record/export`}
             queryParams={{

@@ -1160,6 +1160,7 @@ export default class Detail extends Component {
       pagination: operationRecordPagination,
       dataSource: operationRecordList,
       loading: fetchOperationRecordListLoading,
+      onCancel: () => this.approveAndOperationRecord(false),
       handleOperationRecordSearch: this.fetchOperationRecord,
       isExport: true,
       formHeaderId,
@@ -1336,7 +1337,7 @@ export default class Detail extends Component {
             </Collapse>
           </Spin>
         </Content>
-        <Modal {...modalProps} zIndex={900}>
+        <Modal {...modalProps}>
           <Tabs onChange={this.tabChange} activeKey={activeKey} animated={false}>
             <Tabs.TabPane
               tab={intl.get('hzero.common.button.operating').d('操作记录')}
