@@ -71,8 +71,10 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     history.push({
       pathname: `/sslm/supplier-detail-new`,
       search: stringify({
-        companyId: record?.get('companyId'),
+        companyId: basicInfoDs?.current?.get('companyId'),
         supplierCompanyId: record?.get('supplierCompanyId'),
+        tenantId: record?.get('tenantId'),
+        partnerTenantId: record?.get('supplierTenantId'),
       })
     });
   };
