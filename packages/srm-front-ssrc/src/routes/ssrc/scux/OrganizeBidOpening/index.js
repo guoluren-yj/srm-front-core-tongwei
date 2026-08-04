@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
-import { useDataSet, Modal, useComputed } from 'choerodon-ui/pro';
+import { useDataSet, Modal } from 'choerodon-ui/pro';
+import { useObserver } from 'mobx-react-lite';
 import { Card } from 'choerodon-ui';
 
 import formatterCollections from 'utils/intl/formatterCollections';
@@ -40,9 +41,8 @@ const OrganizeBidOpening = (props) => {
     openBidListDs.query();
   };
 
-  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType } = useComputed(
-    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag', 'bargainOfflineFlag', 'sourceType']) || {},
-    [baseInfoDs]
+  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType } = useObserver(
+    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag', 'bargainOfflineFlag', 'sourceType']) || {}
   );
 
   // 内部签到\供应商签到

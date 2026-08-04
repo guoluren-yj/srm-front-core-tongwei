@@ -4,6 +4,27 @@ module.exports = {
     public: true,
     registerRegex: '\\/public\\/filePreview',
   },
+  webpackConfig(config, type) {
+    if (type === 'base') {
+      const rules = config.module.rules;
+      for (const rule of rules) {
+        if (rule.oneOf) {
+          for (const oneOfRule of rule.oneOf) {
+            // 匹配 "Process any JS outside of the app" 规则
+            if (oneOfRule.test && oneOfRule.test.source === '\\.(js|mjs)$') {
+              oneOfRule.test = /\.(js|mjs|jsx)$/;
+              if (oneOfRule.options && oneOfRule.options.plugins) {
+                oneOfRule.options.plugins.push(
+                  require.resolve('@babel/plugin-transform-react-jsx'),
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+    return config;
+  },
   packages: [
     // { name: 'hzero-front-hadm', initLoad: false, registerRegex: '\\/hadm\\/' },
     // { name: 'hzero-front-hagd', initLoad: false, registerRegex: '\\/hagd\\/' },
