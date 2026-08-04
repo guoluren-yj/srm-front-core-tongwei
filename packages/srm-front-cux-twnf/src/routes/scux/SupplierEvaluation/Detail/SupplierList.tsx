@@ -14,8 +14,9 @@ import {
   openAddSupplierModal,
 } from './modals';
 import { supplierEvaluationDetailPostApi, supplierEvaluationPostApi, queryRiskMonitorType, riskEmbedPage } from '../../../../services/scux/supplierEvaluationServices';
-import { getResponse } from 'hzero-front/lib/utils/utils';
+import { getResponse, getAttachmentUrl, getCurrentOrganizationId } from 'hzero-front/lib/utils/utils';
 import notification from 'hzero-front/lib/utils/notification';
+import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
 
 interface SupplierListProps {
   dataSet: any;
@@ -57,6 +58,13 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         });
       }
     }
+  };
+
+  // 下载最新风险报告
+  const handleDownloadReport = (fileUrl?: string) => {
+    if (!fileUrl) return;
+    const url = getAttachmentUrl(fileUrl, PRIVATE_BUCKET, getCurrentOrganizationId(), undefined, undefined);
+    window.open(url);
   };
 
   const handleSupplierDetail = (record: any) => {
@@ -162,7 +170,11 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       width: 130,
       renderer: ({ value }: any) => {
         if (!value) return null;
-        return <a href={value} target="_blank" rel="noopener noreferrer">查看</a>;
+        return (
+          <a onClick={() => handleDownloadReport(value)}>
+            {intl.get('sslm.common.view.message.riskReport').d('风险报告')}
+          </a>
+        );
       },
     },
     type !== 'view' && type !== 'submit' && type !== 'readOnly' && {
