@@ -79,9 +79,14 @@ export function withStandardCompEnhancer(Comp) {
                 handleJumpChange(others);
               },
               // 新建RFQ去掉选择寻源模版弹框
+              // 已注释：改为直接从行上取 attributeVarchar10 字段，跳过选中寻源模板
+              // handleCreateRFQEvent(eventProps) {
+              //   const { openRfxTemplateModal = noop, record } = eventProps || {};
+              //   openRfxTemplateModal(record);
+              // },
               handleCreateRFQEvent(eventProps) {
-                const { openRfxTemplateModal = noop, record } = eventProps || {};
-                openRfxTemplateModal(record);
+                const { handleCreateRfxDirect = noop, record } = eventProps || {};
+                handleCreateRfxDirect(record);
               },
             },
           }

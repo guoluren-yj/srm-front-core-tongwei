@@ -80,6 +80,7 @@ import { validateModal, getPromptMessage } from '@/routes/components/ConfirmModa
 import styles from './index.less';
 
 import { withStandardCompEnhancer } from './standardCompEnhancerCreator';
+// eslint-disable-next-line no-unused-vars
 import { SourcingTemplateDS } from './LineDS';
 import { SectionLineDS } from './SectionLineDS';
 // import SearchDrawer from './SearchDrawer';
@@ -1098,7 +1099,8 @@ class ProjectSetup extends Component {
       }
       const eventProps = {
         record,
-        openRfxTemplateModal: this.openRfxTemplateModal,
+        // openRfxTemplateModal: this.openRfxTemplateModal,
+        handleCreateRfxDirect: this.handleCreateRfxDirect,
         organizationId,
         sourcingTemplateDS: this.sourcingTemplateDS,
         sectionLineDS: this.sectionLineDS,
@@ -1108,7 +1110,8 @@ class ProjectSetup extends Component {
       if (remote?.event) {
         remote.event.fireEvent('handleCreateRFQEvent', eventProps);
       } else {
-        this.openRfxTemplateModal(record);
+        // this.openRfxTemplateModal(record);
+        this.handleCreateRfxDirect(record);
       }
     }
   }
@@ -1156,7 +1159,8 @@ class ProjectSetup extends Component {
         }
         const eventProps = {
           record,
-          openRfxTemplateModal: this.openRfxTemplateModal,
+          // openRfxTemplateModal: this.openRfxTemplateModal,
+          handleCreateRfxDirect: this.handleCreateRfxDirect,
           organizationId,
           sourcingTemplateDS: this.sourcingTemplateDS,
           sectionLineDS: this.sectionLineDS,
@@ -1166,9 +1170,9 @@ class ProjectSetup extends Component {
         if (remote?.event) {
           remote.event.fireEvent('handleCreateRFQEvent', eventProps);
         } else {
-          this.openRfxTemplateModal(record);
+          // this.openRfxTemplateModal(record);
+          this.handleCreateRfxDirect(record);
         }
-        // this.openRfxTemplateModal(record);
       }
     } else {
       const ds = type === 'RFI' ? this.props.rfiTemplateDs : this.props.rfpTemplateDs;
@@ -1252,7 +1256,8 @@ class ProjectSetup extends Component {
           }),
         });
       }
-      this.openRfxTemplateModal(record);
+      // this.openRfxTemplateModal(record);
+      this.handleCreateRfxDirect(record);
       return false;
     } else {
       notification.warning({
@@ -1264,42 +1269,120 @@ class ProjectSetup extends Component {
     }
   }
 
+  // 创建寻源单 - 直接从行上取 attributeVarchar10 字段作为模板，跳过选中寻源模板
+  @Bind()
+  async handleCreateRfxDirect(record) {
+    const {
+      subjectMatterRule,
+      sourceCategory,
+      sourceProjectId,
+      secondarySourceCategory,
+    } = record.get([
+      'subjectMatterRule',
+      'sourceCategory',
+      'sourceProjectId',
+      'secondarySourceCategory',
+    ]);
+    const templateId = record.get('attributeVarchar10');
+    const params = Object.assign(
+      {},
+      {
+        organizationId,
+        ...record.toData(),
+        templateId,
+        sourceProjectId,
+      },
+      sourceCategory !== 'BID' &&
+        subjectMatterRule === 'PACK' && {
+          projectLineSections: this.sectionLineDS.selected.map((r) => {
+            const { projectLineItemList } = r.toData();
+            return {
+              ...r.toData(),
+              projectLineItemList: projectLineItemList.filter((item) => item.projectLineItemId),
+            };
+          }),
+        }
+    );
+    const response = await (sourceCategory === 'BID'
+      ? createProjectToBid(params)
+      : createProjectToinquiry(params));
+    const result = getResponse(response);
+    if (result) {
+      const { rfxHeaderId, bidHeaderId } = result;
+      if (sourceCategory === 'BID') {
+        const search = querystring.stringify({
+          subjectMatterRule,
+        });
+        this.props.history.push({
+          pathname: `/ssrc/bid-hall/bid-update/${bidHeaderId}`,
+          search,
+        });
+      } else {
+        const search = querystring.stringify({});
+        if (record.get('sourceRequest') === 'OFFLINE_ENTER') {
+          this.props.history.push({
+            pathname: `/ssrc/new-inquiry-hall/whole-update/${rfxHeaderId}`,
+          });
+        } else {
+          this.props.history.push({
+            pathname:
+              secondarySourceCategory === 'NEW_BID'
+                ? `/ssrc/new-bid-hall/bid-update/${rfxHeaderId}`
+                : `/ssrc/new-inquiry-hall/rfx-update-new/${rfxHeaderId}`,
+            search,
+          });
+        }
+      }
+      if (this.sourcingTemplateDS) {
+        this.sourcingTemplateDS.reset();
+      }
+      // eslint-disable-next-line no-unused-expressions
+      this.sectionModalOpener?.close();
+      return true;
+    }
+    notification.error({
+      message: intl.get(`${promptCode}.view.message.createFail`).d('创建失败'),
+      description: response?.message,
+    });
+    return false;
+  }
+
   /**
-   * 打开选择寻源模板
+   * 打开选择寻源模板（已注释：改为直接从行上取 attributeVarchar10 字段，跳过选中寻源模板）
    * @param {*} record - 行对象
    * @memberof 此方法被二开重写!!!
    */
-  @Bind
-  openRfxTemplateModal(record) {
-    const { remote } = this.props;
-    // 寻源模板
-    const subjectMatterRule = record.get('subjectMatterRule');
-    const dsConfig = SourcingTemplateDS(
-      record,
-      subjectMatterRule === 'PACK' && this.sectionLineDS.selected.length
-    );
-    this.sourcingTemplateDS = new DataSet(
-      remote
-        ? remote.process('SSRC_PROJECT_SETUP_NEW_PROCESS_SOURCE_TEMPLATE_DS', dsConfig)
-        : dsConfig
-    );
-    this.sourcingTemplateDS.setQueryParameter('subjectMatterRule', subjectMatterRule);
-    const lovProps = subjectMatterRule === 'PACK' && { onChange: this.handleChangeTemplate };
-    this.C7nProModaler = C7nProModal.open({
-      key: C7nProModal.key(),
-      title: intl.get(`${promptCode}.view.message.title.chooseRfxTemplate`).d('选择寻源模板'),
-      closable: true,
-      drawer: true,
-      style: { width: '350px' },
-      onOk: () => this.handleOkChooseTemplate(record),
-      children: (
-        <Form dataSet={this.sourcingTemplateDS} columns={1} labelLayout="float">
-          <Lov name="templateId" {...lovProps} />
-        </Form>
-      ),
-      onCancel: () => this.sourcingTemplateDS.reset(),
-    });
-  }
+  // @Bind
+  // openRfxTemplateModal(record) {
+  //   const { remote } = this.props;
+  //   // 寻源模板
+  //   const subjectMatterRule = record.get('subjectMatterRule');
+  //   const dsConfig = SourcingTemplateDS(
+  //     record,
+  //     subjectMatterRule === 'PACK' && this.sectionLineDS.selected.length
+  //   );
+  //   this.sourcingTemplateDS = new DataSet(
+  //     remote
+  //       ? remote.process('SSRC_PROJECT_SETUP_NEW_PROCESS_SOURCE_TEMPLATE_DS', dsConfig)
+  //       : dsConfig
+  //   );
+  //   this.sourcingTemplateDS.setQueryParameter('subjectMatterRule', subjectMatterRule);
+  //   const lovProps = subjectMatterRule === 'PACK' && { onChange: this.handleChangeTemplate };
+  //   this.C7nProModaler = C7nProModal.open({
+  //     key: C7nProModal.key(),
+  //     title: intl.get(`${promptCode}.view.message.title.chooseRfxTemplate`).d('选择寻源模板'),
+  //     closable: true,
+  //     drawer: true,
+  //     style: { width: '350px' },
+  //     onOk: () => this.handleOkChooseTemplate(record),
+  //     children: (
+  //       <Form dataSet={this.sourcingTemplateDS} columns={1} labelLayout="float">
+  //         <Lov name="templateId" {...lovProps} />
+  //       </Form>
+  //     ),
+  //     onCancel: () => this.sourcingTemplateDS.reset(),
+  //   });
+  // }
 
   // 变更模板
   @Bind()
@@ -1321,87 +1404,88 @@ class ProjectSetup extends Component {
     });
   }
 
-  @Bind()
-  async handleOkChooseTemplate(record) {
-    const {
-      subjectMatterRule,
-      sourceCategory,
-      sourceProjectId,
-      secondarySourceCategory,
-    } = record.get([
-      'subjectMatterRule',
-      'sourceCategory',
-      'sourceProjectId',
-      'secondarySourceCategory',
-    ]);
-    const validateFlag = await this.sourcingTemplateDS.validate();
-    if (validateFlag) {
-      // 创建寻源
-      const { templateId, bidRuleType, mergeType } =
-        this.sourcingTemplateDS?.current.toData() || {};
-      const params = Object.assign(
-        {},
-        {
-          organizationId,
-          ...record.toData(),
-          templateId,
-          sourceProjectId,
-        },
-        sourceCategory !== 'BID' &&
-          subjectMatterRule === 'PACK' && {
-            mergeType,
-            projectLineSections: this.sectionLineDS.selected.map((r) => {
-              const { projectLineItemList } = r.toData();
-              return {
-                ...r.toData(),
-                projectLineItemList: projectLineItemList.filter((item) => item.projectLineItemId),
-              };
-            }),
-          }
-      );
-      const result = getResponse(
-        await (sourceCategory === 'BID'
-          ? createProjectToBid(params)
-          : createProjectToinquiry(params))
-      );
-      if (result) {
-        const { rfxHeaderId, bidHeaderId } = result;
-        if (sourceCategory === 'BID') {
-          const search = querystring.stringify({
-            bidRuleType,
-            subjectMatterRule,
-          });
-          this.props.history.push({
-            pathname: `/ssrc/bid-hall/bid-update/${bidHeaderId}`,
-            search,
-          });
-        } else {
-          const search = querystring.stringify({
-            // noBack: true,
-          });
-          if (record.get('sourceRequest') === 'OFFLINE_ENTER') {
-            // 线下整单录入
-            this.props.history.push({
-              pathname: `/ssrc/new-inquiry-hall/whole-update/${rfxHeaderId}`,
-            });
-          } else {
-            this.props.history.push({
-              pathname:
-                secondarySourceCategory === 'NEW_BID'
-                  ? `/ssrc/new-bid-hall/bid-update/${rfxHeaderId}`
-                  : `/ssrc/new-inquiry-hall/rfx-update-new/${rfxHeaderId}`,
-              search,
-            });
-          }
-        }
-        this.sourcingTemplateDS.reset();
-        // eslint-disable-next-line no-unused-expressions
-        this.sectionModalOpener?.close();
-        return true;
-      }
-    }
-    return false;
-  }
+  // 打开选择寻源模板后的创建逻辑（已注释：改为 handleCreateRfxDirect 直接从行上取 attributeVarchar10 字段）
+  // @Bind()
+  // async handleOkChooseTemplate(record) {
+  //   const {
+  //     subjectMatterRule,
+  //     sourceCategory,
+  //     sourceProjectId,
+  //     secondarySourceCategory,
+  //   } = record.get([
+  //     'subjectMatterRule',
+  //     'sourceCategory',
+  //     'sourceProjectId',
+  //     'secondarySourceCategory',
+  //   ]);
+  //   const validateFlag = await this.sourcingTemplateDS.validate();
+  //   if (validateFlag) {
+  //     // 创建寻源
+  //     const { templateId, bidRuleType, mergeType } =
+  //       this.sourcingTemplateDS?.current.toData() || {};
+  //     const params = Object.assign(
+  //       {},
+  //       {
+  //         organizationId,
+  //         ...record.toData(),
+  //         templateId,
+  //         sourceProjectId,
+  //       },
+  //       sourceCategory !== 'BID' &&
+  //         subjectMatterRule === 'PACK' && {
+  //           mergeType,
+  //           projectLineSections: this.sectionLineDS.selected.map((r) => {
+  //             const { projectLineItemList } = r.toData();
+  //             return {
+  //               ...r.toData(),
+  //               projectLineItemList: projectLineItemList.filter((item) => item.projectLineItemId),
+  //             };
+  //           }),
+  //         }
+  //     );
+  //     const result = getResponse(
+  //       await (sourceCategory === 'BID'
+  //         ? createProjectToBid(params)
+  //         : createProjectToinquiry(params))
+  //     );
+  //     if (result) {
+  //       const { rfxHeaderId, bidHeaderId } = result;
+  //       if (sourceCategory === 'BID') {
+  //         const search = querystring.stringify({
+  //           bidRuleType,
+  //           subjectMatterRule,
+  //         });
+  //         this.props.history.push({
+  //           pathname: `/ssrc/bid-hall/bid-update/${bidHeaderId}`,
+  //           search,
+  //         });
+  //       } else {
+  //         const search = querystring.stringify({
+  //           // noBack: true,
+  //         });
+  //         if (record.get('sourceRequest') === 'OFFLINE_ENTER') {
+  //           // 线下整单录入
+  //           this.props.history.push({
+  //             pathname: `/ssrc/new-inquiry-hall/whole-update/${rfxHeaderId}`,
+  //           });
+  //         } else {
+  //           this.props.history.push({
+  //             pathname:
+  //               secondarySourceCategory === 'NEW_BID'
+  //                 ? `/ssrc/new-bid-hall/bid-update/${rfxHeaderId}`
+  //                 : `/ssrc/new-inquiry-hall/rfx-update-new/${rfxHeaderId}`,
+  //             search,
+  //           });
+  //         }
+  //       }
+  //       this.sourcingTemplateDS.reset();
+  //       // eslint-disable-next-line no-unused-expressions
+  //       this.sectionModalOpener?.close();
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   // 寻源管理
   @Bind()
