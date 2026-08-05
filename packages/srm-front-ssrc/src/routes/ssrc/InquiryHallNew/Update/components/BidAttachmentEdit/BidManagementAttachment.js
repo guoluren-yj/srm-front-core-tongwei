@@ -146,8 +146,10 @@ const BidManagementAttachment = (props) => {
     { name: 'remark' },
     {
       header: intl.get('scux.bidAttachment.model.inquiryHall.attachmentEditor').d('文件编辑'),
+      help: "附件上传完成后，请先进行保存再编辑。",
       renderer: ({ record }) => {
-        return getCommonDisabledFlag({ record, attachType }) ? (
+        const isNotSaved = record.status === 'add';
+        return getCommonDisabledFlag({ record, attachType }) || isNotSaved ? (
           <Button funcType="link" disabled>
             {intl.get('hzero.common.button.edit').d('编辑')}
           </Button>
