@@ -166,7 +166,6 @@ const handleBusinessStandard = useCallback(() => {
       const res = await supplierEvaluationPostApi({ businessCfg }, 'SAVE_BUSINESS_CFG');
       if (getResponse(res)) {
         notification.success({});
-        basicInfoDs.query();
         supplierListDs.query();
         return true;
       }
@@ -217,7 +216,6 @@ const handleBusinessStandard = useCallback(() => {
       const res = await supplierEvaluationPostApi({ technologyCfgList, nominationHeaderId }, 'SAVE_TECHNOLOGY_CFG');
       if (getResponse(res)) {
         notification.success({});
-        basicInfoDs.query();
         supplierListDs.query();
         return true;
       }
