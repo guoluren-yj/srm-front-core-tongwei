@@ -85,8 +85,10 @@ const Page: React.FC<any> = () => {
 };
 
 const Index: React.FC<any> = (props = {}) => {
+  // URL search 变化时强制重建 StoreProvider，确保版本切换重新查询
+  const searchKey = props?.location?.search || '';
   return (
-    <StoreProvider {...props}>
+    <StoreProvider key={searchKey} {...props}>
       <Page />
     </StoreProvider>
   );

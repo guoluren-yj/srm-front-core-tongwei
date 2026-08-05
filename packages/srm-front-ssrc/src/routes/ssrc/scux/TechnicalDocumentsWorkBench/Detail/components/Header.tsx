@@ -13,6 +13,7 @@ import {
   technicalDocumentsApi,
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
+import HistoryVersionListBtn from './HistoryVersionListBtn';
 
 // 操作记录icon
 const statusIconTypes = [
@@ -168,6 +169,7 @@ const PageHeader: React.FC<any> = () => {
       title={pageTitle}
       backPath="/scux/ssrc/technical-documents-workbench/list"
     >
+      <HistoryVersionListBtn techFileId={techFileId} history={history} />
       {editorFlag ? (
         <>
           <Button icon="check" wait={1000} color={ButtonColor.primary} onClick={handleSubmit} disabled={pageLoading}>
