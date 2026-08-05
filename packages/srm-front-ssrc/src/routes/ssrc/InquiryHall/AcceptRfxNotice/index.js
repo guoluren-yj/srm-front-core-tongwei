@@ -1150,6 +1150,28 @@ class AcceptRfxNotice extends Component {
     }
   }
 
+  @Throttle(500)
+  @Bind()
+  async handleExternalSign() {
+    const {
+      match: { params = {} },
+    } = this.props;
+    const result = await request(
+      `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/7whFUURXLOahrXCkG0pSCcKfbnkWiaV1ALcyaOZTNjYg`,
+      {
+        method: 'GET',
+        query: {
+          rfxHeaderId: params.rfxId,
+        },
+      }
+    );
+
+    if (getResponse(result)) {
+      notification.success();
+      this.fetchWInnerBidNotice();
+    }
+  }
+
   renderHeaderButtons() {
     const {
       modelName = 'inquiryHall',
@@ -1193,11 +1215,20 @@ class AcceptRfxNotice extends Component {
         </C7NButton>
       ) : null,
       this.bidFlag && (
+        <>
+          <Button
+            onClick={this.handleEcSign}
+          >
+            {intl.get('ssrc.acceptBidNotice.model.button.getEcSign').d('生成附件')}
+          </Button>
+        </>
+      ),
       <Button
-        onClick={this.handleEcSign}
-      >{intl.get('ssrc.acceptBidNotice.model.button.getEcSign').d('获取电子签章')}
-      </Button>
-),
+        style={{ marginLeft: 8 }}
+        onClick={this.handleExternalSign}
+      >
+        外部签章
+      </Button>,
     ].filter(Boolean);
     if (!remote) {
       return buttons;
