@@ -170,9 +170,18 @@ export function withStandardCompEnhancer(Comp, pageName = INQUIRY) {
             {
               events: {
                 getCheckPrice(eventProps) {
-                  const { getCheckPrice, isNeedCall = true, isNeedPop = false } = eventProps;
-                  // 是否需要定标按钮
-                  if (isNeedCall) {
+                  const {
+                    getCheckPrice,
+                    isNeedCall = true,
+                    isNeedPop = false,
+                    record,
+                    bidFlag,
+                  } = eventProps || {};
+                  // 是否需要定标按钮（attributeVarchar20 === RESINAPPROVAL 时定标审批中，不展示定标按钮）
+                  if (
+                    isNeedCall &&
+                    !(bidFlag && record?.get('attributeVarchar20') === 'RESINAPPROVAL')
+                  ) {
                     getCheckPrice(isNeedPop);
                   }
                 },
