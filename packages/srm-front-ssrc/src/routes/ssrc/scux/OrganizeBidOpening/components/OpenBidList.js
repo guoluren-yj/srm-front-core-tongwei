@@ -11,7 +11,7 @@ import { getSourceUrlConfig } from '../../BidEvaluationManagement/api';
 import { prefix } from '../store/ds';
 
 const OpenBidList = (props) => {
-  const { openBidListDs, history, rfxHeaderId, bargainOfflineFlag, sourceType } = props;
+  const { openBidListDs, history, rfxHeaderId, bargainOfflineFlag, sourceType, docType } = props;
 
   // 跳转到商务谈判
   const handleJumpToBusinessBattle = async (record) => {
@@ -29,6 +29,10 @@ const OpenBidList = (props) => {
       pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
       search: querystring.stringify({
         sourceStatus: 'checkPrice',
+        // 从开标组织页进入议价，返回时回到开标组织页
+        sourcePage: 'organizeBidOpening',
+        organizeBidType: docType,
+        quotationHeaderId,
       }),
     });
   };

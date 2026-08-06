@@ -3427,6 +3427,7 @@ class Bargain extends Component {
       bargainingStage,
       evaluateLeaderFlag,
       sourcePage,
+      organizeBidType,
       projectLineSectionId = null,
       sourceProjectId = null,
       roundQuotationRule,
@@ -3441,7 +3442,10 @@ class Bargain extends Component {
     const sourceHeaderId = params.rfxId;
 
     let url;
-    if (sourceStatus === 'RFX_EVALUATION_PENDING') {
+    if (sourcePage === 'organizeBidOpening') {
+      // 从开标组织页进入议价，返回开标组织页
+      url = `/ssrc/new-bid-hall/scux-organize-bid-opening/${params.rfxId}/${organizeBidType}`;
+    } else if (sourceStatus === 'RFX_EVALUATION_PENDING') {
       url = `${this.activeTabKey}/rfx-evaluation/${sourceHeaderId}?backRecommend=${backRecommend}&sourceFrom=${sourceFrom}&cachTabKey=${cachTabKey}&sourceStatus=${sourceStatus}&sourceHeaderId=${params.rfxId}&sourceProjectId=${formatSourceProjectId}&projectLineSectionId=${projectSectionId}`;
     } else if (sourceStatus === 'checkPrice') {
       url = `${this.activeTabKey}/check-price/${params.rfxId}?projectLineSectionId=${projectLineSectionId}`;

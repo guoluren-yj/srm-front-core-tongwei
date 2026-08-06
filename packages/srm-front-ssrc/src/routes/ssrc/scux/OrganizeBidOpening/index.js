@@ -209,8 +209,9 @@ const OrganizeBidOpening = (props) => {
       history,
       bargainOfflineFlag,
       sourceType,
+      docType,
     };
-  }, [rfxHeaderId, bargainOfflineFlag, sourceType]);
+  }, [rfxHeaderId, bargainOfflineFlag, sourceType, docType]);
 
   // 头标题
   const headerTitle = useMemo(() => {
