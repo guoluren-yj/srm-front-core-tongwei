@@ -2415,7 +2415,11 @@ const processNodeDS = () => ({
       name: 'order',
       label: intl.get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.order`).d('节点顺序'),
       lookupCode: 'NODE_ORDER',
-      required: true,
+      dynamicProps: {
+        required: ({ record }) => {
+          return record.get('enabledFlag') === 1;
+        },
+      },
     },
     {
       name: 'limitDays',
@@ -2423,8 +2427,12 @@ const processNodeDS = () => ({
         .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.limitDays`)
         .d('工作时限(天)'),
       type: 'number',
-      required: true,
       min: 0,
+      dynamicProps: {
+        required: ({ record }) => {
+          return record.get('enabledFlag') === 1;
+        },
+      },
     },
     {
       name: 'enabledFlag',

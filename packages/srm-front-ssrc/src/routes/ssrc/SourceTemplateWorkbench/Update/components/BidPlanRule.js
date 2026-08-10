@@ -27,11 +27,13 @@ const BidPlanRule = (props) => {
         width: 260,
       },
       {
-        header: () => (
+        header: ({ dataSet }) => (
           <div>
-            <span style={{ color: 'red', display: 'inline-block', verticalAlign: 'middle' }}>
-              *{' '}
-            </span>
+            {dataSet?.some((record) => record.get('enabledFlag') === 1) && (
+              <span style={{ color: 'red', display: 'inline-block', verticalAlign: 'middle' }}>
+                *{' '}
+              </span>
+            )}
             <span>
               {intl
                 .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.order`)
@@ -43,11 +45,13 @@ const BidPlanRule = (props) => {
         editor: true,
       },
       {
-        header: () => (
+        header: ({ dataSet }) => (
           <div>
-            <span style={{ color: 'red', display: 'inline-block', verticalAlign: 'middle' }}>
-              *{' '}
-            </span>
+            {dataSet?.some((record) => record.get('enabledFlag') === 1) && (
+              <span style={{ color: 'red', display: 'inline-block', verticalAlign: 'middle' }}>
+                *{' '}
+              </span>
+            )}
             <span>
               {intl
                 .get(`sscux.ssrc.view.model.sourceTemplate.twnf.processNode.limitDays`)

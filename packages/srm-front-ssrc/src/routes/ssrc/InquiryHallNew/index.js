@@ -1480,7 +1480,18 @@ class InquiryHall extends React.Component {
       className={Style['expand-more-badge']}
       offset={record.getState('includeViewScore') ? [14, -12] : []}
     >
-      <a onClick={() => this.rfxEvaluation(record.toData())} style={{ 'margin-right': '4px' }}>
+      <a
+        onClick={() =>
+          this.props.history.push({
+            pathname: `/scux/ssrc/bid-evaluation-management/list`,
+            search: querystring.stringify({
+              positionTab: 'evaluationSummary',
+              sourceNum: record.get('rfxNum'),
+            }),
+          })
+        }
+        style={{ 'margin-right': '4px' }}
+      >
         {intl.get('ssrc.inquiryHall.model.inquiryHall.viewScored').d('查看评分')}
       </a>
     </Badge>
