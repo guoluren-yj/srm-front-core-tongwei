@@ -37,7 +37,7 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'contactMail', _type: 'TextField', disabled: true },
     { name: 'registeredCapital', _type: 'NumberField', disabled: true },
     { name: 'paidInCapital', _type: 'NumberField', disabled: true },
-    { name: 'buildDate', _type: 'DateTimePicker', disabled: true, label: '成立日期' },
+    { name: 'buildDate', _type: 'Date', disabled: true, label: '成立日期' },
     { name: 'insuredNumber', _type: 'NumberField', disabled: true },
     { name: 'taxLevel', _type: 'Select', disabled: true },
     { name: 'supplierRating', _type: 'Select', disabled: true },

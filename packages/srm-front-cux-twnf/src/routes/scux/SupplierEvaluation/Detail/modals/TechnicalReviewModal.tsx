@@ -193,14 +193,17 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
               readOnly={isReadOnly}
             />
           </div>
-        </Panel>
-        <Panel header={intl.get(`${prefix}.view.panel.reviewResult`).d('技术入围评审结果')} key="reviewResult">
-          <FormPro
-            dataSet={formDs}
-            columns={2}
-            fields={resultFields}
-            readOnly={isReadOnly}
-          />
+          <div style={{ marginBottom: 12 }}>
+            <div className={styles['review-card-title']}>
+              {intl.get(`${prefix}.view.panel.reviewResult`).d('技术入围评审结果')}
+            </div>
+            <FormPro
+              dataSet={formDs}
+              columns={2}
+              fields={resultFields}
+              readOnly={isReadOnly}
+            />
+          </div>
         </Panel>
       </Collapse>
       </div>

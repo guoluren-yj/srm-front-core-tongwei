@@ -3,7 +3,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import classnames from 'classnames';
 import { Button, Modal, DataSet, Tooltip } from 'choerodon-ui/pro';
 import { ButtonColor, ButtonTooltip } from 'choerodon-ui/pro/lib/button/enum';
-import { RenderFunction } from 'choerodon-ui/lib/trigger/Trigger';
 import { observer } from 'mobx-react-lite';
 import { isEmpty, isFunction } from 'lodash';
 
@@ -17,6 +16,9 @@ import ExportContent from './ExportContent';
 import { ExportTemplateTypeEnum } from './util';
 import { baseQueryDS, exportTreeDS } from './exportDS';
 import './index.less';
+
+// choerodon-ui/lib 编译产物缺少 tooltip 类型声明，此处按源码定义补一份
+type RenderFunction = () => ReactNode;
 
 // 监听导出错误时 postMessage 事件
 listenDownloadError(

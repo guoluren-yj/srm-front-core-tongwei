@@ -1074,12 +1074,23 @@ class Bargain extends Component {
       return false;
     }
 
+    // 二开：谈判金额 amountList
+    const amountList = this.supplierListDS
+      ? this.supplierListDS.toData()
+          .map((item) => ({
+            quotationHeaderId: item.quotationHeaderId,
+            attributeDecimal1: item.attributeDecimal1,
+          }))
+          .filter((item) => item.quotationHeaderId && !isNil(item.attributeDecimal1))
+      : [];
+
     this.toggleOperationLoading(true);
     const saveMethod = bargainFlag ? 'handleSaveAllOnline' : 'handleSaveAllOffline';
     dispatch({
       type: `${modelName}/${saveMethod}`,
       payload: {
         ...data,
+        amountList,
         ...(otherData || {}),
       },
     }).then((res) => {

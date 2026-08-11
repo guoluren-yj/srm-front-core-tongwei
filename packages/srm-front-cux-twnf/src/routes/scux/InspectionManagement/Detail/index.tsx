@@ -8,7 +8,7 @@ import { getResponse, getCurrentOrganizationId } from 'hzero-front/lib/utils/uti
 import notification from 'hzero-front/lib/utils/notification';
 import { observer, useComputed } from 'mobx-react-lite';
 import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
-import FormPro from 'srm-front-cux-twnf/src/components/FormPro';
+import FormPro from '@/components/FormPro';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { SRM_MARMOT } from 'srm-front-boot/lib/utils/config';
 import OperationRecordCux from 'srm-front-boot/lib/components/OperationRecordCux';

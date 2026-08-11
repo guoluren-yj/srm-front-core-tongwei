@@ -23,7 +23,15 @@ const supplierListDataSet = (options) => {
     selection: false,
     pageSize: 10,
     autoQueryAfterSubmit: false,
-    fields: [],
+    fields: [
+      // 二开：谈判金额
+      {
+        name: 'attributeDecimal1',
+        type: 'number',
+        label: intl.get(`ssrc.inquiryHall.model.inquiryHall.attributeDecimal1`).d('谈判金额'),
+        min: 0,
+      },
+    ],
     transport: {
       read: ({ data, params }) => {
         const { commonProps = {}, ...others } = data;

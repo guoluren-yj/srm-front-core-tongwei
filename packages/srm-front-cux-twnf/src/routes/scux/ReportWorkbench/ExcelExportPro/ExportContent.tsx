@@ -146,7 +146,7 @@ const ExportContent: React.FC<any> = observer(props => {
                   <>
                     {title}
                     <Popover
-                      overlayClassName='common-export-modal-title-popver'
+                      {...({ overlayClassName: 'common-export-modal-title-popver' } as any)}
                       placement='bottomLeft'
                       content={(
                         <div>
@@ -584,9 +584,7 @@ const ExportContent: React.FC<any> = observer(props => {
             {openFlag && (
               <Tree
                 dataSet={treeArea}
-                showLine={{
-                  showLeafIcon: false,
-                }}
+                {...({ showLine: { showLeafIcon: false } } as any)}
                 showIcon={false}
                 checkable
                 selectable={false}

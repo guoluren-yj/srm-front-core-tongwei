@@ -141,12 +141,13 @@ export async function handleSaveAllOffline(params) {
     rfxHeaderId,
     customizeUnitCode,
     filterParams = {},
+    amountList,
     ...otherParams
   } = params;
   return request(`${prefix}/${organizationId}/rfx/bargain/save-offline-spread`, {
     method: 'POST',
     query: { rfxHeaderId, customizeUnitCode, ...filterParams },
-    body: { rfxQuotationLineLists: otherParams.rfxQuotationLines, rfxHeaderId },
+    body: { rfxQuotationLineLists: otherParams.rfxQuotationLines, rfxHeaderId, amountList },
   });
 }
 
@@ -163,11 +164,12 @@ export async function handleSaveAllOnline(params) {
     rfxHeaderId,
     customizeUnitCode,
     filterParams = {},
+    amountList,
     ...otherParams
   } = params;
   return request(`${prefix}/${organizationId}/rfx/bargain/save-online-spread`, {
     method: 'POST',
-    body: { rfxQuotationLineLists: otherParams.rfxQuotationLines, rfxHeaderId },
+    body: { rfxQuotationLineLists: otherParams.rfxQuotationLines, rfxHeaderId, amountList },
     query: { rfxHeaderId, customizeUnitCode, ...filterParams },
   });
 }

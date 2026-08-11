@@ -221,6 +221,19 @@ class SupplierComponnet extends Component {
               className={styles.arrowIcon}
               type={collapseSupplierActiveKeys.includes(rfxLineSupplierId) ? 'up' : 'down'}
             />
+            {/* 二开：谈判金额 */}
+            <span
+              style={{ marginLeft: '12px' }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {intl.get(`ssrc.inquiryHall.model.inquiryHall.attributeDecimal1`).d('谈判金额')}：
+              <C7nPrecisionInputNumber
+                name="attributeDecimal1"
+                record={record}
+                omitZeroFlag
+              />
+            </span>
           </h3>
           <div>
             <span>
@@ -245,7 +258,7 @@ class SupplierComponnet extends Component {
             ''
           )}
         </Col>
-        <Col span={10} style={{ marginTop: '14px' }}>
+        <Col span={10} style={{ marginTop: '6px' }}>
           {!japanDutchTotalBidding ? (
             <Tooltip placement="topLeft" title={feedbackStatusMeaning}>
               <Tag
