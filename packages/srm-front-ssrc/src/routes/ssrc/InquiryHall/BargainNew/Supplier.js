@@ -317,7 +317,7 @@ class SupplierComponnet extends Component {
           ) : (
             ''
           )}
-          {bargainFlag && !japanDutchTotalBidding ? (
+          {/* {bargainFlag && !japanDutchTotalBidding ? (
             <Tooltip
               placement="topLeft"
               title={
@@ -343,7 +343,7 @@ class SupplierComponnet extends Component {
             </Tooltip>
           ) : (
             ''
-          )}
+          )} */}
 
           {this.getCommonPriceTagRender({
             valueText: (

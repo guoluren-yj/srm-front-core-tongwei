@@ -338,7 +338,7 @@ const templateModalDs = ({ config, sourceFrom }, newBidParams = {}) => {
         type: 'object',
         label: intl.get(`ssrc.inquiryHall.model.inquiryHall.sourcingTemplate`).d('寻源模板'),
         required: true,
-        lovCode: 'SSRC.TEMPLATE_NAME',
+        lovCode: 'SCUX_TWNF_PROJECT_TEMPLATE',
         lovPara: {
           sourceCategory: config,
           organizationId,

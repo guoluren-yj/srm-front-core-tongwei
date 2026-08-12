@@ -1068,6 +1068,7 @@ const Index = ({
   };
 
   const getCurrentDs = (tabActive) => {
+    console.log(tabActive)
     let currentDs = approvedDs;
     if (tabActive) {
       switch (tabActive) {
@@ -1493,7 +1494,7 @@ const Index = ({
           res.currencyInconsistentFlag === 0 &&
           res.unitInconsistentFlag === 0
         ) {
-          handleCreateQuoteAppoval();
+          openTemplateModal();
         }
         if (
           res.companyInconsistentFlag === 1 &&
@@ -1511,24 +1512,57 @@ const Index = ({
             ),
             title: intl.get('hzero.common.message.confirm.title').d('提示'),
             onOk: () => {
-              handleCreateQuoteAppoval();
+              openTemplateModal();
             },
           });
         } else {
-          handleCreateQuoteAppoval();
+          openTemplateModal();
         }
       }
     });
   };
 
+  // 选择寻源模板
+  const openTemplateModal = async () => {
+    const ds = new DataSet(
+      templateModalDs(
+        { config: 'RFX', sourceFrom: 'DEMAND_POOL' },
+        { secondarySourceCategory: 'NEW_BID' }
+      )
+    );
+    if (remote) {
+      await remote.event.fireEvent('beforeCreateTemplate', {
+        templateDs: ds,
+        tabkey: 'allLine',
+      });
+    }
+    Modal.open({
+      key: Modal.key(),
+      destroyOnClose: true,
+      title: intl.get(`ssrc.inquiryHall.view.message.title.selectSourceTemplate`).d('选择寻源模板'),
+      children: <Template ds={ds} />,
+      onOk: async () => {
+        const validateFlag = await ds.validate();
+        if (validateFlag) {
+          const { templateId } = ds.toData() ? ds.toData()[0] : {};
+          handleCreateQuoteAppoval(templateId);
+        } else {
+          return false;
+        }
+      },
+    });
+  };
+
   // 新建寻源立项
-  const handleCreateQuoteAppoval = async () => {
+  const handleCreateQuoteAppoval = async (templateId) => {
     const data = allLineDs.toJSONData();
     const prLineIdList = data?.map((ele) => ele.prLineId);
     const prLineNumList = data.map((e) => `${e.displayPrNum}-${e.displayLineNum}`)?.join(',');
     setLoading({ ...loadings, createProjectSetupLoading: true });
     await createProject({
       prLineIdList,
+      attributeBigint10: 1,
+      attributeVarchar10: templateId,
       configCenterCode: 'SITE.SSRC.PROJECT_PURCHASE_MERGE_RULE',
       sourceDocumentType: !isOldUser ? 'PROJECT' : null,
     })

@@ -421,7 +421,7 @@ class ProjectSetup extends Component {
         {
           name: 'templateId',
           label: intl.get('ssrc.inquiryHall.model.inquiryHall.sourcingTemplate').d('寻源模板'),
-          lovCode: 'SSRC.TEMPLATE_NAME',
+          lovCode: 'SCUX_TWNF_PROJECT_TEMPLATE',
           type: FieldType.object,
           required: true,
           transformRequest: (value) => value ? value.templateId : null,

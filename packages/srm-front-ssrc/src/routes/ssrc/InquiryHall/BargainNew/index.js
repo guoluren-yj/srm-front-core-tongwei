@@ -3537,7 +3537,7 @@ class Bargain extends Component {
                   })
                   .d('第{round}轮报价')}
               </Tag>
-              {!isNil(bargainTimes) ? (
+              {/* {!isNil(bargainTimes) ? (
                 <Tag
                   className={styles['bargain-header-tag-bargain']}
                   style={{ fontWeight: 'normal' }}
@@ -3548,7 +3548,7 @@ class Bargain extends Component {
                     })
                     .d(`第{bargainTimes}次议价`)}
                 </Tag>
-              ) : null}
+              ) : null} */}
             </div>
           </Col>
           {this.renderBargainEndDate(now, time)}
