@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { isFunction, isEmpty, isNil } from 'lodash';
+import querystring from 'querystring';
 
 import { Icon } from 'choerodon-ui';
 import { Menu, Dropdown, Lov } from 'choerodon-ui/pro';
@@ -610,15 +611,18 @@ const renderAction = (
   }
 
   // 寻源准备阶段，展示技术文件、招标清单、供应商入围入口
-  if (tabKey === 'waiting' && record.get('attributeVarchar13') === 'SOURCE_PREPARATION') {
+  if ((tabKey === 'waiting' || tabKey === 'all') && record.get('attributeVarchar13') === 'SOURCE_PREPARATION') {
+    // 跳转时携带 sourceProjectNum，目标列表页据此过滤查询
+    const sourceProjectNum = record.get('sourceProjectNum');
+    const search = sourceProjectNum ? querystring.stringify({ sourceProjectNum }) : '';
     allBtns.push(
-      <a onClick={() => history.push('/scux/ssrc/technical-documents-workbench')}>
+      <a onClick={() => history.push({ pathname: '/scux/ssrc/technical-documents-workbench/list', search })}>
         {intl.get(`${promptCode}.view.message.button.technicalDocument`).d('技术文件')}
       </a>,
-      <a onClick={() => history.push('/scux/ssrc/tender-workbench/list')}>
+      <a onClick={() => history.push({ pathname: '/scux/ssrc/tender-workbench/list', search })}>
         {intl.get(`${promptCode}.view.message.button.tenderList`).d('招标清单')}
       </a>,
-      <a onClick={() => history.push('/scux/supplier-evaluation')}>
+      <a onClick={() => history.push({ pathname: '/scux/supplier-evaluation/list', search })}>
         {intl.get(`${promptCode}.view.message.button.supplierEvaluation`).d('供应商入围')}
       </a>
     );

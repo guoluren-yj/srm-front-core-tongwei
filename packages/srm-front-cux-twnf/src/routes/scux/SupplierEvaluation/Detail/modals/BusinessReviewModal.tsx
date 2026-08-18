@@ -22,7 +22,10 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
   let modal;
   const reviewInfoDs = new DataSet(businessReviewDS(nominationHeaderId, nominationSupLineId, record));
   await reviewInfoDs.query();
-  const isReadOnly = type === 'unreleasedReadOnly' || reviewInfoDs.current?.get('reviewStatus') === '2';
+
+  const nominationStatus = basicInfoDs.current?.get('nominationStatus');
+  const isReadOnly = type === 'unreleasedReadOnly' || (nominationStatus !== 'PENDING_REVIEW' && nominationStatus !== 'TO_BE_RELEASED');
+  console.log(type, nominationStatus);
 
   const supplierName = record.get('supplierCompanyName') || '';
   const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';

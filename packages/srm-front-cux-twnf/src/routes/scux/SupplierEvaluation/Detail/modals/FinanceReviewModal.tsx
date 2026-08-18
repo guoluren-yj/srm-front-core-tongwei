@@ -29,7 +29,10 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
   infoDs.bind(resultDs, 'children');
 
   await resultDs.query();
-  const isReadOnly = type === 'unreleasedReadOnly' || resultDs.current?.get('reviewStatus') === '2';
+
+  const nominationStatus = basicInfoDs.current?.get('nominationStatus');
+  const isReadOnly = type === 'unreleasedReadOnly' || (nominationStatus !== 'PENDING_REVIEW' && nominationStatus !== 'TO_BE_RELEASED');
+  console.log(type, nominationStatus);
 
   const supplierName = record.get('supplierCompanyName') || '';
   const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';

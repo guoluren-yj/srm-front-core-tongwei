@@ -4,7 +4,7 @@ import { DataSet, Tabs, Button } from 'choerodon-ui/pro';
 import { Header, Content } from 'hzero-front/lib/components/Page';
 import intl from 'hzero-front/lib/utils/intl';
 import formatterCollections from 'hzero-front/lib/utils/intl/formatterCollections';
-import { stringify } from 'querystring';
+import { parse, stringify } from 'querystring';
 import { observer } from 'mobx-react-lite';
 import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
@@ -70,25 +70,42 @@ const handleToSubmit = (history: any, record: any) => {
   }));
 };
 
-const SupplierEvaluationList = ({ history }: any) => {
-  const [tabKey, setTabKey] = useState<TabKeyType>('EVALUATE');
+const SupplierEvaluationList = ({ history, location }: any) => {
+  // 跳转时 URL 携带 sourceProjectNum，默认展示"全部"页签
+  const { sourceProjectNum } = parse((location?.search || '').replace(/^\?/, ''));
+  const [tabKey, setTabKey] = useState<TabKeyType>(sourceProjectNum ? 'ALL' : 'EVALUATE');
   const dsList = useMemo(() => TABS.map(t => new DataSet(tableDs(t.key))), []);
 
   const dsMap = useMemo(() => Object.fromEntries(TABS.map((t, i) => [t.key, dsList[i]])), [dsList]);
   const tableDS = useMemo(() => dsMap[tabKey], [dsMap, tabKey]);
 
   useEffect(() => {
-    tableDS.query();
+    setTimeout(()=>{
+      // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
+      if (tableDS && sourceProjectNum) {
+        // 同步写入 queryDataSet.current（无记录时先 create），便于搜索框回显与导出
+        const qds = tableDS.queryDataSet;
+        if (qds && !qds.current) {
+          qds.create({});
+        }
+        qds?.current?.set('sourceProjectNum', sourceProjectNum);
+      }
+      tableDS?.query();
+    }, 500)
   }, []);
 
   const columns = useMemo(() => {
-    const renderSourceProjectNum = ({ value, record }: any) => (
-      <a
-        onClick={() => handleToTenderDetail(history, record)}
-      >
-        {value}
-      </a>
-    );
+    const renderSourceProjectNum = ({ value, record }: any) => {
+      // 列表接口未返回 sourceProjectNum 时，用跳转带入的查询值兜底展示
+      const displayValue = value || tableDS?.getQueryParameter?.('sourceProjectNum');
+      return (
+        <a
+          onClick={() => handleToTenderDetail(history, record)}
+        >
+          {displayValue}
+        </a>
+      );
+    };
 
     const renderNominationNum = ({ value, record }: any) => (
       <a

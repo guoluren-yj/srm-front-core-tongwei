@@ -39,6 +39,15 @@ const Index: React.FC<any> = (props) => {
   // 从详情页返回时，location.key 变化，表格 key 随之变化强制重新挂载，解决 cacheState 下 autoHeight 不重算的问题
   const tableKey = location?.key || 'tenderList';
 
+  // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
+  const { sourceProjectNum } = querystring.parse((location?.search || '').replace(/^\?/, ''));
+  if (allDs?.queryDataSet) {
+    if (!allDs.queryDataSet.current) {
+      allDs.queryDataSet.create({});
+    }
+    allDs.queryDataSet.current.set('sourceProjectNum', sourceProjectNum || '');
+  }
+
   // 编辑
   const handleEdit = (record) => {
     const { sourceProjectId, bidCatalogId } = record.get(['bidCatalogId', 'sourceProjectId']);

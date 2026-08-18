@@ -43,6 +43,9 @@ const TenderListSection:React.FC<TenderListSectionProps> = (props) => {
         name: 'sectionName',
       },
       {
+        name: 'remark',
+      },
+      {
         name: 'detailRender',
         header: intl.get('scux.tenderDetail.modal.tenderDetail.detailRender').d('明细'),
         renderer: ({ record }) => {

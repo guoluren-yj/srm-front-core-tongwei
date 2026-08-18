@@ -35,6 +35,7 @@ const Index: React.FC<any> = (props) => {
 
   const {
     history,
+    location,
     allDs,
     toBeReleasedDs,
     toBeProcessedDs,
@@ -42,6 +43,17 @@ const Index: React.FC<any> = (props) => {
 
   const [activeKey, setActiveKey] = useState('toBeReleased');
   const currentUser = getCurrentUser();
+
+  // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
+  const { sourceProjectNum } = querystring.parse((location?.search || '').replace(/^\?/, ''));
+  [allDs, toBeReleasedDs, toBeProcessedDs].forEach((ds) => {
+    if (ds?.queryDataSet) {
+      if (!ds.queryDataSet.current) {
+        ds.queryDataSet.create({});
+      }
+      ds.queryDataSet.current.set('sourceProjectNum', sourceProjectNum || '');
+    }
+  });
 
   // 编辑
   const handleEdit = (record) => {

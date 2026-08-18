@@ -89,7 +89,6 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
       type: FieldType.object,
       lovCode: 'SCUX.HPFM.TW..EMPLOYEE',
       textField:"name",
-      valueField:"employeeId",
       display: true,
       label: intl.get(`${prefix}.field.tenderManager`).d('入围负责人'),
     },
@@ -137,12 +136,23 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'fbcResult', type: FieldType.string, label: intl.get(`${prefix}.field.fbcResult`).d('审批结果字段') },
   ],
   transport: {
-    read: ({ params }) => {
+    read: ({ params, data }) => {
       const { url, queryData } = getTabValue(tabKey);
+      // 查询字段的值在 data 里，params 只有分页参数
+      const newData = { ...data };
+      // bidDirector 为 employeeId，9165_14728 格式（companyId_employeeId），只保留 _ 后面的部分
+      const bidDirector = newData.bidDirector;
+      if (bidDirector != null) {
+        const raw = typeof bidDirector === 'object' ? (bidDirector.employeeId ?? bidDirector.id) : bidDirector;
+        if (raw) {
+          newData.bidDirector = String(raw).split('_').pop();
+        }
+      }
       return {
         url,
         method: 'GET',
         params: { ...params, ...queryData },
+        data: newData,
       };
     },
   },

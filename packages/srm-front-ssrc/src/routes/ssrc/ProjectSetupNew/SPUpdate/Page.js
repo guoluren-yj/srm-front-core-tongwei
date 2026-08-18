@@ -217,13 +217,40 @@ const Page = () => {
 
   // 校验提交数据
   const validatePageData = () => {
+    // 打印校验明细：定位是哪个 ds 未通过、具体哪一行哪个字段报错
+    const validateDs = (name, ds) => {
+      if (!ds) return Promise.resolve(true);
+      return ds.validate().then((pass) => {
+        console.log(`[validatePageData] ${name} 校验${pass ? '通过' : '未通过'}`);
+        if (!pass) {
+          const errors = ds.getValidationErrors ? ds.getValidationErrors() : [];
+          console.log(`[validatePageData] ${name} 未通过，共 ${errors.length} 处`);
+          errors.forEach((item = {}, idx) => {
+            (item.errors || []).forEach((fieldErr = {}) => {
+              const { errors: msgList = [], field = null } = fieldErr || {};
+              const fieldCode = field?.name || '未知字段编码';
+              const label = field?.pristineProps?.label || '';
+              const fieldDesc = label ? `${fieldCode}(${label})` : fieldCode;
+              (msgList || []).forEach((msg = {}) => {
+                const record = msg?.validationProps?.record || item?.record || null;
+                const line = record ? `第${record.index + 1}行` : `第${idx + 1}处`;
+                console.log(`  [${name}] ${line}[${fieldDesc}]: ${msg.$validationMessage}`);
+              });
+            });
+          });
+        }
+        return pass;
+      });
+    };
     const list = [
-      headerDs?.validate(),
-      bidPlanNodeDs?.validate(),
-      itemLineDs?.validate(),
-      subjectMatterRule === 'PACK' ? sectionOrPacketInfoDs?.validate() : true,
-      sourceMethod === 'INVITE' ? supplierLineTableDs?.validate() : true,
-      planLineTableDs?.validate(),
+      validateDs('headerDs', headerDs),
+      validateDs('bidPlanNodeDs', bidPlanNodeDs),
+      validateDs('itemLineDs', itemLineDs),
+      subjectMatterRule === 'PACK'
+        ? validateDs('sectionOrPacketInfoDs', sectionOrPacketInfoDs)
+        : true,
+      sourceMethod === 'INVITE' ? validateDs('supplierLineTableDs', supplierLineTableDs) : true,
+      validateDs('planLineTableDs', planLineTableDs),
     ];
     return Promise.all(list).then((res) => {
       return res?.every((i) => i);
@@ -331,9 +358,11 @@ const Page = () => {
 
   // 保存
   const handleSave = async () => {
+    console.log("111111111111")
     const pageData = getPageData();
     try {
       if(! await validatePageData()) return;
+      console.log("2222222222222")
 
       handleSetOperateLoading(true);
 

@@ -45,6 +45,10 @@ export const tenderListSectionDS = (): DataSetProps => {
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.sectionName`).d('标段名称'),
         required: true,
       },
+      {
+        name: 'remark',
+        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.remark`).d('备注'),
+      }
     ],
   };
 };

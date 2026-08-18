@@ -182,7 +182,7 @@ const getPurAndOrgFields = (payload) => {
       name: 'contactUserId',
       lovCode: 'HIAM.PUBLIC.TENANT.USER', // todo: 临时替换不脱敏值集，后续需要整改
       type: 'object',
-      required: true,
+      // required: true,
       textField: 'realName',
       valueField: 'id',
       transformRequest: (value = {}) => value?.id || null,
@@ -200,7 +200,7 @@ const getPurAndOrgFields = (payload) => {
     {
       label: intl.get(`ssrc.projectSetup.model.projectSetup.contactMobilephone`).d('联系人电话'),
       name: 'contactMobilephone',
-      required: true,
+      // required: true,
       type: 'tel',
       regionField: 'internationalTelCode',
       validator: (value, _, record) => {
@@ -231,7 +231,7 @@ const getPurAndOrgFields = (payload) => {
     {
       label: intl.get('ssrc.projectSetup.model.projectSetup.contactMail').d('联系人邮箱'),
       name: 'contactMail',
-      required: true,
+      // required: true,
       validator: (value, _, record) => {
         if (value && !EMAIL.test(record.get('contactMail'))) {
           return intl.get('hzero.common.validation.email').d('邮箱格式不正确');
@@ -443,6 +443,22 @@ const headerDS = (payload) => {
   };
 };
 
+// 节点顺序归一化：优先按数值比较，非纯数值时退化为字符串比较
+const getNodeOrderKey = (v) => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? String(v) : n;
+};
+
+// 判断节点 a 的顺序是否晚于节点 b（晚于 → 属于 b 的后续节点）
+const isLaterNodeOrder = (a, b) => {
+  const ka = getNodeOrderKey(a);
+  const kb = getNodeOrderKey(b);
+  if (ka === null || kb === null) return false;
+  if (typeof ka === 'number' && typeof kb === 'number') return ka > kb;
+  return String(ka).localeCompare(String(kb)) > 0;
+};
+
 // 招标计划 - 招标节点
 const bidPlanNodeDS = () => {
   return {
@@ -451,6 +467,23 @@ const bidPlanNodeDS = () => {
     selection: false,
     paging: false,
     forceValidate: true,
+    events: {
+      update: ({ dataSet, record, name }) => {
+        // 上一节点改变了计划完成时间时，清空后续节点时间，
+        // 否则后续节点已选的时间可能早于新的下限，选择器限制不住旧值
+        if (name !== 'planFinishDate') return;
+        // 加载/回显数据触发的 set 不算用户改动，跳过，避免把已保存的时间清掉
+        if (!['add', 'update'].includes(record.status)) return;
+        const changedOrder = record.get('nodeOrder');
+        if (getNodeOrderKey(changedOrder) === null) return;
+        dataSet.records.forEach((r) => {
+          if (r === record || r.status === 'delete') return;
+          if (isLaterNodeOrder(r.get('nodeOrder'), changedOrder) && r.get('planFinishDate')) {
+            r.set('planFinishDate', null);
+          }
+        });
+      },
+    },
     fields: [
       {
         name: 'nodeName',
@@ -468,9 +501,14 @@ const bidPlanNodeDS = () => {
         lovCode: 'SCUX.HPFM.TW.BATCH.EMPLOYEE',
         required: true,
         multiple: true,
-        valueField: 'employeeId',
+        // 后端 userInCharge 存的是 employeeId；LOV 里同一员工有多个岗位记录（employeeId 重复），
+        // 同一员工只能算一个负责人，提交前按 employeeId 去重，避免存重复值导致回显错乱
+        // valueField: 'employeeId',
         textField: 'name',
-        transformRequest: (value) => (isArray(value) ? value.map(v => v.employeeId).join(',') : value),
+        transformRequest: (value) =>
+          (isArray(value)
+            ? Array.from(new Set(value.map((v) => v.employeeId))).join(',')
+            : value),
         transformResponse(value, object) {
           const valueArr = value ? value.split(',') : null;
           const valueMeaningArr = value ? (object.userInChargeMeaning || '').split(',') : null;

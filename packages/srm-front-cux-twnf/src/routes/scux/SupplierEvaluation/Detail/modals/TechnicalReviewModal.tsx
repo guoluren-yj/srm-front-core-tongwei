@@ -36,7 +36,9 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
   let modal;
 
   await Promise.all([basicInfoDs.query(), formDs.query()]);
-  const isReadOnly = type === 'unreleasedReadOnly' || formDs.current?.get('reviewStatus') === '2';
+  const nominationStatus = basicInfoDs.current?.get('nominationStatus');
+  const isReadOnly = type === 'unreleasedReadOnly' || (nominationStatus !== 'PENDING_REVIEW' && nominationStatus !== 'TO_BE_RELEASED');
+  console.log(type, nominationStatus);
 
   // 构建标题：技术入围评审 - 标的类型 - 供应商名称
   const supplierName = record.get('supplierCompanyName') || '';
