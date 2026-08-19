@@ -70,10 +70,10 @@ const TenderListSection = () => {
         name: 'sectionName',
         editor: editorFlag,
       },
-      {
-        name: 'itemName',
-        editor: editorFlag,
-      },
+      // {
+      //   name: 'itemName',
+      //   editor: editorFlag,
+      // },
       {
         name: 'remark',
         editor: editorFlag,

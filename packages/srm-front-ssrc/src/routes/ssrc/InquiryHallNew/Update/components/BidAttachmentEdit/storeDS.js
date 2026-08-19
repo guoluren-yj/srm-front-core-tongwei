@@ -25,6 +25,18 @@ const attachmentDS = ({
   primaryKey: 'attachmentLineId',
   fields: [
     {
+      name: 'attributeVarchar19',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.attachmentName')
+        .d('附件名称'),
+    },
+    {
+      name: 'attributeVarchar1',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.isSignature')
+        .d('是否电签'),
+    },
+    {
       name: 'attachmentType',
       label: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachType`).d('附件类型'),
       type: 'object',
@@ -72,18 +84,24 @@ const attachmentDS = ({
       // 虚拟字段
       name: 'templateAttachment',
       label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplate`)
-        .d('模板附件'),
+        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplateNew`)
+        .d('附件模板'),
     },
     {
-      name: 'remark',
+      name: 'attributeLongtext10',
       label: intl
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
         .d('模板描述'),
     },
     {
+      name: 'remark',
+      label: intl
+        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.remark`)
+        .d('备注'),
+    },
+    {
       name: 'attachmentUuid',
-      label: intl.get(`ssrc.common.model.common.attachment`).d('附件'),
+      label: intl.get(`ssrc.common.model.common.attachment`).d('电签附件'),
       type: 'attachment',
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',

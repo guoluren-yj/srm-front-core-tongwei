@@ -12,6 +12,18 @@ const attachmentDS = ({ actionFrom = '' }) => ({
   selection: false,
   fields: [
     {
+      name: 'attributeVarchar19',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.attachmentName')
+        .d('附件名称'),
+    },
+    {
+      name: 'attributeVarchar1',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.isSignature')
+        .d('是否电签'),
+    },
+    {
       name: 'attachmentTypeMeaning',
       label: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachType`).d('附件类型'),
     },
@@ -19,7 +31,7 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       name: 'tempAttachmentUuid',
       label: intl
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplate`)
-        .d('模板附件'),
+        .d('附件模板'),
       readOnly: true,
       type: 'attachment',
       bucketName: PRIVATE_BUCKET,
@@ -46,6 +58,12 @@ const attachmentDS = ({ actionFrom = '' }) => ({
         .d('附件名称'),
     },
     {
+      name: 'attributeLongtext10',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remarkBidPlan')
+        .d('模板描述'),
+    },
+    {
       name: 'attributeLongtext1',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.electronicSignatureAttachment')
@@ -57,10 +75,10 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       readOnly: true,
     },
     {
-      name: 'attributeLongtext10',
+      name: 'remark',
       label: intl
-        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remarkBidPlan')
-        .d('备注-招标计划'),
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remark')
+        .d('备注'),
     },
   ],
   transport: {

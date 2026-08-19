@@ -230,8 +230,9 @@ export function withStandardCompEnhancer(Comp, pageName = INQUIRY) {
                   }
                 },
                 projectToInquiryOpenOkEvent(eventProps) {
-                  const { openModal = noop, selectData = [] } = eventProps || {};
-                  openModal(selectData);
+                  const { handleCreateInquiryDirect = noop, selectData = [], templateId } =
+                    eventProps || {};
+                  handleCreateInquiryDirect(selectData, templateId);
                 },
                 // 开始评分事件
                 remoteStartScore(eventProps) {

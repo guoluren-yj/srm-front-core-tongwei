@@ -7,7 +7,6 @@ import { observer } from 'mobx-react-lite';
 import { getCurrentOrganizationId, getResponse } from 'utils/utils';
 import intl from 'utils/intl';
 import request from 'utils/request';
-import { refreshTab } from 'utils/menuTab';
 
 /**
  * 技术文件 - 历史版本下拉按钮
@@ -45,12 +44,13 @@ const HistoryVersionListBtn = ({ techFileId, history, buttonProps = {} }) => {
     const currentSearch = history.location.search
       ? querystring.parse(history.location.search.substr(1))
       : {};
+    // URL search 变化（新增 techVersion）时，Detail/index 的 key={searchKey} 会重建 StoreProvider 触发重新查询，
+    // 无需再调用 refreshTab；refreshTab 会重新触发同一 tab 下工作台 withProps 的 refresh 监听，
+    // 重建 3 个 autoQuery DataSet，导致列表接口（v8iak...Rons）重复调用
     history.push({
       pathname: history.location.pathname,
       search: querystring.stringify({ ...currentSearch, techVersion }),
     });
-    // 刷新当前 tab，强制组件重新挂载并重新查询头/文件接口
-    refreshTab();
   };
 
   // 无数据不展示按钮

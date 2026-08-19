@@ -55,10 +55,10 @@ const baseInfoDS = ({ techFileId }): DataSetProps => {
         type: FieldType.string,
         lookupCode: 'SCUX_TWNF_TECHNICAL_DOCUMENTATION'
       },
-      {
-        name: 'remark',
-        label: intl.get('scux.technicalDocumentsDetail.model.twnf.remark').d('备注'),
-      },
+      // {
+      //   name: 'remark',
+      //   label: intl.get('scux.technicalDocumentsDetail.model.twnf.remark').d('备注'),
+      // },
     ],
     transport: {
       read: () => {

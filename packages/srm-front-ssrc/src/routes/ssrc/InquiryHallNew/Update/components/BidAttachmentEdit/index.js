@@ -44,13 +44,13 @@ const BidAttachment = (props) => {
     <>
       <div>
         <SecLevelTitle
-          title={intl.get('scux.bidAttachment.view.title.purAttach').d('采购方附件')}
+          title={intl.get('scux.bidAttachment.view.title.purAttach').d('招标文件及附件')}
         />
         <BidManagementAttachment {...props} bidAttachTableDs={purAttachmentDs} attachType="PUR" />
       </div>
       <div>
         <SecLevelTitle
-          title={intl.get('scux.bidAttachment.view.title.supAttach').d('供应商附件')}
+          title={intl.get('scux.bidAttachment.view.title.supAttach').d('投标文件模板')}
         />
         <BidManagementAttachment {...props} bidAttachTableDs={supAttachmentDs} attachType="SUP" />
       </div>

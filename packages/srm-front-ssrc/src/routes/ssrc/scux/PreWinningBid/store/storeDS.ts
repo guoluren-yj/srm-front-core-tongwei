@@ -22,7 +22,7 @@ function getAttributeHeaderFields() {
     },
     {
       name: 'attributeLongtext32',
-      label: intl.get(`${preWinningBidModel}approvalOpinion`).d('FBC审批状态'),
+      label: intl.get(`${preWinningBidModel}approvalOpinion`).d('审批意见'),
       type: FieldType.string,
       disabled: true,
     },

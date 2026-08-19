@@ -7242,21 +7242,51 @@ class InquiryHall extends React.Component {
         await this.projectToWholeCreate(selectData);
         return false;
       }
+      // 不再弹出选择寻源模板，直接取选中行数据的 attributeVarchar10 字段作为模板
+      const templateId = curentSelectProject?.attributeVarchar10 ?? selectData?.attributeVarchar10;
       if (remote?.event) {
         const eventProps = {
           organizationId,
           history,
           selectData,
+          templateId,
           distinguishUpdatePageUrl: this.distinguishUpdatePageUrl,
-          openModal: this.openModal,
+          handleCreateInquiryDirect: this.handleCreateInquiryDirect,
           bidFlag: this.bidFlag,
         };
         await remote.event.fireEvent('projectToInquiryOpenOkEvent', eventProps);
         // 参考fetchCreateInquiry方法进行二开
       } else {
-        this.openModal(selectData);
+        this.handleCreateInquiryDirect(selectData, templateId);
       }
       return false;
+    }
+  }
+
+  /**
+   * 创建寻源单 - 直接从行上取 attributeVarchar10 字段作为寻源模板，跳过选择寻源模板弹窗
+   * @param {*} selectData - 勾选数据
+   * @param {*} templateId - 寻源模板ID（取行数据 attributeVarchar10 字段）
+   */
+  @Bind()
+  async handleCreateInquiryDirect(selectData, templateId) {
+    const { organizationId, history } = this.props;
+    const TemplateData = templateId ? { templateId } : {};
+    const response = getResponse(
+      await sourcingCreate({
+        organizationId,
+        ...selectData,
+        ...TemplateData,
+      })
+    );
+    if (response && !response.failed) {
+      notification.success();
+      const { rfxHeaderId } = response;
+      Modal.destroyAll();
+      const url = this.distinguishUpdatePageUrl({ rfxHeaderId });
+      history.push({
+        pathname: url,
+      });
     }
   }
 

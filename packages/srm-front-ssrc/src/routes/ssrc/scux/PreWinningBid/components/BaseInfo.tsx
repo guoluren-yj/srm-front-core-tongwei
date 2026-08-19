@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Collapse, Button, Card } from 'choerodon-ui';
-import { Form, TextField, TextArea } from 'choerodon-ui/pro';
+import { Form, Output, TextArea, TextField } from 'choerodon-ui/pro';
 import { observer, useObserver } from 'mobx-react-lite';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import querystring from 'querystring';
@@ -21,8 +21,8 @@ const BaseInfo: React.FC = observer(() => {
 
   if (!headerDs) return null;
 
-  const { rfxNum, rfxTitle, rfxHeaderId } = useObserver(() =>
-    headerDs?.current?.get(['rfxNum', 'rfxTitle', 'rfxHeaderId']) || {}
+  const { rfxNum, rfxTitle, rfxHeaderId, attributeLongtext3 } = useObserver(() =>
+    headerDs?.current?.get(['rfxNum', 'rfxTitle', 'rfxHeaderId', 'attributeLongtext3']) || {}
   );
 
   // 查看单据详情
@@ -41,6 +41,13 @@ const BaseInfo: React.FC = observer(() => {
       }),
       closable: true,
     }, undefined);
+  };
+
+  // 查看FBC审批链接
+  const handleViewFbc = () => {
+    if (attributeLongtext3) {
+      window.open(attributeLongtext3);
+    }
   };
 
   // 折叠面板标题
@@ -71,10 +78,19 @@ const BaseInfo: React.FC = observer(() => {
             labelLayout={LabelLayout.float}
             useWidthPercent
           >
-            <TextField name="attributeLongtext31" />
+            <Output
+              name="attributeLongtext31"
+              renderer={({ value }) =>
+                value && attributeLongtext3 ? (
+                  <a onClick={handleViewFbc}>{value}</a>
+                ) : (
+                  value
+                )
+              }
+            />
             <TextField name="attributeLongtext32" />
-            <TextField name="attributeLongtext3" />
-            <TextArea name="attributeLongtext30" colSpan={2} resize={ResizeType.vertical} />
+            {/* <TextField name="attributeLongtext3" /> */}
+            <TextArea name="attributeLongtext30" newLine colSpan={2} resize={ResizeType.vertical} />
           </Form>
         </Card>
       </Panel>

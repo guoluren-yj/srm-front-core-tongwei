@@ -50,10 +50,10 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
         name: 'catalogStatusMeaning',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.sourceProjectStatus').d('状态'),
       },
-      {
-        name: 'remark',
-        label: intl.get('scux.tenderDetail.model.twnf.remark').d('备注'),
-      },
+      // {
+      //   name: 'remark',
+      //   label: intl.get('scux.tenderDetail.model.twnf.remark').d('备注'),
+      // },
     ],
     transport: {
       read: ({ dataSet }) => {
@@ -90,11 +90,11 @@ const tenderListSectionDS = ({ bidCatalogId, baseInfoDs }): DataSetProps => {
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.sectionName`).d('标段名称'),
         required: true,
       },
-      {
-        name: 'itemName',
-        required: true,
-        label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.itemName`).d('项目名称'),
-      },
+      // {
+      //   name: 'itemName',
+      //   required: true,
+      //   label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.itemName`).d('项目名称'),
+      // },
       {
         name: 'remark',
         label: intl.get(`scux.tenderDetail.model.twnf.tenderDetail.remark`).d('备注'),
@@ -245,7 +245,7 @@ const detailMaintenanceDS = ({ baseInfoDs, bidCatalogSectionHistoryId = '', bidV
       },
       {
         name: 'itemName',
-        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('招标项目描述'),
+        label: intl.get('scux.tenderDetail.model.twnf.tenderDetail.name').d('项目名称（描述）'),
         required: true,
       },
       {

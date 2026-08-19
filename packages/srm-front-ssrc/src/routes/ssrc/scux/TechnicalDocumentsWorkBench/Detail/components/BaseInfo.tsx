@@ -26,7 +26,7 @@ const BaseInfo: React.FC<any> = () => {
       <TextField name="confirmedDate" /> */}
       <TextField name="userInChargeMeaning" />
       <Select name="techFileStatus" />
-      <TextArea name="remark" resize={ResizeType.vertical} newLine colSpan={2} />
+      {/* <TextArea name="remark" resize={ResizeType.vertical} newLine colSpan={2} /> */}
     </Form>
   ) : (
     <Form
@@ -41,7 +41,7 @@ const BaseInfo: React.FC<any> = () => {
       <Output name="userInChargeMeaning" />
       <Output name="techFileStatus" />
       {/* <Output name="confirmedDate" /> */}
-      <Output name="remark" newLine colSpan={2} />
+      {/* <Output name="remark" newLine colSpan={2} /> */}
     </Form>
   );
 };

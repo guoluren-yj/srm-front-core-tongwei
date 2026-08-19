@@ -32,11 +32,11 @@ const BaseInfo: React.FC<any> = () => {
       <Output name="createdByName" />
       <Output name="creationDate" />
       <Output name="catalogStatusMeaning" />
-      {editorFlag ? (
+      {/* {editorFlag ? (
         <TextArea name="remark" resize={ResizeType.vertical} newLine colSpan={2} />
       ) : (
         <Output name="remark" newLine colSpan={2} />
-      )}
+      )} */}
     </Form>
   );
 };

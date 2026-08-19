@@ -1,6 +1,7 @@
 import React, { useImperativeHandle, useRef, useMemo, memo, useState, useEffect } from 'react';
 import { Table, Attachment, useDataSet } from 'choerodon-ui/pro';
 import { isEmpty, isEqual } from 'lodash';
+import { yesOrNoRender } from 'utils/renderer';
 
 import intl from 'utils/intl';
 import { PRIVATE_BUCKET } from '_utils/config';
@@ -55,59 +56,70 @@ const BidManagementAttachment = (props) => {
     () =>
       actionFrom === 'RELEASE'
         ? [
-            {
-              name: 'attachmentTypeMeaning',
+          {
+            name: 'attributeVarchar19',
+          },
+          {
+            name: 'attachmentTypeMeaning',
+          },
+          {
+            name: 'tempAttachmentUuid',
+            renderer: ({ record }) => {
+              const tempAttachmentUuid = record.get('tempAttachmentUuid');
+              if (!tempAttachmentUuid) return null;
+              return (
+                <Attachment
+                  record={record}
+                  name="tempAttachmentUuid"
+                  viewMode="popup"
+                  bucketName={PRIVATE_BUCKET}
+                  bucketDirectory="ssrc-template-requirement"
+                  labelLayout="float"
+                  readOnly
+                  previewTarget
+                  funcType="link"
+                >
+                  {intl.get('hzero.common.upload.view').d('查看附件')}
+                </Attachment>
+              );
             },
-            {
-              name: 'tempAttachmentUuid',
-              renderer: ({ record }) => {
-                const tempAttachmentUuid = record.get('tempAttachmentUuid');
-                if (!tempAttachmentUuid) return null;
-                return (
-                  <Attachment
-                    record={record}
-                    name="tempAttachmentUuid"
-                    viewMode="popup"
-                    bucketName={PRIVATE_BUCKET}
-                    bucketDirectory="ssrc-template-requirement"
-                    labelLayout="float"
-                    readOnly
-                    previewTarget
-                    funcType="link"
-                  >
-                    {intl.get('hzero.common.upload.view').d('查看附件')}
-                  </Attachment>
-                );
-              },
-            },
-            { name: 'remark' },
-            { name: 'attachmentUuid' },
-          ]
+          },
+          {
+            name: 'attributeVarchar1',
+            renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+          },
+          { name: 'remark' },
+          {
+            name: 'attributeLongtext10',
+          },
+          { name: 'attachmentUuid' },
+        ]
         : [
-            {
-              name: 'attributeVarchar19',
-              renderer: ({ value, record }) => {
-                const hideFlag = record.get('hideFlag');
-                if (hideFlag === '1' && value) {
-                  return value.replace(/./g, '*');
-                }
-                return value;
-              },
+          {
+            name: 'attributeVarchar19',
+            renderer: ({ value, record }) => {
+              const hideFlag = record.get('hideFlag');
+              if (hideFlag === '1' && value) {
+                return value.replace(/./g, '*');
+              }
+              return value;
             },
-            {
-              name: 'attachmentTypeMeaning',
-            },
-            {
-              name: 'attachmentUuid',
-            },
-            {
-              name: 'attributeLongtext1',
-            },
-            {
-              name: 'attributeLongtext10',
-              hidden: attachType !== 'PUR',
-            },
-          ],
+          },
+          {
+            name: 'attachmentTypeMeaning',
+          },
+          {
+            name: 'attachmentUuid',
+          },
+          {
+            name: 'attributeLongtext1',
+          },
+          { name: 'remark' },
+          {
+            name: 'attributeVarchar1',
+            renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+          },
+        ],
     []
   );
 

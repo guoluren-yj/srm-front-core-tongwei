@@ -9,6 +9,7 @@ import { PRIVATE_BUCKET } from '_utils/config';
 import { queryFileList } from 'services/api';
 import notification from 'utils/notification';
 import formatterCollections from 'utils/intl/formatterCollections';
+import { yesOrNoRender } from 'utils/renderer';
 
 import { fetchAttTemplateDataByAttType, generateAttTemplate } from '@/services/inquiryHallService';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
@@ -92,6 +93,10 @@ const BidManagementAttachment = (props) => {
   // table columns
   const columns = [
     {
+      name: 'attributeVarchar19',
+      editor: true,
+    },
+    {
       name: 'attachmentType',
       editor: (record) => {
         return (
@@ -143,7 +148,18 @@ const BidManagementAttachment = (props) => {
         return null;
       },
     },
-    { name: 'remark' },
+    {
+      name: 'attributeLongtext10',
+      editor: true,
+    },
+    {
+      name: 'attributeVarchar1',
+      renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+    },
+    {
+      name: 'remark',
+      editor: true,
+    },
     {
       header: intl.get('scux.bidAttachment.model.inquiryHall.attachmentEditor').d('文件编辑'),
       help: "附件上传完成后，请先进行保存再编辑。",
