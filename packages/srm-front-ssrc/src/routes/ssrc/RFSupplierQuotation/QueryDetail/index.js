@@ -757,7 +757,7 @@ const SupplierQueryNew = (props = {}) => {
                 id="cuxPurBidManagementAttachment"
                 title={intl
                   .get('scux.ssrc.view.message.twnf.bidPurManagementAttachment')
-                  .d('采购方附件列表')}
+                  .d('招标文件')}
                 bordered={false}
               >
                 <CuxPurBidManagementAttachment
@@ -772,7 +772,7 @@ const SupplierQueryNew = (props = {}) => {
                 id="cuxSupBidManagementAttachment"
                 title={intl
                   .get('scux.ssrc.view.message.twnf.bidSupManagementAttachment')
-                  .d('供应商投标附件')}
+                  .d('投标文件')}
                 bordered={false}
               >
                 <CuxPurBidManagementAttachment

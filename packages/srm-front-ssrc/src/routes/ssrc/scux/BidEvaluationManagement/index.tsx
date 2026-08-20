@@ -169,7 +169,7 @@ const Index: React.FC<any> = (props) => {
     };
 
     // 评标汇总页签显示-评标明细查看
-    if (tabKey === 'evaluationSummary') {
+    if (tabKey === 'evaluationSummary' && scoreStatus !== 'SUMMING') {
       buttons.push(
         <Button {...commonButtonsProps} onClick={() => handleEvaluationSummary({ record, type: 'viewSummary' })}>
           {intl.get('scux.bidEvaluationManagement.view.button.viewEvaluationProcess').d('评标进度查看')}

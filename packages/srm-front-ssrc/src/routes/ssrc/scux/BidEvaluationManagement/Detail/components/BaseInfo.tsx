@@ -43,7 +43,7 @@ const handleViewDocDetail = () => {
   // 折叠面板标题
   const panelHeader = useMemo(() => {
     return (
-      <span>
+      <span style={{fontWeight: "bold", fontSize: "16px"}}>
         <span>{`${rfxNum}-${rfxTitle}`}</span>
         <Button icon="feed" funcType={FuncType.flat} onClick={handleViewDocDetail}>{intl.get('scux.bidEvaluationManagement.view.title.viewDocDetail').d('查看单据详情')}</Button>
       </span>
@@ -52,7 +52,7 @@ const handleViewDocDetail = () => {
 
   return (
     <Collapse
-      defaultActiveKey={['baseInfo']}
+      defaultActiveKey={[]}
       expandIconPosition="text-right"
       ghost
     >

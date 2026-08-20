@@ -90,7 +90,12 @@ const SupplierListDetail = (props) => {
         name: 'invalidFlag',
         hidden: !scoreWay,
         width: 100,
-        renderer: ({ value }) => isNil(value) ? null : yesOrNoRender(value),
+        renderer: ({ value }) =>
+          isNil(value)
+            ? '-'
+            : value === true || value === '1' || value === 1
+            ? '无效'
+            : '有效',
       },
       {
         name: 'invalidReason',

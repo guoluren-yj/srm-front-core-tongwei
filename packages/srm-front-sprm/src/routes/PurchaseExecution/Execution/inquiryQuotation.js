@@ -109,7 +109,7 @@ export default class TransferInquiryQuotation extends Component {
   openModal = async ({ selectedList } = {}) => {
     const firstCategory = selectedList[0].attributeVarchar28;
     const ds = new DataSet(
-      templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL' }, { firstCategory })
+      templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' }, { firstCategory })
     );
     const { remote } = this.props;
     if (remote) {

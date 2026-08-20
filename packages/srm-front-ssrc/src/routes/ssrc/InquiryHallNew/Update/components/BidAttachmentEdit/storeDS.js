@@ -88,6 +88,10 @@ const attachmentDS = ({
         .d('附件模板'),
     },
     {
+      name: 'fileEdit',
+      label: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.fileEdit`).d('文件编辑'),
+    },
+    {
       name: 'attributeLongtext10',
       label: intl
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)

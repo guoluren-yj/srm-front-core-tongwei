@@ -71,9 +71,9 @@ const EvaluationExpert: React.FC = () => {
     {
       name: 'attributeVarchar1',
     },
-    {
-      name: 'scoredStatus',
-    },
+    // {
+    //   name: 'scoredStatus',
+    // },
     {
       header: intl.get('scux.bidEvaluationManagement.model.twnf.summary.stopEvaluation').d('中止评标'),
       renderer: ({ record }) => record?.get('scoredStatus') === 'NEW' ? (

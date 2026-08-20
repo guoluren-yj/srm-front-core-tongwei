@@ -149,19 +149,19 @@ const BidManagementAttachment = (props) => {
       },
     },
     {
-      name: 'attributeLongtext10',
-      editor: true,
+      name: 'attachmentUuid',
+      editor: (record) => (
+        <Attachment
+          record={record}
+          name="attachmentUuid"
+          viewMode="popup"
+          funcType="link"
+          beforeUpload={(attachment) => beforeUpload({ record, attachment })}
+        />
+      ),
     },
     {
-      name: 'attributeVarchar1',
-      renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
-    },
-    {
-      name: 'remark',
-      editor: true,
-    },
-    {
-      header: intl.get('scux.bidAttachment.model.inquiryHall.attachmentEditor').d('文件编辑'),
+      name: 'fileEdit',
       help: "附件上传完成后，请先进行保存再编辑。",
       renderer: ({ record }) => {
         const isNotSaved = record.status === 'add';
@@ -179,16 +179,16 @@ const BidManagementAttachment = (props) => {
       },
     },
     {
-      name: 'attachmentUuid',
-      editor: (record) => (
-        <Attachment
-          record={record}
-          name="attachmentUuid"
-          viewMode="popup"
-          funcType="link"
-          beforeUpload={(attachment) => beforeUpload({ record, attachment })}
-        />
-      ),
+      name: 'attributeLongtext10',
+      editor: true,
+    },
+    {
+      name: 'attributeVarchar1',
+      renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+    },
+    {
+      name: 'remark',
+      editor: true,
     },
   ];
 

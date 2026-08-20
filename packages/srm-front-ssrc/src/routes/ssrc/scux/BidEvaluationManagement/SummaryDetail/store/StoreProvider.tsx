@@ -111,6 +111,14 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       const headerRes = await evaluationHeaderDs.query();
       if (headerRes) {
         const { bidOpenList, expertList, supplierList } = headerRes;
+        // 通威二开 - 供应商列表无 priceBid 字段，从开标列表按供应商名称对照补上价格标状态
+        const priceBidMap = {};
+        (bidOpenList || []).forEach((item) => {
+          priceBidMap[item.supplierName] = item.priceBid;
+        });
+        (supplierList || []).forEach((item) => {
+          item.priceBid = priceBidMap[item.supplierCompanyName];
+        });
         evaluationExpertDs.loadData(expertList || []);
         evaluationSupplierDs.loadData(supplierList || []);
         bidOpeningListDs.loadData(bidOpenList || []);

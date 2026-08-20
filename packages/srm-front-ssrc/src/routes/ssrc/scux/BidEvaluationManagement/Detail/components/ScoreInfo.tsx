@@ -121,6 +121,12 @@ const EvaluationInfo: React.FC = () => {
 
   return (
     <div>
+      {evaluationItemsDs && (
+        <Table
+          dataSet={evaluationItemsDs}
+          columns={columns}
+        />
+      )}
       <div style={{ marginBottom: '24px' }}>
         <Form
           dataSet={evaluationHeaderDs}
@@ -133,12 +139,6 @@ const EvaluationInfo: React.FC = () => {
           {editorFlag ? <TextArea name="expertSuggestion" colSpan={2} newLine /> : <Output name="expertSuggestion" colSpan={2} newLine/>}
         </Form>
       </div>
-      {evaluationItemsDs && (
-        <Table
-          dataSet={evaluationItemsDs}
-          columns={columns}
-        />
-      )}
     </div>
   );
 };

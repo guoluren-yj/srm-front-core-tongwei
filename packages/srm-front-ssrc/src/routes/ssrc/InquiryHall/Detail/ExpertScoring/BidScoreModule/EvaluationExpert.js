@@ -15,9 +15,9 @@ const EvaluationExpert = (props) => {
       {
         name: 'attributeVarchar1',
       },
-      {
-        name: 'scoreStatus',
-      },
+      // {
+      //   name: 'scoreStatus',
+      // },
       {
         name: 'attributeLongtext1',
       },

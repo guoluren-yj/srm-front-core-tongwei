@@ -106,7 +106,8 @@ import {
 } from './QuickReply/store/enum';
 
 const initStatus = {
-  activeKey: 'onGoing',
+  // 通威二开 - 默认进入全部页签
+  activeKey: 'rfxAll',
   useRF: false,
 };
 
@@ -1150,36 +1151,17 @@ class Supplierquotation extends Component {
         this.openPretrialApplicationModal(record);
         break;
       case 'QUOTATION':
-        if (remoteHoc && remoteHoc.event) {
-          const flag = await remoteHoc.event.fireEvent('remoteCuxQuotationValidate', {
-            record,
-            operation,
-            onBeforeParticipate: this.onBeforeParticipate,
+        // 通威二开 - 已投标状态，点击投标需弹框确认是否修改投标
+        if (record.get('displayQuotationStatus') === 'QUOTED') {
+          return Modal.confirm({
+            title: intl.get('ssrc.common.message.confirm.title').d('提示'),
+            children: intl
+              .get('ssrc.supplierQuotation.view.message.confirmModifyBid')
+              .d('已投标，是否进行修改投标'),
+            onOk: () => this.handleQuotationOperate(record, operation),
           });
-          if (!flag) return false;
         }
-        if (record.get('prequalLineStatus') === 'NEW') {
-          notification.warning({
-            message: intl
-              .get('ssrc.supplierQuotation.view.message.notSubmitPre')
-              .d('预审申请未提交，不可报价'),
-          });
-        } else if (!this.bidFlag && record.get('bidBondFlag')) {
-          notification.warning({
-            message: serviceChargeFlag
-              ? intl
-                  .get('ssrc.common.view.errorOperateForQuotationBidFilePleaseConcatUsers')
-                  .d(
-                    '报价失败，失败原因是未缴纳保证金费，请及时缴纳。若已缴纳，请联系采购方人员及时确认'
-                  )
-              : intl
-                  .get('ssrc.common.view.errorOperateForQuotationBidFilePleaseConcat')
-                  .d('操作失败，失败原因是未缴纳保证金，请缴纳后联系采购方修改缴纳状态'),
-          });
-        } else {
-          this.directionQuotation(record, { quotationFlag: 1 });
-        }
-        break;
+        return this.handleQuotationOperate(record, operation);
       case 'ESTIMATED': {
         if (record.get('bidBondFlag')) {
           return notification.warning({
@@ -1236,6 +1218,42 @@ class Supplierquotation extends Component {
           });
         }
         break;
+    }
+  }
+
+  // 通威二开 - 投标/报价操作：已投标确认弹框确定后走这里的后续逻辑
+  async handleQuotationOperate(record, operation) {
+    const { remoteHoc } = this.props;
+    const { serviceChargeFlag = false } = this.state;
+
+    if (remoteHoc && remoteHoc.event) {
+      const flag = await remoteHoc.event.fireEvent('remoteCuxQuotationValidate', {
+        record,
+        operation,
+        onBeforeParticipate: this.onBeforeParticipate,
+      });
+      if (!flag) return false;
+    }
+    if (record.get('prequalLineStatus') === 'NEW') {
+      notification.warning({
+        message: intl
+          .get('ssrc.supplierQuotation.view.message.notSubmitPre')
+          .d('预审申请未提交，不可报价'),
+      });
+    } else if (!this.bidFlag && record.get('bidBondFlag')) {
+      notification.warning({
+        message: serviceChargeFlag
+          ? intl
+              .get('ssrc.common.view.errorOperateForQuotationBidFilePleaseConcatUsers')
+              .d(
+                '报价失败，失败原因是未缴纳保证金费，请及时缴纳。若已缴纳，请联系采购方人员及时确认'
+              )
+          : intl
+              .get('ssrc.common.view.errorOperateForQuotationBidFilePleaseConcat')
+              .d('操作失败，失败原因是未缴纳保证金，请缴纳后联系采购方修改缴纳状态'),
+      });
+    } else {
+      this.directionQuotation(record, { quotationFlag: 1 });
     }
   }
 

@@ -167,11 +167,11 @@ export const evaluationExpertDataSet = (): DataSetProps => {
         label: intl.get(`${prefix}.model.twnf.summary.expertCategory`).d('评分类别'),
         lookupCode: 'SCUX.TWNF_BID_EXPERT_TEAM',
       },
-      {
-        name: 'scoredStatus',
-        label: intl.get(`${prefix}.model.twnf.summary.scoreStatus`).d('评分状态'),
-        lookupCode: 'SSRC.BID_EVALUATE_STATUS',
-      },
+      // {
+      //   name: 'scoredStatus',
+      //   label: intl.get(`${prefix}.model.twnf.summary.scoreStatus`).d('评分状态'),
+      //   lookupCode: 'SSRC.BID_EVALUATE_STATUS',
+      // },
       {
         name: 'attributeLongtext1',
         label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),

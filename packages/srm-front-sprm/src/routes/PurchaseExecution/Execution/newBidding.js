@@ -113,7 +113,7 @@ export default class TransferNewBidding extends Component {
   openModal = () => {
     const ds = new DataSet(
       templateModalDs(
-        { config: 'RFX', sourceFrom: 'DEMAND_POOL' },
+        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' },
         { secondarySourceCategory: 'NEW_BID' }
       )
     );

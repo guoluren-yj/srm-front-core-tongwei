@@ -62,19 +62,23 @@ const SupplierList: React.FC = () => {
     {
       name: 'qtnTotalAmount',
       width: 100,
+      renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
     },
     {
       name: 'bidDetail',
       header: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
-      renderer: ({ record }) => (
-        <Button
-          funcType={FuncType.link}
-          wait={1200}
-          onClick={() => directorQuotationDetail(record)}
-        >
-          {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
-        </Button>
-      ),
+      renderer: ({ record }) =>
+        record?.get('priceBid') === '已开启' ? (
+          <Button
+            funcType={FuncType.link}
+            wait={1200}
+            onClick={() => directorQuotationDetail(record)}
+          >
+            {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
+          </Button>
+        ) : (
+          '-'
+        ),
     },
     {
       name: 'evaluationDetail',

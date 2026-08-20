@@ -329,7 +329,7 @@ const inquiryQuotationDs = ({ initCuxTablePageSize }) => ({
   },
 });
 
-const templateModalDs = ({ config, sourceFrom }, newBidParams = {}) => {
+const templateModalDs = ({ config, sourceFrom, lovCode }, newBidParams = {}) => {
   return {
     autoCreate: true,
     fields: [
@@ -338,7 +338,7 @@ const templateModalDs = ({ config, sourceFrom }, newBidParams = {}) => {
         type: 'object',
         label: intl.get(`ssrc.inquiryHall.model.inquiryHall.sourcingTemplate`).d('寻源模板'),
         required: true,
-        lovCode: 'SCUX_TWNF_PROJECT_TEMPLATE',
+        lovCode: lovCode || 'SCUX_TWNF_PROJECT_TEMPLATE',
         lovPara: {
           sourceCategory: config,
           organizationId,

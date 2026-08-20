@@ -9,7 +9,6 @@ import { isNil } from 'lodash';
 
 import intl from 'utils/intl';
 import { openTab } from 'utils/menuTab';
-import { yesOrNoRender } from 'hzero-front/lib/utils/renderer';
 
 import FileTemplateAttachmentCheckPricePage from '@/routes/components/FileTemplateAttachmentCheckPricePage';
 import useIPDetailModal from '@/routes/components/IPDetails';
@@ -85,7 +84,12 @@ const SupplierList: React.FC = observer(() => {
         name: 'invalidFlag',
         hidden: !scoreWay,
         width: 100,
-        renderer: ({ value }) => isNil(value) ? null : yesOrNoRender(value),
+        renderer: ({ value }) =>
+          isNil(value)
+            ? '-'
+            : value === true || value === '1' || value === 1
+            ? '无效'
+            : '有效',
       },
       {
         name: 'invalidReason',

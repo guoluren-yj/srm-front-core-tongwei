@@ -21,6 +21,10 @@ import {
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
 import TechnicalSummary from './TechnicalSummary';
+import BidPriceComparison from '@/routes/ssrc/components/PriceComparison/BidIndex';
+
+// 类型断言，解决组件 Props 类型缺失导致的报错
+const TypedBidPriceComparison = BidPriceComparison as React.ComponentType<any>;
 
 const PageHeader: React.FC<any> = () => {
   const {
@@ -41,8 +45,8 @@ const PageHeader: React.FC<any> = () => {
   const [expertModalVisible, setExpertModalVisible] = useState(false);
   const [subAccountVisible, setSubAccountVisible] = useState(false);
 
-  const { expertSource, rfxHeaderId, bargainOfflineFlag, sourceType, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag, techLeader } = useObserver(() =>
-    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'bargainOfflineFlag', 'sourceType', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag', 'techLeader']) || {}
+  const { expertSource, rfxHeaderId, bargainOfflineFlag, sourceType, evaluateExpertId, scoreTeam, quotationHeaderId, evaluateLeaderFlag, techLeader, biddingTarget, diyLadderQuotationFlag } = useObserver(() =>
+    evaluationHeaderDs?.current?.get(['expertSource', 'rfxHeaderId', 'bargainOfflineFlag', 'sourceType', 'evaluateExpertId', 'scoreTeam', 'quotationHeaderId', 'evaluateLeaderFlag', 'techLeader', 'biddingTarget', 'diyLadderQuotationFlag']) || {}
   );
 
 
@@ -161,6 +165,27 @@ const PageHeader: React.FC<any> = () => {
     });
   };
 
+  // 比价助手
+  const handleOpenPriceAssistant = () => {
+    const priceComparisonProps = {
+      biddingTarget,
+      rfxId: rfxHeaderId,
+      sourceCategory: 'RFQ',
+      diyLadderQuotationFlag,
+      history,
+    };
+    Modal.open({
+      destroyOnClose: true,
+      closable: true,
+      key: Modal.key(),
+      title: intl.get('ssrc.inquiryHall.view.message.button.priceAssistant').d('比价助手'),
+      children: <TypedBidPriceComparison {...priceComparisonProps} />,
+      drawer: true,
+      footer: null,
+      style: { width: '80%' },
+    });
+  };
+
   // 跳转到商务谈判
   const handleBusinessNegotiate = async () => {
     if (!quotationHeaderId || !rfxHeaderId) return;
@@ -195,6 +220,11 @@ const PageHeader: React.FC<any> = () => {
       <Button icon="transfer" wait={1000} onClick={() => operateTransferModal(true)} disabled={pageLoading}>
         {intl.get(`ssrc.inquiryHall.view.message.button.transfer`).d('转交')}
       </Button>,
+      scoreTeam === 'PRICE' && (
+        <Button wait={1000} disabled={pageLoading} onClick={handleOpenPriceAssistant}>
+          {intl.get(`ssrc.inquiryHall.view.message.button.priceAssistant`).d('比价助手')}
+        </Button>
+      ),
       scoreTeam === 'PRICE' && Number(evaluateLeaderFlag) === 1 && (
         <Button wait={1000} disabled={pageLoading} onClick={handleBusinessNegotiate}>
           {intl.get(`${prefix}.view.button.businessNegotiate`).d('商务谈判')}
