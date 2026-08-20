@@ -254,8 +254,11 @@ const handleBusinessStandard = useCallback(() => {
   }, [basicInfoDs]);
 
   const handleSubmit = useCallback(async () => {
-    const ok = await basicInfoDs?.current?.validate(true);
-    if (!ok) {
+    const ok = await Promise.all([
+      basicInfoDs?.current?.validate(true),
+      supplierListDs.validate(),
+    ]);
+    if (!ok.every(Boolean)) {
       return;
     }
     Modal.confirm({
@@ -296,12 +299,12 @@ const handleBusinessStandard = useCallback(() => {
             child: intl.get('hzero.common.button.submit').d('提交'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmit },
           },
-          {
-            name: 'submitReview',
-            hidden: type !== 'pendingReview',
-            child: intl.get('hzero.common.button.submitReview').d('提交评审'),
-            btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmitReview },
-          },
+          // {
+          //   name: 'submitReview',
+          //   hidden: type !== 'pendingReview',
+          //   child: intl.get('hzero.common.button.submitReview').d('提交评审'),
+          //   btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmitReview },
+          // },
           {
             name: 'publish',
             hidden: !!readOnly,

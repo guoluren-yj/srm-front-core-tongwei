@@ -52,33 +52,41 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'roe', width: 130 },
   ];
 
-  const infoButtons = isReadOnly ? [] : [TableButtonType.add, TableButtonType.delete];
+  const infoButtons = isReadOnly ? [] : [
+    TableButtonType.add,
+    TableButtonType.delete,
+    <Button key="save" color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+      {intl.get('hzero.common.button.save').d('保存')}
+    </Button>,
+  ];
 
   const resultFields = [
     { name: 'financeAvgLiabilityRatio', _type: 'NumberField', disabled: true },
     { name: 'financeAvgRevenueRatio', _type: 'NumberField', disabled: true },
     { name: 'empty', _type: 'empty' },
     { name: 'financeReviewResult', _type: 'Select' },
-    { name: 'financeReviewDesc', _type: 'TextArea', colSpan: 2 },
+    { name: 'financeReviewDesc', _type: 'TextArea', colSpan: 3, newLine: true },
     // { name: 'financeSubmitUserName', _type: 'TextField', disabled: true },
     // { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
-    const valid = await Promise.all([
-      infoDs.validate(),
-      resultDs.validate(),
-    ]);
-    if (!valid.every(Boolean)) {
-      return false;
+    if (submitFlag) {
+      const valid = await Promise.all([
+        infoDs.validate(),
+        resultDs.validate(),
+      ]);
+      if (!valid.every(Boolean)) {
+        return false;
+      }
+      if (infoDs.length === 0) {
+        notification.warning({
+          message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
+        });
+        return false;
+      }
     }
-    if (infoDs.length === 0) {
-      notification.warning({
-        message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
-      });
-      return false;
-    }
-    const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { nominationHeaderId, nominationSupLineId, ...resultDs.current?.toJSONData(), financeReviewLineList: infoDs.toData(), children: null  } }, !!submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
+    const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { nominationHeaderId, nominationSupLineId, ...resultDs.current?.toJSONData(), financeReviewLineList: infoDs.toData(), children: null  } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
@@ -96,7 +104,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     drawer: true,
     title,
     style: { width: 1080 },
-    closeable: true,
+    closable: true,
     children: (
       <div className={styles['detail-container']}>
         <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['reviewInfo', 'reviewResult']}>
@@ -125,19 +133,21 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
         </Collapse>
       </div>
     ),
-    footer: (_, closeBtn: any) => (
-      <div>
+    footer: () => (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         {!isReadOnly && (
-          <>
-            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
-              {intl.get('hzero.common.button.save').d('保存')}
-            </Button> */}
-            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
-              {intl.get('hzero.common.button.submit').d('提交')}
-            </Button>
-          </>
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
+            {intl.get('hzero.common.button.save').d('保存')}
+          </Button>
         )}
-        {closeBtn}
+        {!isReadOnly && (
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
+            {intl.get('hzero.common.button.submit').d('提交')}
+          </Button>
+        )}
+        <Button onClick={() => modal.close()}>
+          {intl.get('hzero.common.button.close').d('关闭')}
+        </Button>
       </div>
     ),
     destroyOnClose: true,

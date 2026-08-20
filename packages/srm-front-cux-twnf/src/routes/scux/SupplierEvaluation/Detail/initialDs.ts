@@ -77,7 +77,7 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
   primaryKey: 'nominationSupLineId',
   fields: [
     { name: 'seqNum', type: FieldType.number, label: intl.get(`${prefix}.field.seqNum`).d('序号') },
-    { name: 'isSelected', type: FieldType.string, label: intl.get(`${prefix}.field.isSelected`).d('是否入围') },
+    { name: 'isSelected', type: FieldType.string, lookupCode: 'HPFM.FLAG.NEW', label: intl.get(`${prefix}.field.isSelected`).d('是否入围'), required: type === 'submit' },
     { name: 'supplierCompanyNum', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCode`).d('供应商编码') },
     { name: 'supplierCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCompanyName`).d('供应商名称') },
     { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.stageDescription`).d('生命周期') },
@@ -491,6 +491,7 @@ fields: [
 // 技术评审案例表格数据集
 export const technicalReviewCaseDS = (nominationHeaderId, nominationSupLineId): DataSetProps => ({
   autoQuery: !!nominationHeaderId,
+  forceValidate: true,
   paging: false,
   primaryKey: 'technologyReviewLineId',
   dataToJSON: DataToJSON.all,
@@ -535,6 +536,7 @@ export const technicalReviewCaseDS = (nominationHeaderId, nominationSupLineId): 
 // 技术评审表单数据集
 export const technicalReviewFormDS = (nominationHeaderId, nominationSupLineId): DataSetProps => ({
   autoQuery: false,
+  forceValidate: true,
   autoCreate: true,
   paging: false,
   fields: [
@@ -583,6 +585,7 @@ export const technicalReviewFormDS = (nominationHeaderId, nominationSupLineId): 
 // 商务评审供应商信息数据集
 export const businessReviewDS = (nominationHeaderId, nominationSupLineId, record): DataSetProps => ({
   autoQuery: false,
+  forceValidate: true,
   paging: false,
   fields: [
     { name: 'supplierCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.supplierName`).d('供应商名称') },
@@ -644,6 +647,7 @@ export const businessReviewDS = (nominationHeaderId, nominationSupLineId, record
 // 财务评审信息表格数据集
 export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): DataSetProps => ({
   autoQuery: false,
+  forceValidate: true,
   paging: false,
   selection: DataSetSelection.multiple,
   primaryKey: 'financeReviewLineId',
@@ -720,6 +724,7 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
 // 财务评审结果数据集
 export const financeReviewResultDS = (nominationHeaderId, nominationSupLineId): DataSetProps => ({
   autoQuery: false,
+  forceValidate: true,
   autoCreate: true,
   paging: false,
   fields: [

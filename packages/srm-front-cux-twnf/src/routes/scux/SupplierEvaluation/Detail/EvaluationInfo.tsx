@@ -31,11 +31,11 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'bidDirectorName', _type: 'TextField', disabled: true, label: '入围负责人' },
       { name: 'financePersonLov', _type: 'Lov', disabled: readOnly },
       { name: 'supManagerPersonLov', _type: 'Lov', disabled: readOnly },
-      { name: 'functionalHeadUserLov', _type: 'Lov', disabled: readOnly },
+      type === 'submit' && { name: 'functionalHeadUserLov', _type: 'Lov' },
       { name: 'positionLov', _type: 'Lov', disabled: readOnly },
       { name: 'caseRequirementCount', _type: 'NumberField', disabled: readOnly },
-      { name: 'warrantyPolicy', _type: 'TextArea', colSpan: 3, newLine: true, disabled: readOnly },
-      showApprovalNote && { name: 'submitDesc', _type: 'TextArea', disabled: type !== 'submit', required: type === 'submit', colSpan: 3 },
+      { name: 'warrantyPolicy', _type: 'TextField', disabled: readOnly },
+      showApprovalNote && { name: 'submitDesc', newLine: true, _type: 'TextArea', disabled: type !== 'submit', required: type === 'submit', colSpan: 3 },
       isView && { name: 'fbcNumber', _type: 'TextField', disabled: true, colSpan: 1,
         renderer: ({ value, dataSet: ds }: any) => {
           const url = ds?.current?.get('fbcUrl');
@@ -44,7 +44,7 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
         },
       },
       isView && { name: 'fbcUrl', _type: 'TextField', disabled: true },
-      { name: 'nominationAttachmentUuid', disabled: readOnly, _type: 'Attachment', colSpan: 3 },
+      { name: 'nominationAttachmentUuid', newLine: true, disabled: readOnly, _type: 'Attachment', colSpan: 3 },
     ].filter(Boolean);
     return baseFields;
   }, [readOnly, showApprovalNote, isView, type]);

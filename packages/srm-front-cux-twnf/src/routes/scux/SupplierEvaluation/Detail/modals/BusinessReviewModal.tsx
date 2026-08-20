@@ -51,20 +51,26 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
   ];
 
   const reviewInfoFields = [
-    { name: 'businessReviewResult', _type: 'Select' },
     { name: 'businessQualificationReview', _type: 'TextArea' },
     { name: 'businessCreditLawReview', _type: 'TextArea' },
     { name: 'businessLegalAction', _type: 'TextArea' },
     { name: 'businessOtherSituations', _type: 'TextArea' },
     { name: 'businessReviewDesc', _type: 'TextArea' },
+    { name: 'businessReviewResult', _type: 'Select' },
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
-    const valid = await reviewInfoDs.validate();
-    if (!valid) {
-      return false;
+    if (submitFlag) {
+      // 无当前记录时 validate() 会因空数据集直接返回 true，先 create 再校验
+      if (!reviewInfoDs.current) {
+        reviewInfoDs.create({});
+      }
+      const valid = await reviewInfoDs.validate();
+      if (!valid) {
+        return false;
+      }
     }
-    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, !!submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
+    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
@@ -81,7 +87,7 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     drawer: true,
     title,
     style: { width: 1080 },
-    closeable: true,
+    closable: true,
     children: (
       <div className={styles['detail-container']}>
       <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['supplierInfo', 'reviewInfo']}>
@@ -104,19 +110,21 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
       </Collapse>
       </div>
     ),
-    footer: (_, closeBtn: any) => (
-      <div>
+    footer: () => (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         {!isReadOnly && (
-          <>
-            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
-              {intl.get('hzero.common.button.save').d('保存')}
-            </Button> */}
-            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
-              {intl.get('hzero.common.button.submit').d('提交')}
-            </Button>
-          </>
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
+            {intl.get('hzero.common.button.save').d('保存')}
+          </Button>
         )}
-        {closeBtn}
+        {!isReadOnly && (
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
+            {intl.get('hzero.common.button.submit').d('提交')}
+          </Button>
+        )}
+        <Button onClick={() => modal.close()}>
+          {intl.get('hzero.common.button.close').d('关闭')}
+        </Button>
       </div>
     ),
     destroyOnClose: true,

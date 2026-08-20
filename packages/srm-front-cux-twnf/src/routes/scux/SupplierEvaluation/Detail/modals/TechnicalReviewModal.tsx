@@ -102,20 +102,22 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
-    const valid = await Promise.all([
-      caseDs.validate(),
-      formDs.validate(),
-    ]);
-    if (!valid.every(Boolean)) {
-      return false;
+    if (submitFlag) {
+      const valid = await Promise.all([
+        caseDs.validate(),
+        formDs.validate(),
+      ]);
+      if (!valid.every(Boolean)) {
+        return false;
+      }
+      if (caseDs.length <= 1) {
+        notification.warning({
+          message: intl.get(`${prefix}.message.techReviewInfoRequired`).d('请维护技术评审信息（至少两行，可添加多行）'),
+        });
+        return false;
+      }
     }
-    if (caseDs.length === 0) {
-      notification.warning({
-        message: intl.get(`${prefix}.message.techReviewInfoRequired`).d('技术评审信息有且必须维护一行'),
-      });
-      return false;
-    }
-    const res = await supplierEvaluationDetailPostApi({ technologyReviewInfo: { nominationHeaderId, nominationSupLineId, ...formDs.current?.toJSONData(), techReviewLineList: caseDs.toData(), } }, !!submitFlag ? 'TECH_REVIEW_SUBMIT' : 'TECH_REVIEW_SAVE');
+    const res = await supplierEvaluationDetailPostApi({ technologyReviewInfo: { nominationHeaderId, nominationSupLineId, ...formDs.current?.toJSONData(), techReviewLineList: caseDs.toData(), } }, submitFlag ? 'TECH_REVIEW_SUBMIT' : 'TECH_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
@@ -133,7 +135,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
     drawer: true,
     title,
     style: { width: 1080 },
-    closeable: true,
+    closable: true,
     children: (
       <div className={styles['detail-container']}>
       <Collapse trigger="text-icon" ghost expandIconPosition="text-right" defaultActiveKey={['basicInfo', 'reviewInfo', 'technicalReviewInfo', 'reviewResult']}>
@@ -157,7 +159,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
           <Alert
             type="info"
             showIcon
-            message={intl.get(`${prefix}.tip.techReviewInfo`).d('技术评审信息有且必须维护一行')}
+            message={intl.get(`${prefix}.tip.techReviewInfo`).d('请维护技术评审信息（至少两行，可添加多行）')}
             style={{ marginBottom: 8 }}
           />
           <Table
@@ -172,7 +174,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
               <div className={styles['review-card-title']}>{card.title}</div>
               <FormPro
                 dataSet={formDs}
-                columns={2}
+                columns={3}
                 fields={[
                   { name: card.meet, _type: 'Select' },
                   { name: card.desc, _type: 'TextField' },
@@ -210,19 +212,21 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
       </Collapse>
       </div>
     ),
-    footer: (_, closeBtn: any) => (
-      <div>
+    footer: () => (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         {!isReadOnly && (
-          <>
-            {/* <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
-              {intl.get('hzero.common.button.save').d('保存')}
-            </Button> */}
-            <Button color={ButtonColor.primary} onClick={() => handleSaveOrSubmit(true)}>
-              {intl.get('hzero.common.button.submit').d('提交')}
-            </Button>
-          </>
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
+            {intl.get('hzero.common.button.save').d('保存')}
+          </Button>
         )}
-        {closeBtn}
+        {!isReadOnly && (
+          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
+            {intl.get('hzero.common.button.submit').d('提交')}
+          </Button>
+        )}
+        <Button onClick={() => modal.close()}>
+          {intl.get('hzero.common.button.close').d('关闭')}
+        </Button>
         {/* <OperationRecordCux
           btnType="button"
           method="POST"

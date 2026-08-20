@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { DataSet, Tabs, Button } from 'choerodon-ui/pro';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import { DataSet, Button } from 'choerodon-ui/pro';
 
 import { Header, Content } from 'hzero-front/lib/components/Page';
 import intl from 'hzero-front/lib/utils/intl';
@@ -11,11 +11,9 @@ import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { downloadFileByAxios } from 'hzero-front/lib/services/api';
 import { filterNullValueObject, getCurrentUserId, getResponse } from 'hzero-front/lib/utils/utils';
 
-import { TABS, tableDs, prefix, getTabValue, TabKeyType } from './initialDs';
+import { tableDs, prefix, getTabValue } from './initialDs';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { supplierEvaluationPostApi } from '../../../../services/scux/supplierEvaluationServices';
-
-const { TabPane } = Tabs;
 
 const handleToTenderDetail = (history: any, record: any) => {
   history.push({
@@ -71,13 +69,9 @@ const handleToSubmit = (history: any, record: any) => {
 };
 
 const SupplierEvaluationList = ({ history, location }: any) => {
-  // 跳转时 URL 携带 sourceProjectNum，默认展示"全部"页签
+  // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
   const { sourceProjectNum } = parse((location?.search || '').replace(/^\?/, ''));
-  const [tabKey, setTabKey] = useState<TabKeyType>(sourceProjectNum ? 'ALL' : 'EVALUATE');
-  const dsList = useMemo(() => TABS.map(t => new DataSet(tableDs(t.key))), []);
-
-  const dsMap = useMemo(() => Object.fromEntries(TABS.map((t, i) => [t.key, dsList[i]])), [dsList]);
-  const tableDS = useMemo(() => dsMap[tabKey], [dsMap, tabKey]);
+  const tableDS = useMemo(() => new DataSet(tableDs('ALL')), []);
 
   useEffect(() => {
     setTimeout(()=>{
@@ -128,102 +122,80 @@ const SupplierEvaluationList = ({ history, location }: any) => {
       return <span>{value}</span>;
     };
 
-    if (tabKey === 'EVALUATE') {
-      return [
-        { name: 'nominationStatusMeaning', width: 80 },
-        {
-          name: 'action',
-          title: intl.get(`${prefix}.field.action`).d('操作'),
-          align: 'center',
-          width: 200,
-          renderer: ({ record }: any) => {
-            const isChanging = record.get('nominationStatus') === 'CHANGING';
-            return (
-              <>
-                {isChanging && (
-                  <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
-                    {intl.get(`${prefix}.button.change`).d('变更')}
-                  </Button>
-                )}
-                <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
-                  {intl.get(`${prefix}.button.review`).d('评审')}
-                </Button>
-              </>
-            );
-          },
-        },
-        { name: 'nominationNum', width: 160, renderer: renderNominationNum },
-        { name: 'sourceProjectNum', width: 160, renderer: renderSourceProjectNum },
-        { name: 'sourceProjectName', width: 200 },
-        { name: 'companyName', width: 150 },
-        { name: 'templateName', width: 150 },
-        { name: 'bidDirectorName', width: 120 },
-        { name: 'createdByName', width: 120 },
-        { name: 'creationDate', width: 150 },
-      ];
-    }
-
-  // 全部 t：根据状态显示不同操作按钮
+    // 全部 t：根据状态显示不同操作按钮
     const currentUserId = getCurrentUserId();
 
     const renderAction = ({ record }: any) => {
       const isBidDirector = String(record.get('createdBy')) === String(currentUserId);
+      // 评审人员：技术/商务/财务任一评审权限标记为 1（与详情页一致）
+      const isReviewer = +record.get('technologyUserFlag') === 1
+        || +record.get('businessUserFlag') === 1
+        || +record.get('financeUserFlag') === 1;
       const status = record.get('nominationStatus');
+      const buttons: any[] = [];
 
       // 新建 → 编辑（仅入围负责人）
       if (status === 'NEW' && isBidDirector) {
-        return (
+        buttons.push(
           <Button funcType={FuncType.flat} onClick={() => handleToShortlistEdit(history, record)}>
             {intl.get(`${prefix}.button.edit`).d('编辑')}
           </Button>
         );
       }
 
-      // 待评审 / 变更中 → 变更（入围负责人）/ 评审（评审人员，满足任一角色）
+      // 待评审 → 变更（入围负责人）/ 评审（评审人员）；变更中 → 仅变更（入围负责人）
       if (status === 'PENDING_REVIEW' || status === 'CHANGING') {
-        const isReviewer = record.get('technologyUserFlag') === '1'
-          || record.get('businessUserFlag') === '1'
-          || record.get('financeUserFlag') === '1';
-        return (
-          <>
-            {isBidDirector && (
-              <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
-                {intl.get(`${prefix}.button.change`).d('变更')}
-              </Button>
-            )}
-            {isReviewer && (
-              <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
-                {intl.get(`${prefix}.button.review`).d('评审')}
-              </Button>
-            )}
-          </>
-        ) || null;
-      }
-
-      // 待发布 → 提交 / 变更（仅入围负责人）
-      if (status === 'TO_BE_RELEASED' && isBidDirector) {
-        return (
-          <>
-            <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
-              {intl.get('hzero.common.button.submit').d('提交')}
-            </Button>
+        if (isBidDirector) {
+          buttons.push(
             <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
               {intl.get(`${prefix}.button.change`).d('变更')}
             </Button>
-          </>
-        );
+          );
+        }
+        if (status === 'PENDING_REVIEW' && isReviewer) {
+          buttons.push(
+            <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
+              {intl.get(`${prefix}.button.review`).d('评审')}
+            </Button>
+          );
+        }
+      }
+
+      // 待发布/待提交 → 修改（评审人员）/ 提交 / 变更（仅入围负责人）
+      if (status === 'TO_BE_RELEASED') {
+        if (isReviewer) {
+          buttons.push(
+            <Button funcType={FuncType.flat} onClick={() => handleToEdit(history, record)}>
+              {intl.get(`${prefix}.button.modify`).d('修改')}
+            </Button>
+          );
+        }
+        if (isBidDirector) {
+          buttons.push(
+            <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
+              {intl.get('hzero.common.button.submit').d('提交')}
+            </Button>,
+            <Button funcType={FuncType.flat} onClick={() => handleToChange(history, record)}>
+              {intl.get(`${prefix}.button.change`).d('变更')}
+            </Button>
+          );
+        }
       }
 
       // 审批拒绝 → 提交（仅入围负责人）
       if (status === 'REJECTED' && isBidDirector) {
-        return (
+        buttons.push(
           <Button funcType={FuncType.flat} onClick={() => handleToSubmit(history, record)}>
             {intl.get('hzero.common.button.submit').d('提交')}
           </Button>
         );
       }
 
-      return null;
+      // 无任何按钮时展示 -
+      if (buttons.length === 0) {
+        return '-';
+      }
+      return <>{buttons}</>;
     };
 
     return [
@@ -231,7 +203,7 @@ const SupplierEvaluationList = ({ history, location }: any) => {
       {
         name: 'action',
         title: intl.get(`${prefix}.field.action`).d('操作'),
-        width: 200,
+        width: 210,
         align: 'center',
         renderer: renderAction,
       },
@@ -251,7 +223,7 @@ const SupplierEvaluationList = ({ history, location }: any) => {
       { name: 'reviewType', width: 120 },
       { name: 'creationDate', width: 150 },
     ];
-  }, [tabKey, history, intl, prefix]);
+  }, [history, intl, prefix]);
 
   const getQueryData = useCallback(() => {
     const queryData = tableDS?.queryDataSet?.current?.toData() || {};
@@ -259,10 +231,10 @@ const SupplierEvaluationList = ({ history, location }: any) => {
   }, [tableDS]);
 
   const getSelectedKeys = useCallback(() => {
-    const key = getTabValue(tabKey, 'primaryKey');
+    const key = getTabValue('ALL', 'primaryKey');
     if (!key) return {};
     return { [`${key}s`]: tableDS.selected.map((r: any) => r.get(key)) };
-  }, [tabKey, tableDS]);
+  }, [tableDS]);
 
   const handleExport = useCallback(() => {
     let data = {};
@@ -271,33 +243,29 @@ const SupplierEvaluationList = ({ history, location }: any) => {
     } else {
       data = getQueryData();
     }
-    const exportUrl = getTabValue(tabKey, 'exportUrl');
+    const exportUrl = getTabValue('ALL', 'exportUrl');
     downloadFileByAxios({
       requestUrl: exportUrl,
       method: 'POST',
       queryData: data,
     });
-  }, [tableDS, tabKey]);
+  }, [tableDS]);
 
   const getButtonConfigs = (selected: any[]) => {
-    const buttonConfigs = {
-      ALL: [
-        {
-          name: 'newExport',
-          child: selected.length === 0
-            ? intl.get('hzero.common.button.newExport').d('(新)导出')
-            : intl.get('hzero.common.button.newSelectedExport').d('(新)勾选导出'),
-          btnProps: {
-            type: 'c7n-pro',
-            funcType: 'flat',
-            icon: 'unarchive',
-            onClick: () => handleExport(),
-          },
+    return [
+      {
+        name: 'newExport',
+        child: selected.length === 0
+          ? intl.get('hzero.common.button.newExport').d('(新)导出')
+          : intl.get('hzero.common.button.newSelectedExport').d('(新)勾选导出'),
+        btnProps: {
+          type: 'c7n-pro',
+          funcType: 'flat',
+          icon: 'unarchive',
+          onClick: () => handleExport(),
         },
-      ],
-    };
-
-    return buttonConfigs[tabKey] || [];
+      },
+    ];
   };
 
   const HeaderButtons = useMemo(
@@ -308,7 +276,7 @@ const SupplierEvaluationList = ({ history, location }: any) => {
 
         return <DynamicButtons buttons={buttons} maxNum={5} defaultBtnType="c7n-pro" />;
       }),
-    [tabKey, history, intl]
+    [history, intl]
   );
 
   return (
@@ -317,34 +285,21 @@ const SupplierEvaluationList = ({ history, location }: any) => {
         <HeaderButtons dataSet={tableDS} />
       </Header>
       <Content>
-        <Tabs
-          animated={false}
-          activeKey={tabKey}
-          onChange={(key: any) => {
-            setTabKey(key);
-            dsMap[key].query(dsMap[key].currentPage);
-          }}
-        >
-          {TABS.map(t => (
-            <TabPane key={t.key} tab={t.name}>
-              <div style={{ height: 'calc(100vh - 242px)' }}>
-                <FilterBarTable
-                  virtual
-                  virtualCell
-                  columns={columns as any}
-                  dataSet={dsMap[t.key] as any}
-                  style={{ maxHeight: 'calc(100% - 22px)' }}
-                  customizable
-                  customizedCode={t.customizedCode}
-                  searchCode={t.searchCode}
-                  filterBarConfig={{
-                    autoQuery: false,
-                  }}
-                />
-              </div>
-            </TabPane>
-          ))}
-        </Tabs>
+        <div style={{ height: 'calc(100vh - 242px)' }}>
+          <FilterBarTable
+            virtual
+            virtualCell
+            columns={columns as any}
+            dataSet={tableDS as any}
+            style={{ maxHeight: 'calc(100% - 22px)' }}
+            customizable
+            customizedCode={getTabValue('ALL', 'customizedCode')}
+            searchCode={getTabValue('ALL', 'searchCode')}
+            filterBarConfig={{
+              autoQuery: false,
+            }}
+          />
+        </div>
       </Content>
     </>
   );

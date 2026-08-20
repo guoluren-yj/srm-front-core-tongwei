@@ -116,7 +116,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
 
   const columns = [
     { name: 'seqNum', width: 80 },
-    !isNew && { name: 'isSelected', width: 100 },
+    type === 'submit' && { name: 'isSelected', width: 100, editor: true },
     {
       name: 'supplierCompanyNum',
       width: 150,
@@ -199,7 +199,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       name: 'action',
       header: intl.get(`${prefix}.button.operation`).d('操作'),
       width: btnCount * 90,
-      lock: 'right',
+      lock: 'left',
       align: 'center',
       renderer: ({ record }) => (
         <>

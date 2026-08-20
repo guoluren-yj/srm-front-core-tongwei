@@ -21,17 +21,17 @@ export const TABS: Array<{
   searchCode: string;
   queryData: object
 }> = [
-    {
-      key: 'EVALUATE',
-      name: intl.get(`${prefix}.tab.evaluate`).d('待评审'),
-      primaryKey: 'nominationHeaderId',
-      url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
-      customizedCode: 'SCUX.SUPPLIER_EVALUATION.EVALUATE',
-      searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_EVALUATE',
-      queryData: {
-        queryType: 'UN_REVIEW'
-      }
-    },
+    // {
+    //   key: 'EVALUATE',
+    //   name: intl.get(`${prefix}.tab.evaluate`).d('待评审'),
+    //   primaryKey: 'nominationHeaderId',
+    //   url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwddvo6RMkbZw6xsZFnHrZU0`,
+    //   customizedCode: 'SCUX.SUPPLIER_EVALUATION.EVALUATE',
+    //   searchCode: 'SCUX.SUPPLIER_EVALUATION.SEARCH_EVALUATE',
+    //   queryData: {
+    //     queryType: 'UN_REVIEW'
+    //   }
+    // },
     {
       key: 'ALL',
       name: intl.get(`${prefix}.tab.all`).d('全部'),
