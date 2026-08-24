@@ -15,6 +15,8 @@ import { showCheckInCode, cuxOpenBidNew, checkDrawLots } from '@/services/inquir
 import { openBidListDS, baseInfoDS, prefix } from './store/ds';
 import BaseInfo from './components/BaseInfo';
 import OpenBidList from './components/OpenBidList';
+import CheckIn from '../../InquiryHall/Detail/CheckIn';
+import CheckInSupplier from '../../InquiryHall/Detail/CheckInSupplier';
 import CommonLevel from '../components/SecLevelTitle/CommonLevel';
 import Style from './index.less';
 
@@ -90,7 +92,7 @@ const OrganizeBidOpening = (props) => {
         const res = getResponse(await checkDrawLots({ rfxHeaderId }));
         if (res) {
           notification.success();
-          history.push('/ssrc/new-bid-hall/list');
+          initData();
         }
         return false;
       },
@@ -120,13 +122,13 @@ const OrganizeBidOpening = (props) => {
         destroyOnClose: true,
         children: bidOpenSupplier
           ? `${intl
-              .get(`scux.ssrc.view.message.inquiryHall.twnf.bidOpenFlag`)
-              .d('是否开启')}${bidOpenSupplier}${bidOpenTeam}${intl
+            .get(`scux.ssrc.view.message.inquiryHall.twnf.bidOpenFlag`)
+            .d('是否开启')}${bidOpenSupplier || ''}${bidOpenTeam || ''}${intl
               .get('scux.ssrc.view.message.inquiryHall.twnf.bidTender')
               .d('标书')}`
           : `${intl
-              .get('scux.ssrc.view.message.inquiryHall.twnf.bidAllOpenSupplier')
-              .d('是否开启所有供应商')}${bidOpenTeam}${intl
+            .get('scux.ssrc.view.message.inquiryHall.twnf.bidAllOpenSupplier')
+            .d('是否开启所有供应商')}${bidOpenTeam || ''}${intl
               .get('scux.ssrc.view.message.inquiryHall.twnf.bidTender')
               .d('标书')}`,
         onOk: () => {
@@ -141,67 +143,71 @@ const OrganizeBidOpening = (props) => {
     }
   };
 
-  const headerBtns = useMemo(
-    () =>
-      docType === 'orgBid'
-        ? [
-            {
-              name: 'checkDrawLots',
-              btnType: 'c7n-pro',
-              child: intl.get(`${prefix}.model.checkDrawLots`).d('抽签'),
-              btnProps: {
-                icon: 'screen_search_desktop-o',
-                funcType: 'flat',
-                type: 'c7n-pro',
-                onClick: handleCheckDrawLots,
-              },
-              hidden: attributeVarchar20 === 'SORTITION',
+  const headerBtns = useMemo(() => {
+    // 开标按钮：组织开标/开标两页面配置一致
+    const openBidBtn = {
+      name: 'cuxOpenBid',
+      btnType: 'c7n-pro',
+      child: intl.get(`${prefix}.view.message.button.openingBid`).d('开标'),
+      btnProps: {
+        wait: 1500,
+        color: 'primary',
+        disabled: Number(bidOpenFlag) !== 1,
+        onClick: handleCuxOpenBid,
+      },
+    };
+
+    if (docType === 'orgBid') {
+      return [
+        openBidBtn,
+        {
+          name: 'checkDrawLots',
+          btnType: 'c7n-pro',
+          child: intl.get(`${prefix}.model.checkDrawLots`).d('抽签'),
+          btnProps: {
+            icon: 'screen_search_desktop-o',
+            funcType: 'flat',
+            type: 'c7n-pro',
+            onClick: handleCheckDrawLots,
+          },
+          hidden: attributeVarchar20 === 'SORTITION',
+        },
+        {
+          name: 'supplierCheckIn',
+          btnType: 'c7n-pro',
+          child: intl.get(`${prefix}.model.supplierCheckIn`).d('供应商签到'),
+          btnProps: {
+            icon: 'assignment_turned_in-o',
+            funcType: 'flat',
+            type: 'c7n-pro',
+            style: {
+              paddingLeft: 0,
             },
-            {
-              name: 'supplierCheckIn',
-              btnType: 'c7n-pro',
-              child: intl.get(`${prefix}.model.supplierCheckIn`).d('供应商签到'),
-              btnProps: {
-                icon: 'assignment_turned_in-o',
-                funcType: 'flat',
-                type: 'c7n-pro',
-                style: {
-                  paddingLeft: 0,
-                },
-                onClick: () => handleCheckIn({ type: 1 }),
-              },
-              hidden: attributeVarchar20 === 'SORTITION',
+            onClick: () => handleCheckIn({ type: 1 }),
+          },
+          hidden: attributeVarchar20 === 'SORTITION',
+        },
+        {
+          name: 'internalCheckIn',
+          btnType: 'c7n-pro',
+          child: intl.get(`${prefix}.model.internalCheckIn`).d('内部签到'),
+          btnProps: {
+            icon: 'assignment_turned_in-o',
+            funcType: 'flat',
+            type: 'c7n-pro',
+            style: {
+              paddingLeft: 0,
             },
-            {
-              name: 'internalCheckIn',
-              btnType: 'c7n-pro',
-              child: intl.get(`${prefix}.model.internalCheckIn`).d('内部签到'),
-              btnProps: {
-                icon: 'assignment_turned_in-o',
-                funcType: 'flat',
-                type: 'c7n-pro',
-                style: {
-                  paddingLeft: 0,
-                },
-                onClick: () => handleCheckIn({ type: 0 }),
-              },
-              hidden: attributeVarchar20 === 'SORTITION',
-            },
-          ]
-        : [
-            Number(bidOpenFlag) === 1 && {
-              name: 'cuxOpenBid',
-              btnType: 'c7n-pro',
-              child: intl.get(`${prefix}.view.message.button.openingBid`).d('开标'),
-              btnProps: {
-                wait: 1500,
-                color: 'primary',
-                onClick: handleCuxOpenBid,
-              },
-            },
-          ],
-    [docType, bidOpenFlag, attributeVarchar20, handleCheckIn, handleCheckDrawLots, handleCuxOpenBid]
-  );
+            onClick: () => handleCheckIn({ type: 0 }),
+          },
+          hidden: attributeVarchar20 === 'SORTITION',
+        },
+      ];
+    }
+
+    return [openBidBtn];
+  }, [docType, bidOpenFlag, attributeVarchar20, handleCheckIn, handleCheckDrawLots, handleCuxOpenBid]);
+
 
   const commonProps = useMemo(() => {
     return {
@@ -229,6 +235,32 @@ const OrganizeBidOpening = (props) => {
       <Content className={Style['scux-ssrc-bid-opening-content']}>
         <Card title={null} id="cuxBasicInfo" bordered={false}>
           <BaseInfo {...commonProps} baseInfoDs={baseInfoDs} />
+        </Card>
+        <Card
+          title={
+            <CommonLevel
+              title={intl
+                .get('ssrc.inquiryHall.view.message.modal.openingCheckIn.list')
+                .d('内部签到')}
+            />
+          }
+          id="cuxInternalCheckInList"
+          bordered={false}
+        >
+          <CheckIn data={{ rfxHeaderId }} />
+        </Card>
+        <Card
+          title={
+            <CommonLevel
+              title={intl
+                .get('ssrc.inquiryHall.view.message.modal.openingSupplierCheckIn.list')
+                .d('供应商签到')}
+            />
+          }
+          id="cuxSupplierCheckInList"
+          bordered={false}
+        >
+          <CheckInSupplier data={{ rfxHeaderId }} />
         </Card>
         <Card
           title={

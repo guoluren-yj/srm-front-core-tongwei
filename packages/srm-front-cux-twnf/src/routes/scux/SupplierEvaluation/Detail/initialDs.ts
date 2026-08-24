@@ -10,7 +10,7 @@ export const prefix = 'scux.supplierEvaluation';
 const organizationId = getCurrentOrganizationId();
 
 // 基础信息数据集
-export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
+export const basicInfoDS = (nominationHeaderId, type): DataSetProps => ({
   autoQuery: !!nominationHeaderId,
   paging: false,
   fields: [
@@ -34,9 +34,11 @@ export const basicInfoDS = (nominationHeaderId): DataSetProps => ({
     { name: 'supManagerPersonLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', label: intl.get(`${prefix}.field.supManagerPerson`).d('供应商专管员'), required: true, ignore: FieldIgnore.always, },
     { name: 'supManagerPerson', bind: 'supManagerPersonLov.employeeId' },
     { name: 'supManagerPersonName', bind: 'supManagerPersonLov.name' },
-    { name: 'functionalHeadUserLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), required: true, ignore: FieldIgnore.always, },
-    { name: 'functionalHeadUser', bind: 'functionalHeadUserLov.employeeId' },
-    { name: 'functionalHeadUserName', bind: 'functionalHeadUserLov.name' },
+    ...(type === 'submit' ? [
+      { name: 'functionalHeadUserLov', type: FieldType.object, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', label: intl.get(`${prefix}.field.functionalHeadUser`).d('职能部门负责人'), required: true, ignore: FieldIgnore.always },
+      { name: 'functionalHeadUser', bind: 'functionalHeadUserLov.employeeId' },
+      { name: 'functionalHeadUserName', bind: 'functionalHeadUserLov.name' },
+    ] : []),
     { name: 'positionLov', type: FieldType.object, lovCode: 'SCUX_TWNF_LOV_POSITION', label: '岗位', ignore: FieldIgnore.always },
     { name: 'positionId', bind: 'positionLov.positionId' },
     { name: 'positionName', bind: 'positionLov.positionName' },

@@ -49,7 +49,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
   const type = searchParams.get('type') || 'readOnly';
   console.log(type)
 
-  const basicInfoDs = useMemo(() => new DataSet(basicInfoDS(nominationHeaderId)), [nominationHeaderId]);
+  const basicInfoDs = useMemo(() => new DataSet(basicInfoDS(nominationHeaderId, type)), [nominationHeaderId, type]);
   const supplierListDs = useMemo(() => new DataSet(supplierListDS(nominationHeaderId, type, () => basicInfoDs?.current?.get('companyId'))), [nominationHeaderId, type, basicInfoDs]);
 
   useEffect(() => {
@@ -65,11 +65,28 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
   }, [history, backPath]);
 
   const validateAll = async () => {
-    const valid = await Promise.all([
+    const [basicValid, listValid] = await Promise.all([
       basicInfoDs.validate(),
       supplierListDs.validate(),
     ]);
-    return valid.every(Boolean);
+
+    // 临时调试：保存没反应时，打印具体校验失败的字段
+    const logValidationErrors = (name: string, ds: any) => {
+      const results = ds?.getValidationErrors?.() || [];
+      if (!results.length) return;
+      console.log(`[${name}] 校验失败`, results.map(({ record, errors }: any) => ({
+        记录行号: record?.index != null ? record.index + 1 : undefined,
+        错误: (errors || []).map(({ field, errors: errs }: any) => ({
+          字段: field?.get?.('label') || field?.get?.('name'),
+          字段名: field?.get?.('name'),
+          消息: (errs || []).map((e: any) => (typeof e === 'string' ? e : e?.$validationMessage || e?.message)),
+        })),
+      })));
+    };
+    logValidationErrors('basicInfoDs', basicInfoDs);
+    logValidationErrors('supplierListDs', supplierListDs);
+
+    return basicValid && listValid;
   };
 
   const getSavePayload = () => {
