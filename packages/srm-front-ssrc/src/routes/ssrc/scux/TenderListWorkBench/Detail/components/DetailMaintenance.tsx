@@ -82,7 +82,7 @@ function DetailMaintenanceInner(props: any, ref: any) {
       },
       {
         name: 'itemName',
-        // editor: editorFlag,
+        editor: editorFlag,
         width: 130,
       },
       {

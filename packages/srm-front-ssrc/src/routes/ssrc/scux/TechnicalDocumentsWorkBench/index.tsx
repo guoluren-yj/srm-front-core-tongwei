@@ -88,7 +88,7 @@ const Index: React.FC<any> = (props) => {
   // 列表按钮
   const getListButtons = ({ record }) => {
     const techFileStatus = record.get('techFileStatus');
-    const isTechPerson = true || (record.get('userInCharge') || '').split(',').includes(`${currentUser.id}`);
+    const isTechPerson = (record.get('userInCharge') || '').split(',').includes(`${currentUser.id}`);
     if (!isTechPerson) return null;
     const commonButtonsProps = {
       funcType: FuncType.link,

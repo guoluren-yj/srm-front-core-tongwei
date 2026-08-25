@@ -136,37 +136,37 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
     { name: 'recommenderLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'employeeCompanyName', width: 150 },
-    !isNew && {
+    !isNew && type !== 'pendingReview' &&{
       name: 'technologyReviewResult',
       width: 120,
       renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleTechnicalReview(record)}>
+        <Button funcType={FuncType.link} onClick={() => openTechnicalReviewModal(record, 'unreleasedReadOnly', dataSet)}>
           {text}
         </Button>
       ) : text,
     },
-    !isNew && {
+    !isNew && type !== 'pendingReview' &&{
       name: 'businessReviewResult',
       width: 120,
       renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleBusinessReview(record)}>
+        <Button funcType={FuncType.link} onClick={() => openBusinessReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>
       ) : text,
     },
-    !isNew && {
+    !isNew && type !== 'pendingReview' && {
       name: 'financeReviewResult',
       width: 120,
       renderer: ({ text, record }: any) => clickableReview ? (
-        <Button funcType={FuncType.link} onClick={() => handleFinanceReview(record)}>
+        <Button funcType={FuncType.link} onClick={() => openFinanceReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>
       ) : text,
     },
-    !isNew && { name: 'summaryReviewResult', width: 120 },
-    { name: 'riskScanDate', width: 160 },
-    { name: 'riskLevelMeaning', width: 100 },
-    {
+    !isNew && type !== 'pendingReview' && { name: 'summaryReviewResult', width: 120 },
+    type !== 'pendingReview' && { name: 'riskScanDate', width: 160 },
+    type !== 'pendingReview' && { name: 'riskLevelMeaning', width: 100 },
+    type !== 'pendingReview' && {
       name: 'fileUrl',
       header: '最新风险报告',
       width: 130,
@@ -179,7 +179,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         );
       },
     },
-    type !== 'view' && type !== 'submit' && type !== 'readOnly' && {
+    type !== 'view' && type !== 'submit' && type !== 'pendingReview' && type !== 'readOnly' && {
       name: 'riskScanning',
       header: intl.get(`${prefix}.button.riskScan`).d('风险扫描'),
       width: 150,
@@ -194,7 +194,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         </Button>
       ),
     },
-    { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
+    type !== 'pendingReview' && { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
     !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && nominationStatus === 'PENDING_REVIEW' && {
       name: 'action',
       header: intl.get(`${prefix}.button.operation`).d('操作'),

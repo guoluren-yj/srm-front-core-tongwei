@@ -1405,7 +1405,7 @@ const Index = ({
 
   // 新建RFX
   const handleQuoteAppovalModal = async (prLineIdList, prLineNumList) => {
-    const ds = new DataSet(templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL' }));
+    const ds = new DataSet(templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' }));
     if (remote) {
       await remote.event.fireEvent('beforeCreateTemplate', { templateDs: ds, tabkey: 'allLine' });
     }

@@ -21,7 +21,7 @@ import styles from './index.less';
 import { supplierEvaluationPostApi, supplierEvaluationDetailPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
 const getDefaultActiveKey = (type: string) => {
-  if (type === 'view' || type === 'readOnly') {
+  if (type === 'view' || type === 'readOnly' || type === 'pendingReview') {
     return ['evaluationInfo', 'supplierList'];
   }
   return ['basicInfo', 'evaluationInfo', 'supplierList'];
