@@ -629,6 +629,14 @@ const QuotationComponent = (props = {}) => {
     if (!bidFlag) return true;
     const { bidAttachTableDs } = cuxBidSupAttachmentRef?.current || {};
     if (bidAttachTableDs) {
+      // 校验：是否电签为「否」时，电签附件必输（返回 false 后由提交流程统一提示，避免重复弹窗）
+      const hasMissingSignatureAttachment = bidAttachTableDs.some(
+        (record) =>
+          Number(record.get('attributeVarchar1')) !== 1 && !record.get('attributeLongtext1')
+      );
+      if (hasMissingSignatureAttachment) {
+        return false;
+      }
       const res = await bidAttachTableDs.validate();
       return res;
     }
@@ -1539,6 +1547,7 @@ const QuotationComponent = (props = {}) => {
   const getCurrentPageSubmitData = useCallback(
     async (forceInterRuptFlag = 1) => {
       let validationFlag = false;
+      let bidAttachValidateFlag = true; // 供应商投标附件校验（电签附件必输）是否通过
       let formData = null;
       let tableData = [];
       let headerUploadValidateFlag = true;
@@ -1607,6 +1616,7 @@ const QuotationComponent = (props = {}) => {
         // 校验二开供应商投标附件
         if (!(await validateCuxBidSupAttachmentData())) {
           validationFlag = false;
+          bidAttachValidateFlag = false;
         }
 
         // formError = await basicFormDS.getValidationErrors();
@@ -1635,6 +1645,7 @@ const QuotationComponent = (props = {}) => {
 
       return {
         validationFlag,
+        bidAttachValidateFlag,
         // errorMessage,
         uploadValidateFlag: headerUploadValidateFlag && lineUploadValidateFlag,
         rfxQuotationHeaderCurDTO: formData,
@@ -1915,10 +1926,25 @@ const QuotationComponent = (props = {}) => {
     throttle(async (outData = {}, otherOptions = {}) => {
       const { projectLineSectionList: submitProjectLineSectionList } = outData || {};
       const { outSubmitPassFlag = null } = otherOptions || {};
-      const { validationFlag = false, uploadValidateFlag = true, ...data } =
-        (await getCurrentPageSubmitData()) || {};
+      const {
+        validationFlag = false,
+        uploadValidateFlag = true,
+        bidAttachValidateFlag = true,
+        ...data
+      } = (await getCurrentPageSubmitData()) || {};
       if (!validationFlag) {
         if (!uploadValidateFlag) {
+          return;
+        }
+        // 电签附件必输：弹自定义提示，不走通用校验提示
+        if (!bidAttachValidateFlag) {
+          notification.warning({
+            message: intl
+              .get('ssrc.supplierQuotation.view.message.ecSignatureAttachmentRequired')
+              .d('电签附件必输，请先上传电签附件'),
+            placement: 'bottomRight',
+            duration: 2.0,
+          });
           return;
         }
         let errorInfoStr = intl
@@ -3257,7 +3283,7 @@ const QuotationComponent = (props = {}) => {
                       id="cuxPurBidManagementAttachment"
                       title={intl
                         .get('scux.ssrc.view.message.twnf.bidPurManagementAttachment')
-                        .d('采购方附件列表')}
+                        .d('招标文件')}
                       bordered={false}
                     >
                       <CuxPurBidManagementAttachment
@@ -3271,13 +3297,14 @@ const QuotationComponent = (props = {}) => {
                       id="cuxSupBidManagementAttachment"
                       title={intl
                         .get('scux.ssrc.view.message.twnf.bidSupManagementAttachment')
-                        .d('供应商投标附件')}
+                        .d('投标文件')}
                       bordered={false}
                     >
                       <BidSupAttachmentEdit
                         parentRef={cuxBidSupAttachmentRef}
                         quotationHeaderCurrentId={quotationHeaderCurrentId}
                         rfxHeaderId={rfxHeaderId}
+                        getRfxQuotationHeaderCurDTO={() => basicFormDS?.current?.toData()}
                       />
                     </Card>
                   </>

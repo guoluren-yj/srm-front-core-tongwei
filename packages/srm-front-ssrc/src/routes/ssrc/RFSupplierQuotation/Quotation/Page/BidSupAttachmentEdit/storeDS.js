@@ -30,8 +30,8 @@ const attachmentDS = () => ({
       // 虚拟字段
       name: 'templateAttachment',
       label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplate`)
-        .d('模板附件'),
+        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.templateAttachment`)
+        .d('附件模板'),
     },
     {
       name: 'remark',
@@ -62,7 +62,7 @@ const attachmentDS = () => ({
       name: 'attributeVarchar19',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.attachmentName')
-        .d('附件名称'),
+        .d('文件名称'),
     },
     {
       name: 'attributeVarchar1',
@@ -79,13 +79,38 @@ const attachmentDS = () => ({
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
-      readOnly: true,
+      dynamicProps: {
+        // 是否电签为「否」：允许上传（不限文件类型），且提交时必输
+        // 是否电签为「是」：由电签流程生成，只读
+        readOnly: ({ record }) => Number(record.get('attributeVarchar1')) === 1,
+        required: ({ record }) => Number(record.get('attributeVarchar1')) !== 1,
+      },
     },
     {
       name: 'requiredFlag',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.isRequired')
-        .d('是否必输'),
+        .d('附件是否必输'),
+    },
+    {
+      name: 'attributeVarchar5',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.electronicSignatureStatus')
+        .d('电签状态'),
+      lookupCode: 'SCUX.TWNF_EC_STATUS',
+    },
+    {
+      name: 'attributeLongtext16',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.voidAttachment')
+        .d('作废附件'),
+      lookupCode: 'SCUX.TWNF_EC_STATUS',
+    },
+    {
+      name: 'attributeLongtext17',
+      label: intl
+        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.attachmentRemark')
+        .d('备注'),
     },
   ],
   events: {

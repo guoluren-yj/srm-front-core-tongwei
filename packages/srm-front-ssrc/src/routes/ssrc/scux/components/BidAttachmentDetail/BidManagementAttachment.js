@@ -115,10 +115,10 @@ const BidManagementAttachment = (props) => {
             name: 'attributeLongtext1',
           },
           { name: 'remark' },
-          {
-            name: 'attributeVarchar1',
-            renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
-          },
+          // {
+          //   name: 'attributeVarchar1',
+          //   renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+          // },
         ],
     []
   );

@@ -1,7 +1,7 @@
 import React, { useMemo, useImperativeHandle, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { isEmpty } from 'lodash';
-import { Table, Button, Attachment, useDataSet } from 'choerodon-ui/pro';
+import { Table, Button, Attachment, Modal, useDataSet } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
@@ -10,13 +10,27 @@ import notification from 'utils/notification';
 import formatterCollections from 'utils/intl/formatterCollections';
 import request from 'utils/request';
 import { yesOrNoRender } from 'utils/renderer';
+import { queryFileList } from 'services/api';
 
+import { generateAttTemplate } from '@/services/inquiryHallService';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 
 import { attachmentDS } from './storeDS';
 
+// 电签状态 值集 SCUX.TWNF_EC_STATUS
+const EC_STATUS = {
+  SUCC: 'ED_SUCCESS', // 成功
+  FAILED: 'ED_FAIL_TIMEOUT', // 失败
+  VOID: 'ED_FAIL_INVALIDATE', // 作废
+};
+
 const BidManagementAttachment = (props) => {
-  const { parentRef = useRef(), quotationHeaderCurrentId = '', rfxHeaderId } = props;
+  const {
+    parentRef = useRef(),
+    quotationHeaderCurrentId = '',
+    rfxHeaderId,
+    getRfxQuotationHeaderCurDTO,
+  } = props;
 
   const bidAttachTableDs = useDataSet(() => attachmentDS(), []);
 
@@ -44,20 +58,22 @@ const BidManagementAttachment = (props) => {
     bidAttachTableDs.query();
   };
 
-  // 电签用印
-  const handleElectronicSignature = (record) => {
+  // 电签(sign) / 作废(cancel)，针对某一附件行
+  const handleElectronicSign = (record, action) => {
     if (!rfxHeaderId) return;
-    const { attachmentLineId, attachmentUuid } =
-      record.get(['attachmentLineId', 'attachmentUuid']) || {};
+    const attachmentLine = { ...record.toData(), sourceId: quotationHeaderCurrentId };
+    const rfxQuotationHeaderCurDTO = getRfxQuotationHeaderCurDTO
+      ? getRfxQuotationHeaderCurDTO()
+      : {};
     bidAttachTableDs.status = 'loading';
     return request(
-      `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/Q6WFYBxQfY6sEPsYzqqxHBOKEOmHTknDpmibsVofGTS4`,
+      `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/zq9ZH4ydPicb5gbosbJqV5QFnVjzj2lspfSk11n6zVh8`,
       {
         method: 'POST',
         body: {
-          sourceId: rfxHeaderId,
-          attachmentLineId,
-          attachmentUuid,
+          rfxQuotationHeaderCurDTO,
+          attachmentLine,
+          action, // sign 电签 / cancel 作废
         },
       }
     )
@@ -75,6 +91,50 @@ const BidManagementAttachment = (props) => {
       });
   };
 
+  // 生成附件（参考：new-bid-hall/bid-update 招标文件及附件的附件模板 生成附件）
+  const handleGenerateAttachment = (record) => {
+    const { fileManageId, attachmentUuid, editableFlag } =
+      record.get(['fileManageId', 'attachmentUuid', 'editableFlag']) || {};
+
+    if (!rfxHeaderId || !fileManageId) return;
+
+    const params = {
+      fileManageId: Number(fileManageId),
+      sourceCategory: 'RFX',
+      sourceId: rfxHeaderId,
+      ...(editableFlag === 1 ? {} : { attachmentUuid }), // editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
+    };
+
+    return generateAttTemplate(params).then((res) => {
+      const result = getResponse(res);
+      if (!result) {
+        return;
+      }
+      const { attachmentUuid: newUuid } = result || {};
+
+      notification.success();
+      if (!attachmentUuid) {
+        record.set('attachmentUuid', newUuid);
+      } else {
+        record.set('attachmentUuid', null);
+        record.set('attachmentUuid', newUuid);
+        queryFileList({
+          organizationId: getCurrentOrganizationId(),
+          bucketName: PRIVATE_BUCKET,
+          bucketDirectory: 'ssrc-template-requirement',
+          attachmentUUID: newUuid,
+        }).then((fileList) => {
+          if (getResponse(fileList)) {
+            const field = record.getField('attachmentUuid');
+            if (field) {
+              field.setAttachmentCount(fileList?.length || 0);
+            }
+          }
+        });
+      }
+    });
+  };
+
   // table columns
   const columns = [
     {
@@ -84,6 +144,44 @@ const BidManagementAttachment = (props) => {
     {
       name: 'attachmentType',
       editor: true,
+    },
+    {
+      name: 'templateAttachment',
+      renderer: ({ record }) => {
+        if (record.get('fileManageId')) {
+          // 来自于寻源模板的招标文件管理中的，可生成附件
+          return (
+            <Button
+              funcType="link"
+              wait={1200}
+              disabled={!rfxHeaderId || rfxHeaderId === 'null'}
+              onClick={() => handleGenerateAttachment(record)}
+            >
+              {intl
+                .get('ssrc.inquiryHall.model.fileTemplateAttachment.generateAttachment')
+                .d('生成附件')}
+            </Button>
+          );
+        }
+        if (record.get('tempAttachmentUuid')) {
+          // 来自于寻源模板的上传本地附件
+          return (
+            <Attachment
+              record={record}
+              name="tempAttachmentUuid"
+              viewMode="popup"
+              bucketName={PRIVATE_BUCKET}
+              bucketDirectory="ssrc-template-requirement"
+              labelLayout="float"
+              readOnly
+              funcType="link"
+            >
+              {intl.get('hzero.common.upload.view').d('查看附件')}
+            </Attachment>
+          );
+        }
+        return null;
+      },
     },
     {
       name: 'attachmentUuid',
@@ -117,49 +215,75 @@ const BidManagementAttachment = (props) => {
       name: 'cuxElectronicSignature',
       header: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.electronicSignature')
-        .d('电签'),
+        .d('操作'),
       renderer: ({ record }) => {
-        const attributeVarchar1 = record.get('attributeVarchar1');
-        return Number(attributeVarchar1) === 1 ? (
-          <Button funcType="link" wait={1200} onClick={() => handleElectronicSignature(record)}>
-            {intl
-              .get('scux.bidAttachment.model.fileTemplateAttachment.electronicSignatureSeal')
-              .d('电签用印')}
-          </Button>
-        ) : null;
-      },
-    },
-    {
-      name: 'attributeLongtext1',
-    },
-    {
-      name: 'requiredFlag',
-      renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
-    },
-    {
-      name: 'templateAttachment',
-      renderer: ({ record }) => {
-        if (record.get('tempAttachmentUuid')) {
-          // 来自于寻源模板的上传本地附件
+        const attributeVarchar1 = Number(record.get('attributeVarchar1'));
+        const electronicSignatureStatus = record.get('attributeVarchar5');
+        // 作废：是否电签「是」且电签状态「成功」
+        if (attributeVarchar1 === 1 && electronicSignatureStatus === EC_STATUS.SUCC) {
           return (
-            <Attachment
-              record={record}
-              name="tempAttachmentUuid"
-              viewMode="popup"
-              bucketName={PRIVATE_BUCKET}
-              bucketDirectory="ssrc-template-requirement"
-              labelLayout="float"
-              readOnly
+            <Button
               funcType="link"
+              wait={1200}
+              onClick={() =>
+                Modal.confirm({
+                  title: intl.get('hzero.common.message.confirm.title').d('提示'),
+                  children: intl
+                    .get('scux.bidAttachment.view.message.confirmVoidAttachment')
+                    .d('确认作废该附件？'),
+                  onOk: () => handleElectronicSign(record, 'cancel'),
+                })
+              }
             >
-              {intl.get('hzero.common.upload.view').d('查看附件')}
-            </Attachment>
+              {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.void').d('作废')}
+            </Button>
+          );
+        }
+        // 电签：是否电签「是」且电签状态「空」「失败」「作废」
+        if (
+          attributeVarchar1 === 1 &&
+          (!electronicSignatureStatus ||
+            electronicSignatureStatus === EC_STATUS.FAILED ||
+            electronicSignatureStatus === EC_STATUS.VOID)
+        ) {
+          return (
+            <Button
+              funcType="link"
+              wait={1200}
+              onClick={() => handleElectronicSign(record, 'sign')}
+            >
+              {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.sign').d('电签')}
+            </Button>
           );
         }
         return null;
       },
     },
+    {
+      name: 'attributeLongtext1',
+      editor: (record) => (
+        <Attachment
+          record={record}
+          name="attributeLongtext1"
+          viewMode="popup"
+          funcType="link"
+        />
+      ),
+    },
+    {
+      name: 'requiredFlag',
+      renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
+    },
     { name: 'remark' },
+    {
+      name: 'attributeVarchar5',
+    },
+    {
+      name: 'attributeLongtext16',
+    },
+    {
+      name: 'attributeLongtext17',
+    },
   ];
 
   // batch delete
@@ -229,6 +353,8 @@ const BidManagementAttachment = (props) => {
       columns={columns}
       buttons={tableButtons}
       style={{ maxHeight: 450 }}
+      customizable
+      customizedCode="SSRC.SUPPLIER_QUOTATION_NEW.BID_ATTACHMENT_EDIT"
     />
   );
 };
