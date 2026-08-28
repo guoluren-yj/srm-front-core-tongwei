@@ -22,6 +22,10 @@ const itemLineTableDS = ({ sourceKey, doubleUnitFlag }) => ({
   forceValidate: true,
   fields: [
     {
+      name: 'attributeLongtext11',
+      label: intl.get('ssrc.inquiryHall.model.inquiryHall.allocateRequest').d('分配申请'),
+    },
+    {
       name: 'suggestedFlag',
       type: 'boolean',
       trueValue: 1,

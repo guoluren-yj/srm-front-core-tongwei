@@ -2,7 +2,7 @@
  * 物料表格
  */
 import React, { PureComponent } from 'react';
-import { DataSet, Table, CheckBox, Attachment } from 'choerodon-ui/pro';
+import { DataSet, Table, CheckBox, Attachment, Modal } from 'choerodon-ui/pro';
 import { math } from 'choerodon-ui/dataset';
 import { isFunction, noop, isNil, isEmpty } from 'lodash';
 import { Bind } from 'lodash-decorators';
@@ -16,10 +16,13 @@ import C7nPrecisionInputNumber from '@/routes/components/Precision/C7nPrecisionI
 import PrecisionInputNumber from '@/routes/components/Precision/PrecisionInputNumber';
 import { numberSeparatorRender, useTernaryExpression } from '@/utils/renderer';
 import FileGroup from '@/routes/components/SupplierQuotationAttachment';
+import AllocateRequestModal from './AllocateRequestModal';
 import { itemLineTableDS } from '../store/itemLineTableDS';
 import { renderRoundEliminate, renderFlagDisplay, renderNumberFormatter } from '../utils/renderer';
 
 class ItemLineTable extends PureComponent {
+  allocateRequestModalRef = React.createRef();
+
   constructor(props) {
     super(props);
     const {
@@ -237,6 +240,27 @@ class ItemLineTable extends PureComponent {
     }
   }
 
+  // 打开分配申请弹框
+  @Bind()
+  handleOpenAllocateModal() {
+    const { rfxLineItemId } = this.props;
+    Modal.open({
+      key: Modal.key(),
+      destroyOnClose: true,
+      closable: true,
+      title: intl.get('ssrc.inquiryHall.model.inquiryHall.allocateRequest').d('分配申请'),
+      drawer: true,
+      style: { width: 800 },
+      children: (
+        <AllocateRequestModal
+          rfxLineItemId={rfxLineItemId}
+          ref={this.allocateRequestModalRef}
+        />
+      ),
+      onOk: () => this.allocateRequestModalRef.current?.handleSave(),
+    });
+  }
+
   getColumns() {
     const {
       remote,
@@ -257,6 +281,16 @@ class ItemLineTable extends PureComponent {
     const commonColumns = getAllTabTableCommonColumns ? getAllTabTableCommonColumns() : [];
 
     const preColumns = [
+      // 分配申请：固定显示可点击，点击弹框展示分配申请列表
+      {
+        name: 'attributeLongtext11',
+        width: 110,
+        renderer: () => (
+          <a onClick={() => this.handleOpenAllocateModal()}>
+            {intl.get('ssrc.inquiryHall.model.inquiryHall.allocateRequest').d('分配申请')}
+          </a>
+        ),
+      },
       // 此列二开，禁止修改字段名
       {
         name: 'suggestedFlag',
