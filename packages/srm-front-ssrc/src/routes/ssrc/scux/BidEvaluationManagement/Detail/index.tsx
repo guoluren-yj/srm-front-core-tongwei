@@ -34,7 +34,7 @@ const Page: React.FC<any> = (props) => {
             <SupplierInfo />
           </Card>,
           <Card
-            title={<CommonLevel title={intl.get(`${prefix}.view.card.title.scoreInfo`).d('评分信息')} />}
+            title={<CommonLevel title={intl.get(`${prefix}.view.card.title.scoreInfo`).d('评标明细')} />}
             id="cuxScoreInfo"
             bordered={false}
           >
@@ -44,7 +44,7 @@ const Page: React.FC<any> = (props) => {
       case 'view':
         return [
           <Card
-            title={<CommonLevel title={intl.get(`${prefix}.view.card.title.scoreInfo`).d('评分信息')} />}
+            title={<CommonLevel title={intl.get(`${prefix}.view.card.title.scoreInfo`).d('评标明细')} />}
             id="cuxScoreInfo"
             bordered={false}
           >

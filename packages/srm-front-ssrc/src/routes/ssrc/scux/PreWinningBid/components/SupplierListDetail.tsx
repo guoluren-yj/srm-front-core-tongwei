@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useDataSet, Table, Button } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
+import { ColumnLock } from 'choerodon-ui/pro/lib/table/enum';
 import querystring from 'querystring';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { observer, useObserver } from 'mobx-react-lite';
@@ -70,6 +71,12 @@ const SupplierListDetail = (props) => {
   const columns: ColumnProps[] = useMemo(() => {
     return [
       {
+        name: 'attributeVarchar2',
+        lock: true, // 拟定标列固定左侧
+        width: 100,
+        renderer: ({ value }) => value ? yesOrNoRender(Number(value)) : null,
+      },
+      {
         name: 'supplierCompanyName',
         width: 150,
       },
@@ -88,7 +95,7 @@ const SupplierListDetail = (props) => {
       },
       {
         name: 'invalidFlag',
-        hidden: !scoreWay,
+        hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
         width: 100,
         renderer: ({ value }) =>
           isNil(value)
@@ -99,7 +106,7 @@ const SupplierListDetail = (props) => {
       },
       {
         name: 'invalidReason',
-        hidden: !scoreWay,
+        hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
         width: 120,
       },
       {
@@ -159,12 +166,8 @@ const SupplierListDetail = (props) => {
         renderer: ({ record }) => !isNil(record?.get('allScoreSum')) ? <EvaluationDetailModal record={record} btnName={record?.get('allScoreSum')} /> : null,
       },
       {
-        name: 'attributeVarchar2',
-        width: 100,
-        renderer: ({ value }) => value ? yesOrNoRender(Number(value)) : null,
-      },
-      {
         name: 'attributeLongtext2',
+        lock: ColumnLock.right, // 备注列冻结右侧
         minWidth: 150,
       },
     ];

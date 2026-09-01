@@ -214,11 +214,18 @@ const EvaluationDetailModal = (props) => {
     let totalDataSource: any = {};
     const supplierDataSource = dataSource.map((item: EvaluationScoreItem = {} as any) => {
       const { detailEnabledFlag, evaluateScoreLineDetailS = [], ...otherItem } = item || {};
+      const hasCount =
+        item.approvedCount !== undefined &&
+        item.approvedCount !== null &&
+        item.allExpertCount !== undefined &&
+        item.allExpertCount !== null;
       const totalContent =
         item.sumPassStatus === 'ALL_PASS'
           ? item.sumPassStatusMeaning || ''
           : item.sumPassStatusMeaning
-          ? `${item.sumPassStatusMeaning}${item.approvedCount}/${item.allExpertCount}`
+          ? hasCount
+            ? `${item.sumPassStatusMeaning}${item.approvedCount}/${item.allExpertCount}`
+            : item.sumPassStatusMeaning
           : '';
       totalDataSource = {
         ...totalDataSource,

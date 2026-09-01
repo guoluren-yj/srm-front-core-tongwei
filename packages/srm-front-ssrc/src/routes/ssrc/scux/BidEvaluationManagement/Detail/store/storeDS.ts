@@ -212,6 +212,11 @@ export const evaluationItemsDataSet = ({ scoreFlag }): DataSetProps => ({
       type: FieldType.number,
       label: intl.get(`${prefix}.model.twnf.expertScoring.indicWeight`).d('指标权重'),
     },
+    {
+      name: 'remark',
+      type: FieldType.string,
+      label: intl.get(`${prefix}.model.twnf.expertScoring.remark`).d('备注'),
+    },
   ],
 });
 

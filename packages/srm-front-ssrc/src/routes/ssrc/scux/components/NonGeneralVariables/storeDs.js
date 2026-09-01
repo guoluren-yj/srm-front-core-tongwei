@@ -9,6 +9,10 @@ export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
     dataToJSON: 'all',
     selection: editorFlag ? 'multiple' : false,
     paging: false,
+    // 本地静默提交成功提示，覆盖全局 feedback 的“操作成功”弹框
+    feedback: {
+      submitSuccess: () => {},
+    },
     fields: [
       {
         name: 'sequence',

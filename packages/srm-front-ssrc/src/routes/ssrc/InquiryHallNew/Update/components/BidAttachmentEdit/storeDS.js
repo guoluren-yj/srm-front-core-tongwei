@@ -101,7 +101,7 @@ const attachmentDS = ({
       name: 'remark',
       label: intl
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.remark`)
-        .d('备注'),
+        .d('模板描述'),
     },
     {
       name: 'attachmentUuid',

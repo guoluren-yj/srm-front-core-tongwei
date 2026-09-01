@@ -4,6 +4,7 @@ import { Tabs } from 'choerodon-ui';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import querystring from 'querystring';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
+import { ColumnLock } from 'choerodon-ui/pro/lib/table/enum';
 import { observer, useObserver } from 'mobx-react-lite';
 import { isNil } from 'lodash';
 
@@ -64,6 +65,12 @@ const SupplierList: React.FC = observer(() => {
   const columns: ColumnProps[] = useMemo(() => {
     return [
       {
+        name: 'attributeVarchar2',
+        lock: true, // 拟定标列固定左侧
+        width: 100,
+        editor: () => <Switch />,
+      },
+      {
         name: 'supplierCompanyName',
         width: 150,
       },
@@ -82,7 +89,7 @@ const SupplierList: React.FC = observer(() => {
       },
       {
         name: 'invalidFlag',
-        hidden: !scoreWay,
+        hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
         width: 100,
         renderer: ({ value }) =>
           isNil(value)
@@ -93,7 +100,7 @@ const SupplierList: React.FC = observer(() => {
       },
       {
         name: 'invalidReason',
-        hidden: !scoreWay,
+        hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
         width: 120,
       },
       {
@@ -153,12 +160,8 @@ const SupplierList: React.FC = observer(() => {
         renderer: ({ record }) => !isNil(record?.get('allScoreSum')) ? <EvaluationDetailModal record={record} btnName={record?.get('allScoreSum')} /> : null,
       },
       {
-        name: 'attributeVarchar2',
-        width: 100,
-        editor: () => <Switch />,
-      },
-      {
         name: 'attributeLongtext2',
+        lock: ColumnLock.right, // 备注列冻结右侧
         minWidth: 150,
         editor: true,
       },

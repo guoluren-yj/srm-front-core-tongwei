@@ -24,7 +24,7 @@ const getDocumentTypeName = (bidFlag) => {
 
 const getCheckPriceName = (bidFlag) => {
   return bidFlag
-    ? intl.get('ssrc.common.view.message.target').d('定标')
+    ? intl.get('ssrc.common.view.message.bidConfirmation').d('中标确认')
     : intl.get('ssrc.common.view.message.nuclearPrice').d('核价');
 };
 

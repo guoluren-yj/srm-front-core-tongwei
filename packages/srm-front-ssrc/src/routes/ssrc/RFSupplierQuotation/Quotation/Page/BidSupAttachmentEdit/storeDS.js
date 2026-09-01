@@ -80,10 +80,10 @@ const attachmentDS = () => ({
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
       dynamicProps: {
-        // 是否电签为「否」：允许上传（不限文件类型），且提交时必输
         // 是否电签为「是」：由电签流程生成，只读
+        // requiredFlag 为「1」：附件必输
         readOnly: ({ record }) => Number(record.get('attributeVarchar1')) === 1,
-        required: ({ record }) => Number(record.get('attributeVarchar1')) !== 1,
+        required: ({ record }) => record.get('requiredFlag') === '1',
       },
     },
     {

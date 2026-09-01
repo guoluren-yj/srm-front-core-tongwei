@@ -621,6 +621,7 @@ class CheckPriceNewDetail extends PureComponent {
               className="form-collapse"
               custLoading={custLoading}
               defaultActiveKey={CheckPriceCollapseKeys}
+              activeKey={CheckPriceCollapseKeys}
             >
               {this.getTabPaneArray() || []}
             </Collapse>

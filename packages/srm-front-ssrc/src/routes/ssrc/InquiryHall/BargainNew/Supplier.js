@@ -376,23 +376,35 @@ class SupplierComponnet extends Component {
   };
 
   getButtons = ({ record }) => {
-    const { bargainFlag, sourceKey } = this.props;
+    const { bargainFlag, sourceKey, bargainHeader = {} } = this.props;
+    // 二开：bargainClosedFlag 是否处于议价中，0是 1否；议价中不展示生成附件/在线编辑
+    const { bargainClosedFlag } = bargainHeader || {};
     const quotationHeaderId = record?.get('quotationHeaderId');
 
     const buttons = [
-      bargainFlag ? (
+      // bargainFlag ? (
+      //   <Button
+      //     color="primary"
+      //     icon="auto_complete"
+      //     funcType="flat"
+      //     onClick={(event) => this.openFillCounter(event, record)}
+      //   >
+      //     {intl.get('ssrc.inquiryHall.view.message.button.fillCounteroffers').d('批量填写还价')}
+      //   </Button>
+      // ) : (
+      //   ''
+      // ),
+      // 二开：生成附件按钮，置于「在线编辑」左侧（仅招标在线场景）
+      !!bargainFlag && sourceKey === BID && bargainClosedFlag === 1 && (
         <Button
-          color="primary"
-          icon="auto_complete"
           funcType="flat"
-          onClick={(event) => this.openFillCounter(event, record)}
+          onClick={this.props.handleGenerateAttachment}
+          loading={this.props.operationLoading}
         >
-          {intl.get('ssrc.inquiryHall.view.message.button.fillCounteroffers').d('批量填写还价')}
+          {intl.get(`scux.ssrc.view.button.bargainNew.generateAttachment`).d('生成附件')}
         </Button>
-      ) : (
-        ''
       ),
-      !!bargainFlag && sourceKey === BID && (
+      !!bargainFlag && sourceKey === BID && bargainClosedFlag === 1 && (
         <OnlyOfficeEditorOnline
           headerId={quotationHeaderId}
           title={intl.get(`scux.ssrc.view.button.bargainNew.editorOnLine`).d('在线编辑')}
@@ -438,6 +450,19 @@ class SupplierComponnet extends Component {
     if (typeof dynamicChangePrice === 'function') {
       dynamicChangePrice({ record });
     }
+  }
+
+  /**
+   * currentBargainPrice 变化时，累加当前供应商明细行的 currentBargainPrice 赋值给谈判金额(attributeDecimal1)
+   * 谈判金额支持手动修改，不做反向回写，仅当 currentBargainPrice 变化时更新
+   */
+  syncBargainTotalPrice(line, supplierRecord) {
+    if (!line || !supplierRecord) return;
+    const total = line.dataSet.toData().reduce(
+      (sum, row) => sum + (Number(row.currentBargainPrice) || 0),
+      0
+    );
+    supplierRecord.set('attributeDecimal1', total);
   }
 
   getColumns = (data = {}) => {
@@ -685,6 +710,7 @@ class SupplierComponnet extends Component {
               currency="quotationCurrencyCode"
               record={line}
               omitZeroFlag
+              onChange={() => this.syncBargainTotalPrice(line, tableHeaderRecord)}
             />
           );
         },
@@ -734,12 +760,12 @@ class SupplierComponnet extends Component {
               return <CheckBox onChange={() => dynamicChangePrice({ record })} />;
             },
           },
-      {
-        name: 'taxRate',
-        width: 120,
-        align: 'right',
-        hidden: !bargainFlag,
-      },
+      // {
+      //   name: 'taxRate',
+      //   width: 120,
+      //   align: 'right',
+      //   hidden: !bargainFlag,
+      // },
       {
         name: 'taxId',
         width: 140,

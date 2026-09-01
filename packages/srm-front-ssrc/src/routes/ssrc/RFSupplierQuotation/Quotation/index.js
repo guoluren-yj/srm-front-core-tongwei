@@ -629,10 +629,9 @@ const QuotationComponent = (props = {}) => {
     if (!bidFlag) return true;
     const { bidAttachTableDs } = cuxBidSupAttachmentRef?.current || {};
     if (bidAttachTableDs) {
-      // 校验：是否电签为「否」时，电签附件必输（返回 false 后由提交流程统一提示，避免重复弹窗）
+      // 校验：requiredFlag 为「1」的行，附件 attributeLongtext1 必填（返回 false 后由提交流程统一提示，避免重复弹窗）
       const hasMissingSignatureAttachment = bidAttachTableDs.some(
-        (record) =>
-          Number(record.get('attributeVarchar1')) !== 1 && !record.get('attributeLongtext1')
+        (record) => record.get('requiredFlag') === '1' && !record.get('attributeLongtext1')
       );
       if (hasMissingSignatureAttachment) {
         return false;

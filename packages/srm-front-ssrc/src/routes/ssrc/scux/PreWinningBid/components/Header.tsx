@@ -168,7 +168,7 @@ const PageHeader: React.FC = observer(() => {
   ]);
 
   return (
-    <Header backPath="/ssrc/new-bid-hall/list" title={intl.get('scux.preWinningBid.view.title.preWinningBid').d('拟中标')}>
+    <Header backPath="/ssrc/new-bid-hall/list" title={intl.get('scux.preWinningBid.view.title.preWinningBid').d('定标')}>
       {buttons}
     </Header>
   );

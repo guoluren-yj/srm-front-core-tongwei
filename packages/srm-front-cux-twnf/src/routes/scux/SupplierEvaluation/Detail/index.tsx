@@ -109,13 +109,28 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
   }, []);
 
   const handlePublish = useCallback(async () => {
+    // 二开：发布评审前校验 —— 当前供应商列表与头接口 prevSupplierIds 做完全匹配判断
+    const rawPrevIds: any = basicInfoDs.current?.get('prevSupplierIds');
+    const prevIdList: string[] = Array.isArray(rawPrevIds)
+      ? rawPrevIds.map((id: any) => String(id))
+      : String(rawPrevIds || '').split(',').map((id: string) => id.trim()).filter(Boolean);
+    const prevIds = new Set(prevIdList);
+    const currentIds = (supplierListDs.toData() || [])
+      .map((row: any) => String(row.supplierCompanyId))
+      .filter(Boolean);
+    // 完全匹配：数量一致且每个当前供应商都在 prevSupplierIds 中；多一个/少一个/换一个都不匹配
+    const exactMatch = currentIds.length === prevIdList.length && currentIds.every((id: string) => prevIds.has(id));
     const ok = await validateAll();
     if (!ok) {
       return;
     }
+    // 二次确认弹框：与 prev 完全一致（未发生任何变更）时展示「单据信息未发生任何变更」，有增删改（多/少/换）时展示原有「是否确定发布？」，两者同时只展示一个
+    const confirmMessage = exactMatch
+      ? '单据信息未发生任何变更，是否确认发布?'
+      : intl.get(`${prefix}.message.publishConfirm`).d('是否确定发布？');
     Modal.confirm({
       title: intl.get('hzero.common.message.confirm').d('提示'),
-      children: intl.get(`${prefix}.message.publishConfirm`).d('是否确定发布？'),
+      children: confirmMessage,
       onOk: async () => {
         const res = await supplierEvaluationPostApi(getSavePayload(), 'RELEASE');
         if (getResponse(res)) {

@@ -218,9 +218,13 @@ const Index: React.FC<any> = (props) => {
         width: 150,
         renderer: ({ value, record }) => {
           return (
-            <a onClick={() => handleJumpBidDetail(record)}>
+            <Button
+              funcType={FuncType.link}
+              disabled={record.get('bidNumLinkFlag') !== '1'}
+              onClick={() => handleJumpBidDetail(record)}
+            >
               {value}
-            </a>
+            </Button>
           );
         },
       },

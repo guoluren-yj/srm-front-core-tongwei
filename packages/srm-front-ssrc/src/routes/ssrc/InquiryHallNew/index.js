@@ -1568,6 +1568,11 @@ class InquiryHall extends React.Component {
   checkPriceNode = (record) => {
     const { remote } = this.props;
     const hiddenFlag = record.get('rfxStatus') === 'ROUND_QUOTATION' && !this.bidFlag; // 询价工作台 - 多伦报价不展示核价按钮
+    // 招标：二级状态未到定标审批通过时展示「定标」，否则展示「中标确认」；询价保持原「核价」
+    const displayName =
+      this.bidFlag && record.get('attributeVarchar20') !== 'RESAPPROVED'
+        ? intl.get('ssrc.common.view.message.target').d('定标')
+        : this.checkPriceName;
     const checkPriceButton = hiddenFlag ? false : (
       <Badge
         count={
@@ -1584,7 +1589,7 @@ class InquiryHall extends React.Component {
         >
           {intl
             .get(`ssrc.inquiryHall.view.message.button.commonCheckPrice`, {
-              checkPriceName: this.checkPriceName,
+              checkPriceName: displayName,
             })
             .d('{checkPriceName}')}
         </a>
@@ -2303,9 +2308,10 @@ class InquiryHall extends React.Component {
   // 放在标准按钮前面
   @Bind()
   getBeforeCuxButtons(record) {
+    const { tabStatus } = this.state;
     const {
       rfxStatus,
-      attributeVarchar11,
+      attributeVarchar12,
       attributeVarchar33,
       attributeVarchar20,
       cuxElectronicSignFlag,
@@ -2314,7 +2320,7 @@ class InquiryHall extends React.Component {
     } =
       record.get([
         'rfxStatus',
-        'attributeVarchar11',
+        'attributeVarchar12',
         'attributeVarchar33',
         'attributeVarchar20',
         'cuxElectronicSignFlag',
@@ -2352,11 +2358,12 @@ class InquiryHall extends React.Component {
           </a>
         </div>
       ),
-      // 对于【招标方式attributeVarchar11】==「建筑类」且标书状态=「已完成」，且没有创建过【清标单attributeVarchar33】
+      // 全部/完成 tab 且标书状态=「已完成」且【招标业务类型attributeVarchar12】==「建筑类(30)」时展示「清标」
       this.bidFlag &&
+        ['all', 'finished'].includes(tabStatus) &&
         rfxStatus === 'FINISHED' &&
-        !attributeVarchar33 &&
-        attributeVarchar11 === '30' && (
+        // !attributeVarchar33 &&
+        attributeVarchar12 === '30' && (
           <div>
             <a onClick={this.handleClearTender}>
               {intl.get('scux.ssrc.view.button.inquiryHall.twnf.clearTender').d('清标')}

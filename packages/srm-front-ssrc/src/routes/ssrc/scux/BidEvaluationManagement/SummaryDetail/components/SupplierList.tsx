@@ -39,7 +39,7 @@ const SupplierList: React.FC = () => {
     openTab({
       key: path,
       path: path,
-      title: 'hzero.common.tab.title.cux.twnf.tenderDetail',
+      title: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       search: querystring.stringify(searchObj),
       closable: true,

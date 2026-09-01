@@ -40,9 +40,18 @@ const AllocateRequestModal = forwardRef(({ rfxLineItemId }, ref) => {
           },
           {
             name: 'assignAmount',
+            type: 'number',
             label: intl
               .get('ssrc.inquiryHall.model.inquiryHall.assignAmount')
               .d('分配金额'),
+            min: 0,
+            dynamicProps: {
+              // 最大不超过该行概算金额
+              max: ({ record }) => {
+                const estimatedAmount = Number(record?.get('estimatedAmount'));
+                return Number.isNaN(estimatedAmount) ? undefined : estimatedAmount;
+              },
+            },
           },
           {
             name: 'estimatedAmount',

@@ -136,11 +136,11 @@ function getComprehensiveScoreFields() {
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',
-      label: intl.get(`${preWinningBidModel}invalidBid`).d('无效投标'),
+      label: intl.get(`${preWinningBidModel}invalidBid`).d('综评结果'),
     },
     {
       name: 'invalidReason',
-      label: intl.get(`${preWinningBidModel}invalidRemark`).d('无效说明'),
+      label: intl.get(`${preWinningBidModel}invalidRemark`).d('综评说明'),
       type: FieldType.string,
     },
     ...scoreFields,
@@ -176,12 +176,12 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'bidQtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标总价（元）'),
+      label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标价（元）'),
       type: FieldType.number,
     },
     {
       name: 'qtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('总最终价（元）'),
+      label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('最终价（元）'),
       type: FieldType.number,
     },
     {
@@ -193,10 +193,10 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'attributeLongtext2',
-      label: intl.get(`${preWinningBidModel}recommendation`).d('推荐意见'),
+      label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
       type: FieldType.string,
       dynamicProps: {
-        required: ({ record }: { record: any }) => String(record.get('attributeVarchar2')) === '1',
+        // required: ({ record }: { record: any }) => String(record.get('attributeVarchar2')) === '1',
       },
     },
   ];

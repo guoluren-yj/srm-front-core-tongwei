@@ -220,16 +220,17 @@ const PageHeader: React.FC<any> = () => {
       <Button icon="transfer" wait={1000} onClick={() => operateTransferModal(true)} disabled={pageLoading}>
         {intl.get(`ssrc.inquiryHall.view.message.button.transfer`).d('转交')}
       </Button>,
-      scoreTeam === 'PRICE' && (
-        <Button wait={1000} disabled={pageLoading} onClick={handleOpenPriceAssistant}>
-          {intl.get(`ssrc.inquiryHall.view.message.button.priceAssistant`).d('比价助手')}
-        </Button>
-      ),
-      scoreTeam === 'PRICE' && Number(evaluateLeaderFlag) === 1 && (
-        <Button wait={1000} disabled={pageLoading} onClick={handleBusinessNegotiate}>
-          {intl.get(`${prefix}.view.button.businessNegotiate`).d('商务谈判')}
-        </Button>
-      ),
+      // 0831要求去掉
+      // scoreTeam === 'PRICE' && (
+      //   <Button wait={1000} disabled={pageLoading} onClick={handleOpenPriceAssistant}>
+      //     {intl.get(`ssrc.inquiryHall.view.message.button.priceAssistant`).d('比价助手')}
+      //   </Button>
+      // ),
+      // scoreTeam === 'PRICE' && Number(evaluateLeaderFlag) === 1 && (
+      //   <Button wait={1000} disabled={pageLoading} onClick={handleBusinessNegotiate}>
+      //     {intl.get(`${prefix}.view.button.businessNegotiate`).d('商务谈判')}
+      //   </Button>
+      // ),
     ].filter(Boolean);
   };
 

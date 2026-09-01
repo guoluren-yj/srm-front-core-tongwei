@@ -11,6 +11,7 @@ import { Header, Content } from 'components/Page';
 import intl from 'utils/intl';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
+import { getTableFixSelfAdaptStyle } from '@/utils/utils';
 import notification from 'utils/notification';
 import MultipleTextSplitInput from 'srm-front-boot/lib/components/MultipleTextSplitInput';
 import querystring from 'querystring';
@@ -203,42 +204,45 @@ const Index: React.FC<any> = (props) => {
         )}
       </Header>
       <Content>
-        <FilterBarTable
-          columns={columns}
-          dataSet={tableDs}
-          border={false}
-          cacheState
-          filterBarConfig={{
-            cacheKey: 'clearTenderManagementList',
-            autoQuery: true,
-            left: {
-              render: (ds) => {
-                if (ds && (!ds.getField('multiNumOrTitleOrSupplier') || !ds.getField('multiNumOrTitleOrSupplier')?.get('transformRequest'))) {
-                  ds.addField('multiNumOrTitleOrSupplier', {
-                    transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
-                      }
-                      return '';
-                    },
-                  });
-                };
-                return (
-                  <MultipleTextSplitInput
-                    name="multiNumOrTitleOrSupplier"
-                    dataSet={ds}
-                    placeholder={intl
-                      .get('scux.clearTenderManagement.view.placeholder.bidNumAndNameAndSupplierName')
-                      .d('招标单号，项目名称，供应商名称')}
-                    style={{ width: '3rem' }}
-                  />
-                );
+        <div style={getTableFixSelfAdaptStyle(true)?.wrapperCalcHeight}>
+          <FilterBarTable
+            columns={columns}
+            dataSet={tableDs}
+            border={false}
+            cacheState
+            filterBarConfig={{
+              cacheKey: 'clearTenderManagementList',
+              autoQuery: true,
+              left: {
+                render: (ds) => {
+                  if (ds && (!ds.getField('multiNumOrTitleOrSupplier') || !ds.getField('multiNumOrTitleOrSupplier')?.get('transformRequest'))) {
+                    ds.addField('multiNumOrTitleOrSupplier', {
+                      transformRequest: (value) => {
+                        if (value) {
+                          return value.join(',');
+                        }
+                        return '';
+                      },
+                    });
+                  };
+                  return (
+                    <MultipleTextSplitInput
+                      name="multiNumOrTitleOrSupplier"
+                      dataSet={ds}
+                      placeholder={intl
+                        .get('scux.clearTenderManagement.view.placeholder.bidNumAndNameAndSupplierName')
+                        .d('招标单号，项目名称，供应商名称')}
+                      style={{ width: '3rem' }}
+                    />
+                  );
+                },
               },
-            },
-          }}
-          customizable
-          customizedCode="SCUX_TWNF_CLEAR_TENDER_WORK_BENCH_LIST"
-        />
+            }}
+            customizable
+            customizedCode="SCUX_TWNF_CLEAR_TENDER_WORK_BENCH_LIST"
+            style={getTableFixSelfAdaptStyle(true)?.searchBarTableMaxHeight}
+          />
+        </div>
       </Content>
     </>
   );

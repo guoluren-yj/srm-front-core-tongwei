@@ -83,8 +83,6 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
     { name: 'attachmentUuid', editor: !isReadOnly, width: 100 },
   ];
 
-  const caseButtons = isReadOnly ? [] : [TableButtonType.add, TableButtonType.delete];
-
   const reviewCards = [
     { title: intl.get(`${prefix}.field.techCapability`).d('技术/方案能力'), meet: 'techCapabilityMeet', desc: 'techCapabilityDesc' },
     { title: intl.get(`${prefix}.field.techQualityControl`).d('质量控制'), meet: 'techQualityControlMeet', desc: 'techQualityControlDesc' },
@@ -96,7 +94,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
 
   const resultFields = [
     { name: 'technologyReviewResult', _type: 'Select' },
-    { name: 'technologyReviewDesc', _type: 'TextArea' },
+    { name: 'technologyReviewDesc', _type: 'TextArea', colSpan: 2, newLine: true },
     // { name: 'technologySubmitUserName', _type: 'TextField', disabled: true },
     // { name: 'technologySubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
@@ -112,7 +110,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
       }
       if (caseDs.length <= 1) {
         notification.warning({
-          message: intl.get(`${prefix}.message.techReviewInfoRequired`).d('请维护技术评审信息（至少两行，可添加多行）'),
+          message: intl.get(`${prefix}.message.techReviewInfoRequired`).d('请维护案例信息（至少两行，可添加多行）'),
         });
         return false;
       }
@@ -129,6 +127,15 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
       }
     }
   };
+
+  // 二开：案例表格新增保存按钮，接口调用与弹框左下角保存一致（TECH_REVIEW_SAVE）
+  const caseButtons = isReadOnly ? [] : [
+    TableButtonType.add,
+    TableButtonType.delete,
+    <Button key="save" color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
+      {intl.get('hzero.common.button.save').d('保存')}
+    </Button>,
+  ];
 
   modal = Modal.open({
     key: Modal.key(),
@@ -174,7 +181,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
               <div className={styles['review-card-title']}>{card.title}</div>
               <FormPro
                 dataSet={formDs}
-                columns={3}
+                columns={2}
                 fields={[
                   { name: card.meet, _type: 'Select' },
                   { name: card.desc, _type: 'TextField' },
@@ -192,7 +199,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
               columns={2}
               fields={[
                 { name: 'techInspectionMethod', _type: 'Select' },
-                { name: 'techInspectionEvaluationDesc', _type: 'TextArea' },
+                { name: 'techInspectionEvaluationDesc', _type: 'TextField' },
               ]}
               readOnly={isReadOnly}
             />

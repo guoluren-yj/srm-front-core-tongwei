@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table, Button } from 'choerodon-ui/pro';
+import { Table, Button, Select } from 'choerodon-ui/pro';
 import { observer } from 'mobx-react-lite';
 
 import { prefix } from './initialDs';
@@ -114,9 +114,30 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
   const showFin = +ff === 1 || type === 'unreleasedReadOnly';
   const btnCount = [showTech, showBiz, showFin].filter(Boolean).length;
 
+  // 综评不合格的供应商，不允许将「是否入围」改为「是」，禁用「是」选项
+  const isSummaryUnqualified = (record: any) => {
+    if (!record) return false;
+    const summaryValue = record.get('summaryReviewResult');
+    const summaryField = record.getField('summaryReviewResult');
+    const summaryText = summaryField?.getText ? summaryField.getText(summaryValue) : undefined;
+    return summaryText === '不合格' || summaryValue === 'NO_APPROVED' || summaryValue === '不合格';
+  };
+
   const columns = [
     { name: 'seqNum', width: 80 },
-    type === 'submit' && { name: 'isSelected', width: 100, editor: true },
+    type === 'submit' && {
+      name: 'isSelected',
+      width: 100,
+      editor: (record: any) => (
+        <Select
+          name="isSelected"
+          record={record}
+          onOption={({ record: optionRecord }: any) => ({
+            disabled: isSummaryUnqualified(record) && (String(optionRecord.get('value')) === '1' || optionRecord.get('meaning') === '是'),
+          })}
+        />
+      ),
+    },
     {
       name: 'supplierCompanyNum',
       width: 150,

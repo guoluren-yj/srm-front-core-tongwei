@@ -137,7 +137,8 @@ export default class OnGoingContainer extends PureComponent {
       !aggregation && {
         name: 'viewDetail',
         width: 150,
-        renderer: ({ record }) => viewDetail({ record }),
+        renderer: ({ record }) =>
+          record?.get('rfxStatus') === 'SCORING' ? '-' : viewDetail({ record }),
         tooltip: 'none',
       },
       !aggregation &&
@@ -209,14 +210,16 @@ export default class OnGoingContainer extends PureComponent {
         name: 'viewDetail',
         width: 200,
         renderer: (recordProps) =>
-          QuotationInfo(recordProps, {
-            remote,
-            currentTable,
-            bidOpeningNewFlag,
-            customizeTable,
-            sourceKey,
-            roundQuotationExecuteFlag,
-          }),
+          recordProps?.record?.get('rfxStatus') === 'SCORING'
+            ? '-'
+            : QuotationInfo(recordProps, {
+                remote,
+                currentTable,
+                bidOpeningNewFlag,
+                customizeTable,
+                sourceKey,
+                roundQuotationExecuteFlag,
+              }),
         tooltip: 'none',
       },
       !aggregation && {

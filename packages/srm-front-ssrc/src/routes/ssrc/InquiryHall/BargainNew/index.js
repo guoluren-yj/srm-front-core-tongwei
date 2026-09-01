@@ -9,7 +9,7 @@
 import React, { Component } from 'react';
 // import { Button } from 'hzero-ui';
 // import { connect } from 'dva';
-import { isEmpty, noop, isNil, omit } from 'lodash';
+import { isEmpty, isNil, omit } from 'lodash';
 import { SRM_SSRC, PRIVATE_BUCKET } from '_utils/config';
 import { Bind, Throttle } from 'lodash-decorators';
 import querystring from 'querystring';
@@ -31,6 +31,7 @@ import {
 } from 'utils/utils';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
+import request from 'utils/request';
 import Upload from 'srm-front-boot/lib/components/Upload';
 import { FORM_COL_3_LAYOUT } from 'utils/constants';
 import CommonImport from '@/routes/himp/CommonImportNew';
@@ -79,7 +80,6 @@ import Item from './Item';
 import Supplier from './Supplier';
 import BatchInputPrice from './Modals/BatchInputPrice';
 import LadderLevel from './LadderLevelC7n/index';
-import StartBargainForm from './Modals/StartBargainForm';
 
 import { hocBargainCommon } from './Entry/hocBargainCommon';
 
@@ -1619,11 +1619,15 @@ class Bargain extends Component {
           pathname: `${this.activeTabKey}/rfx-evaluation/${sourceHeaderId}`,
           search,
         });
+      // 二开：checkPrice 结束议价后跳转 /list。原逻辑（跳转 check-price）注释保留
       } else if (sourceStatus === 'checkPrice') {
         history.push({
-          pathname: `${this.activeTabKey}/check-price/${params.rfxId}`,
-          search,
+          pathname: `${this.activeTabKey}/list`,
         });
+        // history.push({
+        //   pathname: `${this.activeTabKey}/check-price/${params.rfxId}`,
+        //   search,
+        // });
       } else if (sourceStatus === 'BARGAINING') {
         history.push({
           pathname:
@@ -3135,12 +3139,45 @@ class Bargain extends Component {
     });
   };
 
+  // 二开：发起议价前校验商务谈判附件是否存在（仅招标场景），调用供应商列表查询接口校验 attributeLongtext1 字段是否有值
+  @Bind()
+  async checkBargainAttachment() {
+    const {
+      match: { params },
+      organizationId,
+    } = this.props;
+    const { searchParams } = this.state;
+    const { quotationHeaderId } = searchParams || {};
+    const { rfxId: rfxHeaderId } = params || {};
+
+    const res = await request(
+      `/marmot/v1/${organizationId}/marmot-api/21VFib8pTuCtIB51x4HLW7Po6Att7icSbyRxuUbOepIFHXw3I0rYqYTektxbWHLN6F`,
+      {
+        method: 'GET',
+        query: { rfxHeaderId, quotationHeaderId },
+      }
+    );
+    const data = res || {};
+    const list = Array.isArray(data) ? data : data.content || [];
+    return list.some((item) => item && item.attributeLongtext1);
+  }
+
   /**
    *  发起议价
    */
   @Bind()
   @Throttle(1000)
   async bargainOnStart() {
+    // 二开：发起议价前校验商务谈判附件是否存在（招标），不存在则提示并中断
+    if (this.bidFlag) {
+      const hasAttachment = await this.checkBargainAttachment();
+      if (!hasAttachment) {
+        notification.warning({
+          message: '商务谈判附件不存在，请生成附件后再发起谈判！',
+        });
+        return;
+      }
+    }
     const { isBatchMaintainSection = false, activeKey = '' } = this.state;
     const {
       remote,
@@ -3459,7 +3496,9 @@ class Bargain extends Component {
     } else if (sourceStatus === 'RFX_EVALUATION_PENDING') {
       url = `${this.activeTabKey}/rfx-evaluation/${sourceHeaderId}?backRecommend=${backRecommend}&sourceFrom=${sourceFrom}&cachTabKey=${cachTabKey}&sourceStatus=${sourceStatus}&sourceHeaderId=${params.rfxId}&sourceProjectId=${formatSourceProjectId}&projectLineSectionId=${projectSectionId}`;
     } else if (sourceStatus === 'checkPrice') {
-      url = `${this.activeTabKey}/check-price/${params.rfxId}?projectLineSectionId=${projectLineSectionId}`;
+      // 二开：checkPrice 来源返回跳转 /list。原逻辑（返回 check-price）注释保留
+      url = `${this.activeTabKey}/list`;
+      // url = `${this.activeTabKey}/check-price/${params.rfxId}?projectLineSectionId=${projectLineSectionId}`;
     } else if (bargainingStage === 'SCORE') {
       url = `${this.activeTabKey}/rfx-evaluation-proc-manage/${params.rfxId}?evaluateLeaderFlag=${evaluateLeaderFlag}&cachTabKey=${cachTabKey}&sourceFrom=${sourceFrom}&sourceHeaderId=${sourceHeaderId}&sourceStatus=${sourceStatus}&sourcePage=${sourcePage}&bargainingStage=${bargainingStage}&sourceProjectId=${formatSourceProjectId}&projectLineSectionId=${projectLineSectionId}`;
     } else if (sourceStatus === 'SCORING') {
@@ -3874,34 +3913,16 @@ class Bargain extends Component {
   };
 
   // 议价弹窗
+  // 二开：发起议价去掉议价截止时间弹框，默认当天23:59:59 直接走后续流程
   @Bind()
   openStartBargainModal() {
-    const { loading, operationLoading } = this.state;
-    const { customizeForm = noop } = this.props;
+    const record = this.startBargainModalDS.current || this.startBargainModalDS.create({}, 0);
 
-    this.startBargainModalDS.create({}, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 0);
+    record.set('bargainEndDate', endOfToday);
 
-    const StartBargainFormProps = {
-      dataSet: this.startBargainModalDS,
-      customizeForm,
-      sourceKey: this.sourceKey,
-    };
-
-    return c7nModal.open({
-      title: intl.get(`ssrc.inquiryHall.model.bargain.bargainDeadline`).d('议价截止时间'),
-      key: c7nModal.key(),
-      children: <StartBargainForm {...StartBargainFormProps} />,
-      style: { width: 380 },
-      drawer: true,
-      closable: true,
-      cancelText: intl.get('hzero.common.button.close').d('关闭'),
-      onOk: this.handleOkOnlineStartBargainPrice,
-      onColse: () => this.onlineEndDateModalCancel(),
-      onCancel: () => this.onlineEndDateModalCancel(),
-      okProps: {
-        loading: loading || operationLoading,
-      },
-    });
+    this.handleOkOnlineStartBargainPrice();
   }
 
   /**
@@ -4670,18 +4691,6 @@ class Bargain extends Component {
           },
         },
       },
-      {
-        name: 'cuxGenerateAttachment',
-        btnType: 'c7n-pro',
-        btnProps: {
-          funcType: 'flat',
-          wait: 1200,
-          onClick: this.handleGenerateAttachment,
-          loading: endLoading || operationLoading || headerLoading,
-          hidden: this.sourceKey === INQUIRY,
-        },
-        child: intl.get(`scux.ssrc.view.button.bargainNew.generateAttachment`).d('生成附件'),
-      },
     ].filter(Boolean);
 
     // 线下议价按钮
@@ -5093,6 +5102,9 @@ class Bargain extends Component {
       fetchSupplierLineBargainLoading,
       // headerPagination: bargainSupplierLinePagination,
       handleCollBack: this.handleCollBack,
+      // 二开：生成附件按钮移至供应商表格「在线编辑」左侧，需将处理函数与 loading 透传给 Supplier
+      handleGenerateAttachment: this.handleGenerateAttachment,
+      operationLoading,
       // dataSource: supplierLine,
       // pagination: supplierLinePagination,
       // onSearch: this.changeSupplierPageOnline,

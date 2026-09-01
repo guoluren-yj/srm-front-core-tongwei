@@ -48,7 +48,7 @@ const PageContent: React.FC<any> = () => {
             <TabPane tab={intl.get('scux.technicalDocumentsDetail.view.tab.technicalFile').d('技术文件（含图纸）')} key="technicalFile">
               <TechnicalFile />
             </TabPane>
-            <TabPane tab={intl.get('scux.bidPlanDetail.view.tab.bidPlanContent').d('招标内容')} key="bidPlanContent">
+            <TabPane tab={intl.get('scux.bidPlanDetail.view.tab.bidPlanContent').d('需求信息')} key="bidPlanContent">
               <BidPlanContent />
             </TabPane>
           </Tabs>

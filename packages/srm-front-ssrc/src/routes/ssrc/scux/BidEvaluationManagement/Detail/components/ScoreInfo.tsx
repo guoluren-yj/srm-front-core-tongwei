@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Popover } from 'choerodon-ui';
 import { Table, NumberField, Select, Form, TextArea, Attachment, Output } from 'choerodon-ui/pro';
 import { isUndefined } from 'lodash';
@@ -15,6 +15,29 @@ const EvaluationInfo: React.FC = () => {
     commonDs: { evaluationItemsDs, evaluationHeaderDs } = {},
     editorFlag,
   } = useStore();
+
+  // 否决项指标为「是」且供应商分数选择「不符合(NO_APPROVED)」时，是否合格自动赋值为「不合格」；该字段禁止编辑
+  // 仅在修改供应商分数时同步，进入页面保持原值
+  useEffect(() => {
+    if (!editorFlag || !evaluationItemsDs) return;
+    const checkVeto = () => {
+      const matched = evaluationItemsDs.records.some(
+        (record) =>
+          String(record.get('attributeVarchar1')) === '1' &&
+          String(record.get('passStatus')) === 'NO_APPROVED'
+      );
+      if (matched && evaluationHeaderDs?.current) {
+        evaluationHeaderDs.current.set('suggestInvalidFlag', '1');
+      }
+      if (!matched && evaluationHeaderDs?.current) {
+        evaluationHeaderDs.current.set('suggestInvalidFlag', '0');
+      }
+    };
+    evaluationItemsDs.addEventListener('update', checkVeto);
+    return () => {
+      evaluationItemsDs.removeEventListener('update', checkVeto);
+    };
+  }, [editorFlag, evaluationItemsDs, evaluationHeaderDs]);
 
   const renderCell = (record, name) => {
     if (!isUndefined(record.get('indicateNameFlag'))) {
@@ -116,6 +139,11 @@ const EvaluationInfo: React.FC = () => {
         name: 'indicWeight',
         renderer: ({ value }) => (value ? `${value}%` : null),
       },
+      {
+        name: 'remark',
+        renderer: ({ value }) => value || null,
+      },
+
     ];
   }, []);
 
@@ -134,7 +162,7 @@ const EvaluationInfo: React.FC = () => {
           useWidthPercent
           labelLayout={LabelLayout.float}
         >
-          {editorFlag ? <Select name="suggestInvalidFlag"/> : <Output name="suggestInvalidFlag" />}
+          {editorFlag ? <Select name="suggestInvalidFlag" /> : <Output name="suggestInvalidFlag" />}
           <Attachment name="attachmentUuid" readOnly={!editorFlag} />
           {editorFlag ? <TextArea name="expertSuggestion" colSpan={2} newLine /> : <Output name="expertSuggestion" colSpan={2} newLine/>}
         </Form>

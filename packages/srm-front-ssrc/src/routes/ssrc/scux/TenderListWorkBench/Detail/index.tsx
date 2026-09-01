@@ -57,7 +57,7 @@ const PageContent: React.FC<any> = () => {
             <TenderListSection />
           </TabPane>
           {!!sourceProjectId && (
-            <TabPane tab={intl.get('scux.bidPlanDetail.view.tab.bidPlanContent').d('招标内容')} key="bidPlanContent">
+            <TabPane tab={intl.get('scux.bidPlanDetail.view.tab.bidPlanContent').d('需求信息')} key="bidPlanContent">
               <BidPlanContent />
             </TabPane>
           )}

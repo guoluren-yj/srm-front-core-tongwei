@@ -45,7 +45,7 @@ const handleViewDocDetail = () => {
     return (
       <span style={{fontWeight: "bold", fontSize: "16px"}}>
         <span>{`${rfxNum}-${rfxTitle}`}</span>
-        <Button icon="feed" funcType={FuncType.flat} onClick={handleViewDocDetail}>{intl.get('scux.bidEvaluationManagement.view.title.viewDocDetail').d('查看单据详情')}</Button>
+        {/* <Button icon="feed" funcType={FuncType.flat} onClick={handleViewDocDetail}>{intl.get('scux.bidEvaluationManagement.view.title.viewDocDetail').d('查看单据详情')}</Button> */}
       </span>
     );
   }, [rfxNum, rfxTitle]);

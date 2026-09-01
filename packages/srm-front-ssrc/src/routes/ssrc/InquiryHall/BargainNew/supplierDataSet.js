@@ -562,11 +562,11 @@ const supplierTableDataSet = (options) => {
           },
         },
       },
-      {
-        name: 'taxRate',
-        label: intl.get(`ssrc.inquiryHall.model.inquiryHall.taxRate`).d('税率(%)'),
-        bind: !bargainFlag ? 'taxId.taxRate' : '',
-      },
+      // {
+      //   name: 'taxRate',
+      //   label: intl.get(`ssrc.inquiryHall.model.inquiryHall.taxRate`).d('税率(%)'),
+      //   bind: !bargainFlag ? 'taxId.taxRate' : '',
+      // },
       {
         label: intl.get(`ssrc.inquiryHall.model.inquiryHall.ladderInquiryFlag`).d('阶梯报价'),
         name: 'ladderInquiryFlag',
