@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Tabs } from 'choerodon-ui';
-import { Button, DataSet } from 'choerodon-ui/pro';
+import { Button, DataSet, Modal } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { getTableFixSelfAdaptStyle } from '@/utils/utils';
@@ -68,21 +68,28 @@ const Index: React.FC<any> = (props) => {
   };
 
   // 变更
-  const handleChange = async (record) => {
+  const handleChange = (record) => {
     const { sourceProjectId, techFileId } = record.get(['techFileId', 'sourceProjectId']);
     if (!sourceProjectId || !techFileId) return;
-    const res = await technicalDocumentsApi({
-      postType: 'CHANGE',
-      techFileId,
-    });
-    if (getResponse(res)) {
-      history.push({
-        pathname: `/scux/ssrc/technical-documents-workbench/tech-update/${techFileId}`,
-        search: querystring.stringify({
-          sourceProjectId,
-        }),
+    const doChange = async () => {
+      const res = await technicalDocumentsApi({
+        postType: 'CHANGE',
+        techFileId,
       });
-    }
+      if (getResponse(res)) {
+        history.push({
+          pathname: `/scux/ssrc/technical-documents-workbench/tech-update/${techFileId}`,
+          search: querystring.stringify({
+            sourceProjectId,
+          }),
+        });
+      }
+    };
+    Modal.confirm({
+      title: '变更确认',
+      children: '请确认是否进行变更。若无需变更，可直接点击招标计划单号进行查看。',
+      onOk: doChange,
+    });
   };
 
   // 列表按钮

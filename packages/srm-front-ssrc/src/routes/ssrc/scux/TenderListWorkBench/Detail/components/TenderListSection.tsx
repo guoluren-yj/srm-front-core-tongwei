@@ -135,7 +135,7 @@ const TenderListSection = () => {
   };
 
   const buttons : any[] = useMemo(() => {
-    if (!editorFlag || catalogStatus === 'SOURCE_CHANGING') return [];
+    if (!editorFlag || catalogStatus === 'CHANGING'|| catalogStatus === 'SOURCE_CHANGING') return [];
     return [
       'add',
       ['delete', {
@@ -151,7 +151,7 @@ const TenderListSection = () => {
 
   return (
     <>
-      {catalogStatus === 'SOURCE_CHANGING' && (
+      {catalogStatus === 'CHANGING' || catalogStatus === 'SOURCE_CHANGING' && (
         <Alert
           type="info"
           message="提示: 招标文件已创建，不允许进行标段的增减!"

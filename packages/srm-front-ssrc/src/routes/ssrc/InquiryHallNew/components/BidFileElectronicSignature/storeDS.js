@@ -51,7 +51,7 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
       name: 'attributeLongtext1',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.electronicSignatureAttachment')
-        .d('电签附件'),
+        .d('签章附件'),
       type: 'attachment',
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',

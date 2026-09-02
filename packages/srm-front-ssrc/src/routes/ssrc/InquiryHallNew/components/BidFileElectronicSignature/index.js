@@ -15,7 +15,7 @@ import { attachmentDS } from './storeDS';
 
 // 采购方文件用印
 const BidManagementAttachment = (props) => {
-  const { parentRef, rfxHeaderId, modal } = props;
+  const { parentRef, rfxHeaderId } = props;
 
   const bidAttachTableDs = useDataSet(
     () =>
@@ -35,6 +35,7 @@ const BidManagementAttachment = (props) => {
   // 暴露子组件的api给父组件使用
   useImperativeHandle(parentRef, () => ({
     bidAttachTableDs,
+    handleCuxSaveElectronicSignature,
   }));
 
   // 查询
@@ -147,47 +148,21 @@ const BidManagementAttachment = (props) => {
     []
   );
 
-  // 招标文件用印保存
+  // 招标文件用印保存（由外层弹框右下角「保存」按钮触发）
   const handleCuxSaveElectronicSignature = () => {
-    modal.update({
-      okProps: {
-        loading: true,
-      },
-    });
     return cuxSaveUseSeal({
       attachmentLines: bidAttachTableDs.toJSONData(),
-    })
-      .then((res) => {
-        if (getResponse(res)) {
-          notification.success();
-          handleQuery();
-        }
-      })
-      .finally(() => {
-        modal.update({
-          okProps: {
-            loading: false,
-          },
-        });
-      });
+    }).then((res) => {
+      if (getResponse(res)) {
+        notification.success();
+        handleQuery();
+      }
+    });
   };
-
-  const buttons = useMemo(() => {
-    return [
-      <Button
-        wait={1200}
-        disabled={!rfxHeaderId || rfxHeaderId === 'null'}
-        onClick={() => handleCuxSaveElectronicSignature()}
-      >
-        {intl.get('hzero.common.button.save').d('保存')}
-      </Button>,
-    ];
-  }, [handleCuxSaveElectronicSignature, rfxHeaderId]);
 
   return (
     <Table
       dataSet={bidAttachTableDs}
-      buttons={buttons}
       columns={columns}
       style={{ maxHeight: 450 }}
     />

@@ -89,10 +89,10 @@ export const bidOpeningListDataSet = (): DataSetProps => {
     selection: false,
     paging: false,
     fields: [
-      {
-        name: 'lineNum',
-        label: intl.get(`${prefix}.model.twnf.bidOpeningList.lineNum`).d('序号'),
-      },
+      // {
+      //   name: 'lineNum',
+      //   label: intl.get(`${prefix}.model.twnf.bidOpeningList.lineNum`).d('序号'),
+      // },
       {
         name: 'supplierName',
         label: intl.get(`${prefix}.model.twnf.bidOpeningList.supplierName`).d('供应商名称'),
@@ -137,10 +137,10 @@ export const bidOpeningListDataSet = (): DataSetProps => {
         name: 'priceOpenTime',
         label: intl.get(`${prefix}.model.twnf.bidOpeningList.priceOpenTime`).d('价格开标时间'),
       },
-      {
-        name: 'businessBattle',
-        label: intl.get(`${prefix}.model.twnf.bidOpeningList.businessBattle`).d('商务谈判'),
-      },
+      // {
+      //   name: 'businessBattle',
+      //   label: intl.get(`${prefix}.model.twnf.bidOpeningList.businessBattle`).d('商务谈判'),
+      // },
     ],
   };
 };
@@ -175,7 +175,11 @@ export const evaluationExpertDataSet = (): DataSetProps => {
       {
         name: 'attributeLongtext1',
         label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),
-      }
+      },
+      {
+        name: 'loginName',
+        label: intl.get(`${prefix}.model.twnf.summary.loginName`).d('专家账户'),
+      },
     ],
   };
 };

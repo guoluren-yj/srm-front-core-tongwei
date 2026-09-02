@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import { DataSet, Button } from 'choerodon-ui/pro';
+import { DataSet, Button, Modal } from 'choerodon-ui/pro';
 
 import { Header, Content } from 'hzero-front/lib/components/Page';
 import intl from 'hzero-front/lib/utils/intl';
@@ -49,16 +49,22 @@ const handleToShortlistEdit = (history: any, record: any) => {
   }));
 };
 
-const handleToChange = async (history: any, record: any) => {
+const handleToChange = (history: any, record: any) => {
   const nominationHeaderId = record?.get('nominationHeaderId');
-  if (record?.get('nominationStatus') !== 'CHANGING') {
-    const res = await supplierEvaluationPostApi({ nominationHeaderId }, 'CHANGE');
-    if (!getResponse(res)) return;
-  }
-  handleToDetail(history, stringify({
-    nominationHeaderId,
-    type: 'change',
-  }));
+  Modal.confirm({
+    title: '变更确认',
+    children: '请确认是否进行变更。若无需变更，可直接点击招标计划单号进行查看。',
+    onOk: async () => {
+      if (record?.get('nominationStatus') !== 'CHANGING') {
+        const res = await supplierEvaluationPostApi({ nominationHeaderId }, 'CHANGE');
+        if (!getResponse(res)) return;
+      }
+      handleToDetail(history, stringify({
+        nominationHeaderId,
+        type: 'change',
+      }));
+    },
+  });
 };
 
 const handleToSubmit = (history: any, record: any) => {

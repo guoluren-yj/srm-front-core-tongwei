@@ -33,8 +33,6 @@ const Index: React.FC<any> = (props) => {
   } = props;
 
   const currentUser = getCurrentUser();
-  console.log('当前登录账号信息:', currentUser);
-  console.log('当前登录账号信息 JSON:', JSON.stringify(currentUser, null, 2));
 
   // 从详情页返回时，location.key 变化，表格 key 随之变化强制重新挂载，解决 cacheState 下 autoHeight 不重算的问题
   const tableKey = location?.key || 'tenderList';
@@ -62,7 +60,7 @@ const Index: React.FC<any> = (props) => {
 
   // 变更
   const handleChange = (record) => {
-    const { sourceProjectId, bidCatalogId, sourceProjectName, catelogNum, rfxHeaderId } = record.get(['bidCatalogId', 'sourceProjectId', 'sourceProjectName', 'catelogNum', 'rfxHeaderId']);
+    const { sourceProjectId, bidCatalogId } = record.get(['bidCatalogId', 'sourceProjectId']);
     if (!sourceProjectId || !bidCatalogId) return;
     const doChange = async () => {
       const res = await tenderListBillCommonApi({
@@ -78,15 +76,11 @@ const Index: React.FC<any> = (props) => {
         });
       }
     };
-    if (rfxHeaderId) {
-      Modal.confirm({
-        title: '变更确认',
-        children: `【${sourceProjectName || ''}】已创建招标文件【${catelogNum || ''}】，不允许进行标段增减，请确认是否进行变更操作。`,
-        onOk: doChange,
-      });
-    } else {
-      doChange();
-    }
+    Modal.confirm({
+      title: '变更确认',
+      children: '请确认是否进行变更。若无需变更，可直接点击招标计划单号进行查看。',
+      onOk: doChange,
+    });
   };
 
   // 列表按钮
@@ -97,13 +91,14 @@ const Index: React.FC<any> = (props) => {
       funcType: FuncType.link,
       wait: 500,
     };
+    console.log('当前记录信息:', createdBy, currentUser.id);
     return [
       catalogStatus === 'NEW' && `${createdBy}` === `${currentUser.id}` && (
         <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.provideList').d('清单提供')}
         </Button>
       ),
-      (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING') && `${createdBy}` === `${currentUser.id}` && (
+      (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING' || catalogStatus === 'SOURCE_CHANGING') && `${createdBy}` === `${currentUser.id}` && (
         <Button {...commonButtonsProps} onClick={() => (catalogStatus === 'APPROVED') ? handleChange(record) : handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
         </Button>

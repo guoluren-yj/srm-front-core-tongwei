@@ -68,6 +68,11 @@ export const evaluationHeaderDataSet = ({ evaluateScoreId }): DataSetProps => {
         type: FieldType.string,
       },
       {
+        name: 'qtnTotalAmount',
+        label: intl.get(`${prefix}.model.twnf.qtnTotalAmount`).d('投标报价（元）'),
+        type: FieldType.number,
+      },
+      {
         name: 'suggestInvalidFlag',
         label: intl.get(`${prefix}.model.twnf.qualifiedFlag`).d('是否合格'),
         lookupCode: 'SSRC.SCORE.INVALID_FLAG',
@@ -216,6 +221,9 @@ export const evaluationItemsDataSet = ({ scoreFlag }): DataSetProps => ({
       name: 'remark',
       type: FieldType.string,
       label: intl.get(`${prefix}.model.twnf.expertScoring.remark`).d('备注'),
+      dynamicProps: {
+        disabled: ({ record }) => scoreFlag,
+      },
     },
   ],
 });

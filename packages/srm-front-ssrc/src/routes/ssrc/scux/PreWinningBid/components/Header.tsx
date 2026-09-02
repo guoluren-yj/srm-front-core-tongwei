@@ -21,14 +21,37 @@ const PageHeader: React.FC = observer(() => {
   const { pageLoading, setPageLoading = noop, history, getStoreData, initData = noop, rfxHeaderId, commonDs } = useStore();
   const { headerDs, supplierListDs } = commonDs || {};
 
-  const { biddingTarget, diyLadderQuotationFlag } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag']) || {});
+  const { biddingTarget, diyLadderQuotationFlag, scoreWay } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag', 'scoreWay']) || {});
+  // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
+  const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
+
+  // 同步最终价：仅"供应商列表"场景将 qtnTotalAmount 赋值给 attributeDecimal2，保证两字段值一致（同时让 attributeDecimal2 有值的行触发附件必填校验）
+  const syncFinalPrice = () => {
+    if (!isPlainSupplierList || !supplierListDs) return;
+    supplierListDs.forEach((record) => {
+      record.set('attributeDecimal2', record.get('qtnTotalAmount'));
+    });
+  };
+
+  // 校验供应商列表：仅"供应商列表"需全量校验所有记录（含未改动的 sync 记录）以触发附件必填；其余沿用原 ds.validate
+  const validateSupplierList = () => {
+    if (!supplierListDs) return Promise.resolve(false);
+    if (!isPlainSupplierList) return supplierListDs.validate();
+    const promises: Promise<boolean>[] = [];
+    supplierListDs.forEach((record) => {
+      promises.push(record.validate(true));
+    });
+    return Promise.all(promises).then((results) => results.every((flag) => flag));
+  };
 
   const validateData = async (): Promise<boolean> => {
     if (!headerDs || !supplierListDs) return false;
 
+    syncFinalPrice();
+
     const { validateAttachmentListTable = null } = getStoreData ? getStoreData('fileTemplateAttachmentRef') || {} : {};
 
-    const validateFlag = (await Promise.all([headerDs.validate(), supplierListDs.validate(), validateAttachmentListTable ? validateAttachmentListTable() : true])).every((flag) => flag);
+    const validateFlag = (await Promise.all([headerDs.validate(), validateSupplierList(), validateAttachmentListTable ? validateAttachmentListTable() : true])).every((flag) => flag);
 
     if (!validateFlag) {
       notification.warning({

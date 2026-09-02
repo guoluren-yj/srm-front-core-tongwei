@@ -52,7 +52,7 @@ const BaseInfo: React.FC = () => {
 
   return (
     <Collapse
-      defaultActiveKey={['baseInfo']}
+      defaultActiveKey={[]}
       expandIconPosition="text-right"
       ghost
     >

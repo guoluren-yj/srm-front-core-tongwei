@@ -50,6 +50,7 @@ const SupplierInfo: React.FC = () => {
           >
             <Output name="supplierCompanyName" />
             <Output name="supplierCompanyNum" />
+            {scoreTeam === 'PRICE' && <Output name="qtnTotalAmount" />}
           </Form>
         )}
         <div style={{ marginTop: '24px' }}>

@@ -108,6 +108,8 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       if (getResponse(res)) {
         const { rfxHeader = {}, supplierList = [] } = res;
         headerDs.loadData([rfxHeader]);
+        // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
+        supplierListDs.setState('finalPriceSync', !['10', '20', '30', '40'].includes(rfxHeader?.scoreWay));
         supplierListDs.loadData(supplierList);
         supplierListDs.setState('headerDs', headerDs);
       };

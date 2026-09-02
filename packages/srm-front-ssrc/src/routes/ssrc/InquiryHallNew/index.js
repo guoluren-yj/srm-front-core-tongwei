@@ -2175,7 +2175,7 @@ class InquiryHall extends React.Component {
   handleOpenBidDocSeal(record) {
     const { rfxHeaderId } = record.get(['rfxHeaderId']) || {};
     const parentRef = React.createRef();
-    const cuxModal = Modal.open({
+    Modal.open({
       modalKey: 'scux_twnf_bid_doc_seal',
       destroyOnClose: true,
       closable: true,
@@ -2189,11 +2189,12 @@ class InquiryHall extends React.Component {
         <BidFileElectronicSignature
           rfxHeaderId={rfxHeaderId}
           parentRef={parentRef}
-          modal={cuxModal}
         />
       ),
-      cancelButton: false,
-      okText: intl.get('hzero.common.button.close').d('关闭'),
+      cancelButton: true,
+      cancelText: intl.get('hzero.common.button.close').d('关闭'),
+      okText: intl.get('hzero.common.button.save').d('保存'),
+      onOk: () => parentRef.current?.handleCuxSaveElectronicSignature(),
     });
   }
 

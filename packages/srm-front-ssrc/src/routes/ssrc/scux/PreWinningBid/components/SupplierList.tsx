@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table, Button, Switch } from 'choerodon-ui/pro';
+import { Table, Button, Switch, NumberField, Attachment } from 'choerodon-ui/pro';
 import { Tabs } from 'choerodon-ui';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import querystring from 'querystring';
@@ -63,6 +63,8 @@ const SupplierList: React.FC = observer(() => {
   };
 
   const columns: ColumnProps[] = useMemo(() => {
+    // 无评分方式时 tabTitle 为「供应商列表」，仅该场景启用最终价编辑/同步与附件上传
+    const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
     return [
       {
         name: 'attributeVarchar2',
@@ -137,6 +139,24 @@ const SupplierList: React.FC = observer(() => {
       {
         name: 'qtnTotalAmount',
         width: 130,
+        // 仅"供应商列表"场景且行 barginFlag = '1' 时可编辑，数字输入框，最大14位、最小0
+        editor: (record) =>
+          isPlainSupplierList && record.get('barginFlag') === '1' ? (
+            <NumberField name="qtnTotalAmount" record={record} min={0} max={99999999999999} precision={6} />
+          ) : false,
+      },
+      {
+        name: 'attributeLongtext9', // 最终价附件，仅"供应商列表"场景显示；attributeDecimal2（最终价）有值时必填，可上传附件
+        width: 130,
+        hidden: !isPlainSupplierList,
+        editor: (record) => (
+          <Attachment
+            record={record}
+            name="attributeLongtext9"
+            viewMode="popup"
+            funcType={FuncType.link}
+          />
+        ),
       },
       {
         name: 'techSum',

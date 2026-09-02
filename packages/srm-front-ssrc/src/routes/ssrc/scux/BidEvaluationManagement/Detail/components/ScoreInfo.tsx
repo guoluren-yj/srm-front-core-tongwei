@@ -141,7 +141,15 @@ const EvaluationInfo: React.FC = () => {
       },
       {
         name: 'remark',
-        renderer: ({ value }) => value || null,
+        width: 150,
+        editor: true,
+        // 汇总/小计等非明细行不展示备注输入框
+        onCell: ({ record }) => {
+          if (!isUndefined(record?.get('indicateNameFlag'))) {
+            return { hidden: true };
+          }
+          return { hidden: false };
+        },
       },
 
     ];

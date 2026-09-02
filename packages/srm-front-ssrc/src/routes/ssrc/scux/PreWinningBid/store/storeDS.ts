@@ -4,6 +4,7 @@ import { isNil } from 'lodash';
 
 import intl from 'utils/intl';
 import { getCurrentOrganizationId } from 'utils/utils';
+import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
 
 const preWinningBidModel = 'scux.preWinningBid.model.';
 
@@ -147,6 +148,28 @@ function getComprehensiveScoreFields() {
   ];
 }
 
+// 最终价同步 + 附件上传，是否启用由 supplierListDs 的 finalPriceSync 状态决定（仅"供应商列表" tab 启用）
+function getFinalPriceSyncFields() {
+  return [
+    {
+      name: 'attributeDecimal2', // 保存/提交时接收 qtnTotalAmount 的赋值，两字段值保持一致
+      label: intl.get(`${preWinningBidModel}attributeDecimal2`).d('最终价（同步）'),
+      type: FieldType.number,
+    },
+    {
+      name: 'attributeLongtext9', // 最终价附件，attributeDecimal2（最终价）有值时必填
+      label: intl.get(`${preWinningBidModel}attributeLongtext9`).d('附件'),
+      type: FieldType.attachment,
+      bucketName: PRIVATE_BUCKET,
+      bucketDirectory: 'ssrc-template-requirement',
+      dynamicProps: {
+        // 仅"供应商列表"（finalPriceSync）场景需附件必填；评分方式表格与只读查看不启用
+        required: ({ dataSet, record }) => !!dataSet?.getState('finalPriceSync') && !isNil(record.get('attributeDecimal2')),
+      },
+    },
+  ];
+}
+
 function getCommonSupplierListFields() {
   return [
     {
@@ -184,6 +207,7 @@ function getCommonSupplierListFields() {
       label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('最终价（元）'),
       type: FieldType.number,
     },
+    ...getFinalPriceSyncFields(),
     {
       name: 'attributeVarchar2',
       label: intl.get(`${preWinningBidModel}proposedBid`).d('拟定标'),

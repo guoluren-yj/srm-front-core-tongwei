@@ -89,6 +89,9 @@ const EvaluationExpert: React.FC = () => {
     {
       name: 'attributeLongtext1',
     },
+    {
+      name: 'loginName',
+    },
   ], []);
 
 

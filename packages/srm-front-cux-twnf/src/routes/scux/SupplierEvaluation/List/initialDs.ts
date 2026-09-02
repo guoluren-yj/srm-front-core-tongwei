@@ -109,7 +109,7 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'nominationStatus', type: FieldType.string, label: intl.get(`${prefix}.field.nominationStatus`).d('状态') },
     { name: 'nominationStatusMeaning', type: FieldType.string, label: intl.get(`${prefix}.field.nominationStatusMeaning`).d('状态') },
     { name: 'nominationNum', type: FieldType.string, label: intl.get(`${prefix}.field.nominationNum`).d('入围单编号') },
-    { name: 'sourceProjectNum', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectNum`).d('招标计划编号') },
+    { name: 'sourceProjectNum', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectNum`).d('招标计划单号') },
     { name: 'sourceProjectId', type: FieldType.number, label: intl.get(`${prefix}.field.sourceProjectId`).d('招标计划ID') },
     { name: 'sourceProjectName', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectName`).d('招标名称') },
     { name: 'companyId', type: FieldType.number, label: intl.get(`${prefix}.field.companyId`).d('公司ID') },

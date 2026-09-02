@@ -15,9 +15,9 @@ const OpenBidList: React.FC = () => {
 
   const columns: ColumnProps[] = useMemo(() => {
     return [
-      {
-        name: 'lineNum',
-      },
+      // {
+      //   name: 'lineNum',
+      // },
       {
         name: 'supplierName',
       },
@@ -51,19 +51,19 @@ const OpenBidList: React.FC = () => {
       {
         name: 'priceOpenTime',
       },
-      {
-        name: 'businessBattle',
-        // TODO: 商务谈判待完善
-        // renderer: ({ record }) => (
-        //   record.get('priceBid') === '已开启' && <a onClick={() => {
-        //       history.push({
-        //           pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${record.get('rfxHeaderId')}?sourceStatus=checkPrice&current=&quotationHeaderId=${record.get('rfxHeaderId')}`,
-        //       });
-        //   }}
-        //   > 商务谈判
-        //   </a>
-      // ),
-      },
+      // {
+      //   name: 'businessBattle',
+      //   // TODO: 商务谈判待完善
+      //   // renderer: ({ record }) => (
+      //   //   record.get('priceBid') === '已开启' && <a onClick={() => {
+      //   //       history.push({
+      //   //           pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${record.get('rfxHeaderId')}?sourceStatus=checkPrice&current=&quotationHeaderId=${record.get('rfxHeaderId')}`,
+      //   //       });
+      //   //   }}
+      //   //   > 商务谈判
+      //   //   </a>
+      // // ),
+      // },
     ];
   }, []);
 
