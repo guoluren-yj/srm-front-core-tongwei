@@ -90,11 +90,9 @@ const OrganizeBidOpening = (props) => {
       cancelText: intl.get('hzero.common.button.cancel').d('否'),
       onOk: async () => {
         const res = getResponse(await checkDrawLots({ rfxHeaderId }));
-        if (res && res?.failed) {
+        if (res) {
           notification.success();
           initData();
-        }else{
-          return false;
         }
       },
     });

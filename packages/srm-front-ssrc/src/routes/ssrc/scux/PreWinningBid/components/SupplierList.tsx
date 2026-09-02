@@ -139,9 +139,9 @@ const SupplierList: React.FC = observer(() => {
       {
         name: 'qtnTotalAmount',
         width: 130,
-        // 仅"供应商列表"场景且行 barginFlag = '1' 时可编辑，数字输入框，最大14位、最小0
+        // 仅"供应商列表"场景且行 barginFlag = '1' 时不可编辑，数字输入框，最大14位、最小0
         editor: (record) =>
-          isPlainSupplierList && record.get('barginFlag') === '1' ? (
+          isPlainSupplierList && record.get('barginFlag') !== '1' ? (
             <NumberField name="qtnTotalAmount" record={record} min={0} max={99999999999999} precision={6} />
           ) : false,
       },

@@ -1,6 +1,31 @@
 import intl from 'utils/intl';
 import { getCurrentOrganizationId } from 'utils/utils';
 
+// 强制保存非通用变量维护数据：临时放开必填校验，将当前录入（含未填必填的行）直接提交后端，
+// 保存能否成功以后端返回为准；提交完成后立即恢复必填，保证【提交/发布】的校验逻辑不受影响。
+// 注意：勿修改全局 feedback 配置，仅此处按需放开必填字段。
+export const forceSubmitNonGeneralVariables = async (nonGeneralVariablesDs) => {
+  if (!nonGeneralVariablesDs) return false;
+  const variableIdField = nonGeneralVariablesDs.getField('variableId');
+  const variableValueField = nonGeneralVariablesDs.getField('variableValue');
+  const originRequired = {
+    variableId: variableIdField?.get('required'),
+    variableValue: variableValueField?.get('required'),
+  };
+  variableIdField?.set('required', false);
+  variableValueField?.set('required', false);
+  try {
+    return await nonGeneralVariablesDs.submit();
+  } finally {
+    if (variableIdField && originRequired.variableId !== undefined) {
+      variableIdField.set('required', originRequired.variableId);
+    }
+    if (variableValueField && originRequired.variableValue !== undefined) {
+      variableValueField.set('required', originRequired.variableValue);
+    }
+  }
+};
+
 // 非通用变量维护
 export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
   return {

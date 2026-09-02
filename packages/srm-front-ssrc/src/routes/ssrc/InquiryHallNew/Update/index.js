@@ -104,6 +104,7 @@ import { expertModalDS } from '@/routes/ssrc/components/AssignExperts/lineDs';
 import { fetchNewQuotationConfigSheet } from '@/services/supplierQutationService';
 import { idValidation } from '@/routes/components/Widget/dataVerification';
 import NonGeneralVariables from '@/routes/ssrc/scux/components/NonGeneralVariables';
+import { forceSubmitNonGeneralVariables } from '@/routes/ssrc/scux/components/NonGeneralVariables/storeDs';
 
 import { EditorSymbol } from './utils/dsUtils';
 
@@ -218,6 +219,7 @@ class UpdateComponent extends Component {
       _timestamp: '', // 风险关系时间戳 目的重新触发风险提示组件渲染
       sourceResultsData: [], // 拓展寻源结果数据 公司与库存组织关联关系
       fileTemplateManageFlag: 1, // 是否启用招标文件管理标识 /** ********* 【协鑫】二开附件列表需求关联使用-勿随意改动!!! *********** */
+      cuxNonGeneralVariablesExpand: false, // 通威二开 - 非通用变量维护区块默认折叠
     };
 
     this.bidFlag = this.props.sourceKey === BID;
@@ -2429,21 +2431,35 @@ class UpdateComponent extends Component {
 
   // 通威二开 - 校验及保存二开非通用变量维护列表数据
   @Bind()
-  saveCuxNonGeneralVariablesData = async () => {
+  saveCuxNonGeneralVariablesData = async (options = {}) => {
     const { nonGeneralVariablesDs } = this.nonGeneralVariablesCuxRef?.current || {};
+    // 通威二开：头上【保存】（skipValidate=true）不做该校验，避免弹“非通用变量维护列表数据校验不通过！”；
+    // 数据有效时仍尝试提交；【提交/发布】（默认）保持原有“校验+提示”逻辑不变
+    const { skipValidate = false } = options;
     if (this.bidFlag && nonGeneralVariablesDs) {
       try {
-        const validateRes = await nonGeneralVariablesDs.validate();
-        if (!validateRes) {
-          notification.warning({
-            message: intl
-              .get('scux.ssrc.view.message.inquiryHall.twnf.nonGeneralVariablesMessage')
-              .d('非通用变量维护列表数据校验不通过！'),
-          });
-          return false;
+        if (!skipValidate) {
+          // 提交/发布：保持原有“校验+提示+提交”逻辑
+          const validateRes = await nonGeneralVariablesDs.validate();
+          if (!validateRes) {
+            notification.warning({
+              message: intl
+                .get('scux.ssrc.view.message.inquiryHall.twnf.nonGeneralVariablesMessage')
+                .d('非通用变量维护列表数据校验不通过！'),
+            });
+            return false;
+          }
+          const saveRes = await nonGeneralVariablesDs.submit();
+          if (saveRes && saveRes.failed) {
+            return false;
+          }
+          nonGeneralVariablesDs.query();
+          return true;
         }
-        const saveRes = await nonGeneralVariablesDs.submit();
-        if (saveRes && saveRes.failed) {
+        // 头上【保存】：校验不通过也应能保存——临时放开必填，把当前录入（含未填必填的行）强制提交后端，成功与否以后端返回为准；
+        // 提交失败时不刷新，避免把未保存的新增行冲掉
+        const forceRes = await forceSubmitNonGeneralVariables(nonGeneralVariablesDs);
+        if (!forceRes || forceRes === false || forceRes.failed) {
           return false;
         }
         nonGeneralVariablesDs.query();
@@ -2462,6 +2478,14 @@ class UpdateComponent extends Component {
       const { nonGeneralVariablesDs } = this.nonGeneralVariablesCuxRef?.current || {};
       return nonGeneralVariablesDs?.query();
     }
+  }
+
+  // 通威二开 - 折叠/展开非通用变量维护区块
+  @Bind()
+  toggleCuxNonGeneralVariables() {
+    this.setState({
+      cuxNonGeneralVariablesExpand: !this.state.cuxNonGeneralVariablesExpand,
+    });
   }
 
   // 页面数据整合
@@ -3360,21 +3384,46 @@ class UpdateComponent extends Component {
   }
 
   // 保存 - 提取保存及前面校验的的逻辑
+  // 通威二开：头上【保存】传 skipValidate=true 时不进行校验，直接保存当前录入信息；【提交/发布】仍保持全量校验
   @Bind()
-  async saveUpdatePageData() {
+  async saveUpdatePageData(options = {}) {
     const { remote: remoteBox } = this.props;
+    const { skipValidate = false } = options;
     this.toggleButtonsLoading(true);
     this.togglePageLoading(true);
-    const {
-      finishingRate = 0,
-      saveValidateFlag = false,
-      attachmentUploadingFlag = false,
-    } = await this.validatePage();
 
-    // 非通用变量维护校验及保存
-    const cuxNonGerneralFlag = await this.saveCuxNonGeneralVariablesData();
+    let finishingRate = 0;
+    let saveValidateFlag = true;
+    let attachmentUploadingFlag = false;
 
-    if (attachmentUploadingFlag || !cuxNonGerneralFlag) {
+    if (!skipValidate) {
+      // 校验通过才能保存（发布、发布时 cux 二开保存分支等走此完整校验）
+      const validateRes = await this.validatePage();
+      finishingRate = validateRes?.finishingRate || 0;
+      saveValidateFlag = validateRes?.saveValidateFlag !== false;
+      attachmentUploadingFlag = !!validateRes?.attachmentUploadingFlag;
+    } else {
+      // 头上【保存】：不校验。validatePage 不会执行，故自行补充其保存所依赖的副作用
+      this.setCurrentTimeValue();
+      // 将相关记录标记为更新态，保证保存接口按“更新”处理
+      if (this.SourceNoticeDS?.current) {
+        this.SourceNoticeDS.current.set('status', 'update');
+      }
+      this.ItemLineTableDS?.forEach((itemLine = {}) => {
+        itemLine.set('status', 'update');
+      });
+      if (this.RfxInfoDS?.current) {
+        this.RfxInfoDS.current.set('status', 'update');
+      }
+      // 完成度沿用已落库值（新建单为 0），待提交/发布校验时重新计算刷新
+      finishingRate = Number(this.RfxInfoDS?.current?.get('finishingRate')) || 0;
+    }
+
+    // 非通用变量维护校验及保存（头上【保存】走 skipValidate，不校验不弹窗；发布仍校验）
+    const cuxNonGerneralFlag = await this.saveCuxNonGeneralVariablesData({ skipValidate });
+
+    // 不校验保存时（skipValidate）不因附件上传中/非通用变量校验未通过而阻断保存当前录入信息
+    if (attachmentUploadingFlag || (!skipValidate && !cuxNonGerneralFlag)) {
       this.toggleButtonsLoading();
       this.togglePageLoading();
       return;
@@ -3419,7 +3468,8 @@ class UpdateComponent extends Component {
   async saveInquiryHallUpdate() {
     const { history = {}, remote: remoteBox } = this.props;
     try {
-      const result = getResponse(await this.saveUpdatePageData()); // 保存
+      // 通威二开：头上【保存】不进行校验，直接保存当前录入信息；【提交/发布】时再走全量校验
+      const result = getResponse(await this.saveUpdatePageData({ skipValidate: true })); // 保存
 
       if (!result || isEmpty(result)) {
         return false;
@@ -7501,16 +7551,38 @@ class UpdateComponent extends Component {
                 </Content>
                 {this.bidFlag && rfxId && rfxId !== 'null' ? (
                   <Content className={styles['custom-page-content']}>
-                    <h3 id="rfxDeamnd" className={styles['rfx-card-item-title']}>
+                    {/* 通威二开：非通用变量维护默认折叠，标题样式与其它区块保持一致；
+                        折叠时仅隐藏列表展示，表格保持挂载、DS 已查询，不影响保存/发布读取该列表数据 */}
+                    <h3
+                      id="rfxDeamnd"
+                      className={styles['rfx-card-item-title']}
+                      onClick={this.toggleCuxNonGeneralVariables}
+                      style={{ cursor: 'pointer' }}
+                    >
                       {intl
                         .get('scux.ssrc.view.inquiryHall.twnf.nonGeneralVariables')
                         .d('非通用变量维护')}
+                      <Icon
+                        type="expand_more"
+                        style={{
+                          marginLeft: 8,
+                          color: '#333',
+                          transition: 'transform 0.2s',
+                          transform: this.state.cuxNonGeneralVariablesExpand
+                            ? 'rotate(0deg)'
+                            : 'rotate(-90deg)',
+                        }}
+                      />
                     </h3>
-                    <NonGeneralVariables
-                      parentRef={this.nonGeneralVariablesCuxRef}
-                      rfxHeaderId={rfxId}
-                      editorFlag
-                    />
+                    <div
+                      style={{ display: this.state.cuxNonGeneralVariablesExpand ? 'block' : 'none' }}
+                    >
+                      <NonGeneralVariables
+                        parentRef={this.nonGeneralVariablesCuxRef}
+                        rfxHeaderId={rfxId}
+                        editorFlag
+                      />
+                    </div>
                   </Content>
                 ) : null}
                 <Content className={styles['custom-page-content']}>
