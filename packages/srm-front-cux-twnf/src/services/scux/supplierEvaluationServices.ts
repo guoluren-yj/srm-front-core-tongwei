@@ -34,14 +34,6 @@ export function supplierEvaluationDetailPostApi(body: any, operationType) {
   });
 }
 
-// 提醒评审人员（通知有未完成评审项的评审人）
-export function remindReviewerApi(params: any) {
-  return request(`${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwfNuM4c7ibLmxgicUqdwtHaALAQzKBPwzF2fF5pn9Z5l9c`, {
-    method: 'GET',
-    query: params,
-  });
-}
-
 // 风险扫描
 export function supplierRiskScanApi(body: any) {
  return request(`${SRM_SSLM}/v1/${organizationId}/monitor/riskScan-validate`, {

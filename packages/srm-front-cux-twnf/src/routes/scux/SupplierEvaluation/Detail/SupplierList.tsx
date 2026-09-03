@@ -13,7 +13,7 @@ import {
   openFinanceReviewModal,
   openAddSupplierModal,
 } from './modals';
-import { supplierEvaluationDetailPostApi, supplierEvaluationPostApi, queryRiskMonitorType, riskEmbedPage, remindReviewerApi } from '../../../../services/scux/supplierEvaluationServices';
+import { supplierEvaluationDetailPostApi, supplierEvaluationPostApi, queryRiskMonitorType, riskEmbedPage } from '../../../../services/scux/supplierEvaluationServices';
 import { getResponse, getAttachmentUrl, getCurrentOrganizationId } from 'hzero-front/lib/utils/utils';
 import notification from 'hzero-front/lib/utils/notification';
 import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
@@ -97,16 +97,8 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
   };
 
   const handleRemindReviewer = async () => {
-    const nominationHeaderId = basicInfoDs?.current?.get('nominationHeaderId');
-    if (!nominationHeaderId) {
-      return;
-    }
-    // 旧 REVIEW_MESSAGE 通知 与 新增提醒评审人员接口 两个都调用
-    const [oldRes, newRes] = await Promise.all([
-      supplierEvaluationDetailPostApi({ nominationHeaderId }, 'REVIEW_MESSAGE'),
-      remindReviewerApi({ nominationHeaderId }),
-    ]);
-    if (getResponse(oldRes) && getResponse(newRes)) {
+    const res = await supplierEvaluationDetailPostApi({ nominationHeaderId: basicInfoDs.current?.get('nominationHeaderId') }, 'REVIEW_MESSAGE');
+    if (getResponse(res)) {
       notification.success({});
     }
   };
