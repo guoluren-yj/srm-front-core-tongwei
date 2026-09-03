@@ -177,12 +177,14 @@ export default class FinishedContainer extends PureComponent {
       !inquiryAggregation && {
         name: 'viewSuggestedSuppliers',
         width: 200,
-        renderer: viewDetail,
+        renderer: ({ record }) =>
+          record?.get('rfxStatus') === 'SCORING' ? '-' : viewDetail({ record }),
       },
       inquiryAggregation && {
         name: 'viewSuggestedSuppliers',
         width: 200,
-        renderer: QuotationInfo,
+        renderer: ({ record }) =>
+          record?.get('rfxStatus') === 'SCORING' ? '-' : QuotationInfo({ record }),
         tooltip: 'none',
       },
       inquiryAggregation && {

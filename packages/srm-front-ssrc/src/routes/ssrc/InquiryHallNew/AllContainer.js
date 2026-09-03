@@ -89,7 +89,8 @@ export default class AllContainer extends PureComponent {
       !aggregation && {
         name: 'viewDetail',
         width: 200,
-        renderer: viewDetail,
+        renderer: ({ record }) =>
+          record?.get('rfxStatus') === 'SCORING' ? '-' : viewDetail({ record }),
         tooltip: 'none',
       },
       !aggregation && {
@@ -158,13 +159,15 @@ export default class AllContainer extends PureComponent {
         name: 'viewDetail',
         minWidth: 200,
         renderer: (recordProps) =>
-          QuotationInfo(recordProps, {
-            remote,
-            bidOpeningNewFlag,
-            customizeTable,
-            sourceKey,
-            roundQuotationExecuteFlag,
-          }),
+          recordProps?.record?.get('rfxStatus') === 'SCORING'
+            ? '-'
+            : QuotationInfo(recordProps, {
+                remote,
+                bidOpeningNewFlag,
+                customizeTable,
+                sourceKey,
+                roundQuotationExecuteFlag,
+              }),
         tooltip: 'none',
       },
       {
