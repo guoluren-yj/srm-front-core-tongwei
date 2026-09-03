@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { isEmpty, noop } from 'lodash';
 import { Table, Lov, Button, Attachment } from 'choerodon-ui/pro';
@@ -11,7 +11,11 @@ import notification from 'utils/notification';
 import formatterCollections from 'utils/intl/formatterCollections';
 import { yesOrNoRender } from 'utils/renderer';
 
-import { fetchAttTemplateDataByAttType, generateAttTemplate } from '@/services/inquiryHallService';
+import {
+  fetchAttTemplateDataByAttType,
+  generateAttTemplate,
+  cuxSaveBidAttachment,
+} from '@/services/inquiryHallService';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 import { getCommonDisabledFlag } from './storeDS';
 import style from './index.less';
@@ -20,6 +24,7 @@ const BidManagementAttachment = (props) => {
   const { rfxInfoDS, attachType, bidAttachTableDs, customizeTable = noop } = props;
 
   const { rfxHeaderId } = rfxInfoDS?.current?.get(['rfxHeaderId']) || {};
+  const [saving, setSaving] = useState(false);
 
   // change attachment type
   const handleChangeAttachmentType = (value, record) => {
@@ -224,6 +229,64 @@ const BidManagementAttachment = (props) => {
     );
   };
 
+  // 判断新增行是否为空行（仅设置了 attributeLongtext11 默认值的不算内容）
+  const hasAttachLineContent = (record) =>
+    Boolean(
+      record?.get('attachmentUuid') ||
+        record?.get('attachmentType')?.uniqueKey ||
+        record?.get('fileManageId') ||
+        record?.get('tempAttachmentUuid') ||
+        record?.get('attributeVarchar19') ||
+        record?.get('attributeLongtext10') ||
+        record?.get('remark')
+    );
+
+  // 保存附件----通威二开：仅提交变更行，成功后刷新当前附件列表（复用页面已有的读取接口）
+  const handleSaveAttachment = async () => {
+    const currentRfxHeaderId = rfxInfoDS?.current?.get('rfxHeaderId');
+    if (!currentRfxHeaderId) {
+      notification.warning({
+        message: intl
+          .get('scux.bidAttachment.view.message.twnf.saveHeaderFirst')
+          .d('请先保存单据头后再保存附件！'),
+      });
+      return;
+    }
+    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
+    const changedRecords = [
+      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
+      ...updated,
+    ];
+    if (!changedRecords.length) {
+      notification.info({
+        message: intl
+          .get('scux.bidAttachment.view.message.twnf.noSaveChange')
+          .d('当前没有需要保存的附件变更！'),
+      });
+      return;
+    }
+    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
+    setSaving(true);
+    try {
+      const res = await cuxSaveBidAttachment({
+        rfxHeaderId: currentRfxHeaderId,
+        attachmentLineList,
+      });
+      if (getResponse(res)) {
+        notification.success();
+        // 复用页面已有的附件列表读取接口刷新当前附件列表
+        const templateId = rfxInfoDS?.current?.get('templateId');
+        bidAttachTableDs.setQueryParameter('sourceId', currentRfxHeaderId);
+        if (templateId && templateId !== 'null') {
+          bidAttachTableDs.setQueryParameter('templateId', templateId);
+        }
+        bidAttachTableDs.query();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // 批量删除按钮、复制禁用逻辑
   const batchDisabledFlag = useMemo(() => {
     return (
@@ -254,8 +317,18 @@ const BidManagementAttachment = (props) => {
       >
         {intl.get(`hzero.common.button.batchDelete`).d('批量删除')}
       </Button>,
+      <Button
+        icon="save"
+        name="save"
+        color="primary"
+        funcType="flat"
+        loading={saving}
+        onClick={handleSaveAttachment}
+      >
+        {intl.get('hzero.common.button.save').d('保存')}
+      </Button>,
     ],
-    [batchDisabledFlag]
+    [batchDisabledFlag, saving]
   );
 
   return attachType === 'PUR' ? (

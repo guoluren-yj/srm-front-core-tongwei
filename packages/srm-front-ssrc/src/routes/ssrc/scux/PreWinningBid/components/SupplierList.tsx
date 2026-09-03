@@ -240,6 +240,7 @@ const SupplierList: React.FC = observer(() => {
     bidFlag: true,
     onRef: handleAttachmentTableRef,
     unitCodeSymbol: 'oldUpdateOrApproval', // 个性化标识
+    fileEditorFlag: true, // 附件表格列对齐招标文件及附件表格(文件编辑 OnlyOffice 在线编辑 / 附件模板 文案)
   }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef]);
 
   return (

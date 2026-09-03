@@ -669,17 +669,18 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
       method: 'GET',
       params: {
         ...params,
-        nominationHeaderId,
-        nominationSupLineId,
         queryType: 'FINANCE_LINE_REVIEW',
+        // 优先使用查询参数中的 id（保存后可 setQueryParameter 换用接口返回的新 id 重新取数），未设置时才回退到创建时的 id
+        nominationHeaderId: params.nominationHeaderId || nominationHeaderId,
+        nominationSupLineId: params.nominationSupLineId || nominationSupLineId,
       },
     }),
-    destroy: ({ data}) => ({
+    destroy: ({ data, dataSet }) => ({
       url: `${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwdjcCccJP6YlZCeMybA9ic252Kibx1ViaAFOf6K3WULtfmx`,
       method: 'POST',
       data: {
-        nominationHeaderId,
-        nominationSupLineId,
+        nominationHeaderId: dataSet?.getQueryParameter('nominationHeaderId') || nominationHeaderId,
+        nominationSupLineId: dataSet?.getQueryParameter('nominationSupLineId') || nominationSupLineId,
         operationType: 'FIN_LINE_DELETE',
         financeReviewLineIds: data.map((item) => item.financeReviewLineId),
       },

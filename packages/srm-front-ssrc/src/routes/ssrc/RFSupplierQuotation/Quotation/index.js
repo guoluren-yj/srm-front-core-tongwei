@@ -3232,6 +3232,9 @@ const QuotationComponent = (props = {}) => {
     updateBatchMaintainCache,
   };
 
+  // 通威二开 - 议价中隐藏 招标文件/投标文件
+  const cuxInBargainFlag = bargainStatus === 'BARGAINING_ONLINE'; // 议价中
+
   return (
     <React.Fragment>
       <Header
@@ -3276,7 +3279,7 @@ const QuotationComponent = (props = {}) => {
                 >
                   <QuotationLineTable {...quotationLineProps} onRef={lineRef} />
                 </Card>
-                {bidFlag && (
+                {bidFlag && !cuxInBargainFlag && (
                   <>
                     <Card
                       id="cuxPurBidManagementAttachment"

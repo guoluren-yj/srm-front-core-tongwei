@@ -2825,3 +2825,17 @@ export async function checkDrawLots(params) {
     body: { rfxHeaderId },
   });
 }
+
+/**
+ * 附件清单保存----通威二开
+ * @param {Object} params { rfxHeaderId, attachmentLineList }
+ */
+export async function cuxSaveBidAttachment(params) {
+  return request(
+    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/X2cldlmDItAZUSfsN0c5N86ib4G0iaXlngCx5xWkLXZzF8N8QykTEf3F92cKcdtZy2`,
+    {
+      method: 'POST',
+      body: params,
+    }
+  );
+}

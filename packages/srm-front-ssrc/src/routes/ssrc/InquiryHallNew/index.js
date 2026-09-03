@@ -1152,6 +1152,8 @@ class InquiryHall extends React.Component {
     const newBiddingFlag = this.isNewBiddingFlag({ sourceCategory, biddingFlag });
     // 竞价大厅的单子不显示询价监控台;
     if (newBiddingFlag) return null;
+    // 通威二开 - 招标大厅列表状态为【未开始】时，不显示 招标监控台 按钮
+    if (this.bidFlag && record?.get('rfxStatus') === 'NOT_START') return null;
     const node = customPermissionButton({
       display: intl
         .get(`ssrc.inquiryHall.model.inquiryHall.CommonMonitoringPlatform`, {
@@ -2030,7 +2032,9 @@ class InquiryHall extends React.Component {
 
     if (
       this.CheckPermissionObject?.clarifyquestion?.controllerType !== 'hidden' &&
-      !offlineWholeFlag
+      !offlineWholeFlag &&
+      // 通威二开 - 招标大厅列表状态为【未开始】时，不显示 澄清答疑 按钮
+      !(this.bidFlag && rfxStatus === 'NOT_START')
     ) {
       list.push(this.questionAnswerNode(record, list));
     }

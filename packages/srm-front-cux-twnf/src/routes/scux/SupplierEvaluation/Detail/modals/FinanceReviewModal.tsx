@@ -19,20 +19,55 @@ import styles from './index.less';
 
 const { Panel } = Collapse;
 
+// 解析保存/提交与明细查询统一使用的 id：有 lastNomination* 时取 last，否则取当前 id
+const resolveNominationId = (
+  resultDs: DataSet,
+  nominationHeaderId: any,
+  nominationSupLineId: any
+) => {
+  const lastNominationHeaderId = resultDs?.current?.get('lastNominationHeaderId');
+  const lastNominationSupLineId = resultDs?.current?.get('lastNominationSupLineId');
+  return {
+    nominationHeaderId:
+      lastNominationHeaderId ||
+      resultDs?.current?.get('nominationHeaderId') ||
+      nominationHeaderId,
+    nominationSupLineId:
+      lastNominationSupLineId ||
+      resultDs?.current?.get('nominationSupLineId') ||
+      nominationSupLineId,
+    // 存在上次提名时，明细行是从上次提名带过来的，保存/提交需去掉其 financeReviewLineId
+    hasLastNomination: Boolean(lastNominationHeaderId && lastNominationSupLineId),
+  };
+};
+
+const loadFinanceReviewData = async (nominationHeaderId: any, nominationSupLineId: any) => {
+  const resultDs = new DataSet(financeReviewResultDS(nominationHeaderId, nominationSupLineId));
+  await resultDs.query();
+
+  // 若存在上次提名，则财务明细按上次提名的 id 取数
+  const { nominationHeaderId: infoNominationHeaderId, nominationSupLineId: infoNominationSupLineId } =
+    resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
+  const infoDs = new DataSet(financeReviewInfoDS(infoNominationHeaderId, infoNominationSupLineId));
+  if (infoNominationHeaderId && infoNominationSupLineId) {
+    await infoDs.query();
+  }
+
+  return { resultDs, infoDs };
+};
+
 export const openFinanceReviewModal = async (record: any, type?: string, dataSet?: any, basicInfoDs?: any) => {
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
+  const { resultDs, infoDs } = await loadFinanceReviewData(nominationHeaderId, nominationSupLineId);
+
+  // 判断是否存在上次提名：存在时评审信息明细由上次提名带入，保存/提交需特殊处理
+
+  const { hasLastNomination } = resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
   let modal;
-  const infoDs = new DataSet(financeReviewInfoDS(nominationHeaderId, nominationSupLineId));
-  const resultDs = new DataSet(financeReviewResultDS(nominationHeaderId, nominationSupLineId));
-
-  infoDs.bind(resultDs, 'children');
-
-  await resultDs.query();
 
   const nominationStatus = basicInfoDs.current?.get('nominationStatus');
   const isReadOnly = type === 'unreleasedReadOnly' || (nominationStatus !== 'PENDING_REVIEW' && nominationStatus !== 'TO_BE_RELEASED');
-  console.log(type, nominationStatus);
 
   const supplierName = record.get('supplierCompanyName') || '';
   const reviewTypeCode = basicInfoDs?.current?.get('reviewType') || '';
@@ -86,12 +121,49 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
         return false;
       }
     }
-    const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { nominationHeaderId, nominationSupLineId, ...resultDs.current?.toJSONData(), financeReviewLineList: infoDs.toData(), children: null  } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
+    // 存在上次提名时，明细行由上次提名带入：去掉 financeReviewLineId，
+    // 并将每行的 nominationHeaderId/nominationSupLineId 统一为财务入围评审结果所属的 id
+    // 全新数据时 FINANCE_REVIEW 查询结果不带 nomination id，保存/提交用当前提名 id 兜底
+    const resultNominationHeaderId =
+      resultDs?.current?.get('nominationHeaderId') || nominationHeaderId;
+    const resultNominationSupLineId =
+      resultDs?.current?.get('nominationSupLineId') || nominationSupLineId;
+    console.log(resultNominationHeaderId, resultNominationSupLineId);
+    const financeReviewLineList = hasLastNomination
+      ? infoDs.toData().map((line: any) => {
+          const { financeReviewLineId, ...rest } = line;
+          // 行本身没有 nominationHeaderId/nominationSupLineId 视为新建数据，不需要替换，保持为空
+          if (!(line?.nominationHeaderId && line?.nominationSupLineId)) {
+            return rest;
+          }
+          // 由上次提名带入的行，替换为财务入围评审结果所属的 id
+          return {
+            ...rest,
+            ...(resultNominationHeaderId ? { nominationHeaderId: resultNominationHeaderId } : {}),
+            ...(resultNominationSupLineId
+              ? { nominationSupLineId: resultNominationSupLineId }
+              : {}),
+          };
+        })
+      : infoDs.toData();
+    const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { ...resultDs.current?.toJSONData(), nominationHeaderId: resultNominationHeaderId, nominationSupLineId: resultNominationSupLineId, financeReviewLineList, children: null } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
     if (getResponse(res)) {
       notification.success({});
       if(!submitFlag) {
-        infoDs.query();
-        resultDs.query();
+        // 保存成功后，使用接口返回的 nominationHeaderId/nominationSupLineId 重新查询评审信息行
+        // 优先使用接口返回的新 nomination id；拿不到时退回当前结果中的 id
+        const savedNominationHeaderId = res?.nominationHeaderId || resultNominationHeaderId;
+        const savedNominationSupLineId = res?.nominationSupLineId || resultNominationSupLineId;
+        setTimeout(() => {
+          if (savedNominationHeaderId) {
+            infoDs.setQueryParameter('nominationHeaderId', savedNominationHeaderId);
+          }
+          if (savedNominationSupLineId) {
+            infoDs.setQueryParameter('nominationSupLineId', savedNominationSupLineId);
+          }
+          infoDs.query();
+          resultDs.query();
+        }, 1000);
       } else if(modal) {
         dataSet.query();
         modal.close();

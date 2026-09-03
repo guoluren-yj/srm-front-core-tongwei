@@ -25,6 +25,7 @@ import {
   generateAttTemplate,
   fetchAttachmentTableList,
 } from '@/services/inquiryHallService';
+import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 
 import { fileTemplateAttachmentDS } from './storeDS';
 
@@ -121,7 +122,9 @@ class FileTemplateAttachmentCheckPricePage extends Component {
 
     if (!hzeroFlag) {
       this.lineDS.setQueryParameter('commons', commons);
-      this.lineDS.query();
+      this.lineDS.query().then(() => {
+        this.backfillTemplateFileManageId();
+      });
     } else {
       let result = await fetchAttachmentTableList(commons);
       result = getResponse(result);
@@ -188,6 +191,59 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       const { attachmentType, ...others } = result || {}; // attachmentType 默认更新
       record.set(others);
     });
+  };
+
+  // 仅 fileEditorFlag 场景(PreWinningBid)：/attachment-lines/list 返回的模板行可能缺 fileManageId，
+  // 导致「附件模板」列不出现「生成附件」按钮。按附件类型回查模板配置，仅对缺失行回填 fileManageId。
+  backfillTemplateFileManageId = async () => {
+    const { fileEditorFlag } = this.props;
+    if (!fileEditorFlag) {
+      return;
+    }
+
+    const { templateId } = this.getHeaderFieldsValue();
+    if (!templateId) {
+      return;
+    }
+
+    const typeKeyOf = (record) => {
+      const attachmentType = record.get('attachmentType');
+      if (!attachmentType) {
+        return '';
+      }
+      return typeof attachmentType === 'object' ? attachmentType.uniqueKey || '' : attachmentType;
+    };
+
+    const needBackfillRows = (this.lineDS.records || []).filter(
+      (record) => record.get('attachmentFrom') === 'TEMPLATE' && !record.get('fileManageId')
+    );
+    if (!needBackfillRows.length) {
+      return;
+    }
+
+    const typeKeys = [...new Set(needBackfillRows.map(typeKeyOf).filter(Boolean))];
+    await Promise.all(
+      typeKeys.map(async (attachmentType) => {
+        try {
+          const res = await fetchAttTemplateDataByAttType({
+            sourceCategory: 'RFX',
+            templateId,
+            attachmentType,
+            organizationId: this.organizationId,
+          });
+          const result = getResponse(res);
+          const { fileManageId } = result || {};
+          if (!fileManageId) {
+            return;
+          }
+          needBackfillRows
+            .filter((record) => typeKeyOf(record) === attachmentType)
+            .forEach((record) => record.set('fileManageId', fileManageId));
+        } catch (error) {
+          // 单次回填失败不阻塞附件表格展示
+        }
+      })
+    );
   };
 
   // 附件表格 字段类型个性化，表格列个性化
@@ -315,9 +371,40 @@ class FileTemplateAttachmentCheckPricePage extends Component {
     });
   };
 
+  // 文件编辑列（OnlyOffice 在线编辑），仅当 fileEditorFlag 打开时使用，默认不展示以免影响其他引用页面
+  getFileEditColumn = () => {
+    const { editorFlag = 0, rfxHeaderId } = this.props;
+
+    return {
+      header: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.fileEdit`).d('文件编辑'),
+      width: 180,
+      renderer: ({ record }) => {
+        // 无编辑权限、或尚未保存(无 attachmentLineId)的行不可在线编辑，与招标文件及附件表格(bid-update)行为一致
+        const notEditable =
+          !editorFlag || record.status === 'add' || !record.get('attachmentLineId');
+
+        if (notEditable) {
+          return (
+            <Button funcType="link" disabled>
+              {intl.get('hzero.common.button.edit').d('编辑')}
+            </Button>
+          );
+        }
+
+        return (
+          <OnlyOfficeEditorOnline
+            headerId={rfxHeaderId}
+            attachmentLineId={record.get('attachmentLineId')}
+            title={intl.get('hzero.common.button.edit').d('编辑')}
+          />
+        );
+      },
+    };
+  };
+
   // table columns
   getColumns = () => {
-    const { editorFlag = 0 } = this.props;
+    const { editorFlag = 0, fileEditorFlag = false } = this.props;
 
     const columns = [
       {
@@ -336,6 +423,14 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       {
         name: 'templateAttachment',
         width: 180,
+        // fileEditorFlag 场景下文案对齐招标文件及附件表格的「附件模板」
+        ...(fileEditorFlag
+          ? {
+              header: intl
+                .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplateNew`)
+                .d('附件模板'),
+            }
+          : {}),
         renderer: ({ record }) => {
           const { fileManageId, tempAttachmentUuid } =
             record.get(['fileManageId', 'tempAttachmentUuid']) || {};
@@ -378,11 +473,10 @@ class FileTemplateAttachmentCheckPricePage extends Component {
           return '';
         },
       },
-      {
-        name: 'editorOnline',
-        hidden: !!editorFlag,
-        width: 180,
-      },
+      // fileEditorFlag 时用「文件编辑」功能列替换原「在线编辑」列
+      ...(fileEditorFlag
+        ? [this.getFileEditColumn()]
+        : [{ name: 'editorOnline', hidden: !!editorFlag, width: 180 }]),
       { name: 'remark' },
       {
         name: 'attachmentUuid',
