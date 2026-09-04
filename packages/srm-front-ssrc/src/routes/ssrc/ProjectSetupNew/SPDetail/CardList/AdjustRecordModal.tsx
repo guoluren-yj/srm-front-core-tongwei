@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Table, useDataSet } from "choerodon-ui/pro";
+import { FieldType } from 'choerodon-ui/dataset/data-set/enum';
 
 import intl from 'utils/intl';
 import { getCurrentOrganizationId } from 'utils/utils';
@@ -21,6 +22,7 @@ const BidPlanNodeAdjustRecord = (props) => {
         {
           name: 'oldPlanFinishDate',
           label: intl.get('ssrc.bidPlanDetail.model.adjustModal.twnf.originFinishedDate').d('原计划完成时间'),
+          type: FieldType.date,
         },
         {
           name: 'oldRemark',

@@ -49,6 +49,8 @@ const loadFinanceReviewData = async (nominationHeaderId: any, nominationSupLineI
   const { nominationHeaderId: infoNominationHeaderId, nominationSupLineId: infoNominationSupLineId } =
     resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
   const infoDs = new DataSet(financeReviewInfoDS(infoNominationHeaderId, infoNominationSupLineId));
+  // 建立父子引用：financeReviewInfoDS 的 update 事件依赖 dataSet.parent 找到评审结果行，回写 financeAvgLiabilityRatio / financeAvgRevenueRatio
+  infoDs.parent = resultDs;
   if (infoNominationHeaderId && infoNominationSupLineId) {
     await infoDs.query();
   }
@@ -87,9 +89,53 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     { name: 'roe', width: 130 },
   ];
 
+  // 二开：删除财务评审行——无 financeReviewLineId（新增/未落库）的行走前端移除，不调删除接口；
+  // 有 financeReviewLineId（已落库）的行调删除接口（FIN_LINE_DELETE），删除成功后重新查询评审结果头（FINANCE_REVIEW），由后端重算 financeAvgLiabilityRatio / financeAvgRevenueRatio
+  const handleDeleteInfo = () => {
+    const selectedRecords = infoDs.selected.slice();
+    if (selectedRecords.length === 0) {
+      notification.warning({
+        message: intl.get('hzero.common.message.selectRecord').d('请先选择要删除的数据'),
+      });
+      return;
+    }
+    const localRecords = selectedRecords.filter((row: any) => !row.get('financeReviewLineId'));
+    const serverRecords = selectedRecords.filter((row: any) => !!row.get('financeReviewLineId'));
+    Modal.confirm({
+      title: intl.get('hzero.common.message.confirm').d('删除确认'),
+      children: intl.get(`${prefix}.message.deleteFinanceLine`).d('确定删除选中的财务评审行吗？'),
+      onOk: async () => {
+        if (serverRecords.length > 0) {
+          // delete() 第二个参数 false：避免重复弹删除确认框；内部调 FIN_LINE_DELETE 接口
+          try {
+            const res = await infoDs.delete(serverRecords, false);
+            if (getResponse(res)) {
+              // forceRemove 物理移除，避免行停留在删除标记（变灰）状态
+              infoDs.remove(serverRecords, true);
+              // 删除后重新查询评审结果头，由后端基于最新明细重算均值
+              resultDs.query();
+            } else {
+              // 接口删除失败：重新查询，恢复被 delete 误标记的行
+              infoDs.query();
+              return;
+            }
+          } catch (e) {
+            infoDs.query();
+            return;
+          }
+        }
+        if (localRecords.length > 0) {
+          infoDs.remove(localRecords, true);
+        }
+      },
+    });
+  };
+
   const infoButtons = isReadOnly ? [] : [
     TableButtonType.add,
-    TableButtonType.delete,
+    <Button key="delete" onClick={handleDeleteInfo}>
+      {intl.get('hzero.common.button.delete').d('删除')}
+    </Button>,
     <Button key="save" color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
       {intl.get('hzero.common.button.save').d('保存')}
     </Button>,

@@ -111,6 +111,10 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
     { name: 'fileUrl', type: FieldType.string, label: '最新风险报告' },
     { name: 'remark', type: FieldType.string, label: intl.get(`${prefix}.field.remark`).d('备注') },
     { name: 'releaseFlag', type: FieldType.string },
+    // 技术/商务/财务评审是否已提交（=1 表示已提交），用于提交后再次进入评审时的修改提醒
+    { name: 'teachSubmitFlag', type: FieldType.string },
+    { name: 'bussSubmitFlag', type: FieldType.string },
+    { name: 'finSubmitFlag', type: FieldType.string },
   ],
   transport: {
     read: ({ params }) => ({
@@ -655,6 +659,7 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
   selection: DataSetSelection.multiple,
   primaryKey: 'financeReviewLineId',
   fields: [
+    { name: 'financeReviewLineId', type: FieldType.string, readOnly: true },
     { name: 'year', type: FieldType.string, label: intl.get(`${prefix}.field.year`).d('年度'), required: true },
     { name: 'operatingRevenue', type: FieldType.number, label: intl.get(`${prefix}.field.operatingRevenue`).d('营业收入（万元）'), required: true, precision: 2, numberGrouping: true },
     { name: 'netProfit', type: FieldType.number, label: intl.get(`${prefix}.field.netProfit`).d('净利润（万元）'), required: true, precision: 2, numberGrouping: true },

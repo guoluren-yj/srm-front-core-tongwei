@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table, Button, Select } from 'choerodon-ui/pro';
+import { Table, Button, Select, Modal } from 'choerodon-ui/pro';
 import { observer } from 'mobx-react-lite';
 
 import { prefix } from './initialDs';
@@ -79,16 +79,32 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     });
   };
 
+  // 二开：评审提交过后（对应 submitFlag=1）再次点击评审按钮，先询问「是否修改…评审内容」，确认才进入评审弹框；取消则直接关闭
+  const reviewProjectName = basicInfoDs?.current?.get('sourceProjectName') || '';
+
+  const openReviewAfterConfirm = (record: any, submitFlagField: string, reviewText: string, openFn: (rec: any) => void) => {
+    const open = () => openFn(record);
+    if (+(record.get(submitFlagField) || 0) === 1) {
+      Modal.confirm({
+        title: intl.get(`${prefix}.view.reviewModifyConfirm`).d('修改确认'),
+        children: intl.get(`${prefix}.message.reviewModifyConfirm`).d(`是否修改「${reviewProjectName}」${reviewText}评审内容？`),
+        onOk: open,
+      });
+      return;
+    }
+    open();
+  };
+
   const handleTechnicalReview = (record: any) => {
-    openTechnicalReviewModal(record, type, dataSet);
+    openReviewAfterConfirm(record, 'teachSubmitFlag', '技术', (r) => openTechnicalReviewModal(r, type, dataSet));
   };
 
   const handleBusinessReview = (record: any) => {
-    openBusinessReviewModal(record, type, dataSet, basicInfoDs);
+    openReviewAfterConfirm(record, 'bussSubmitFlag', '商务', (r) => openBusinessReviewModal(r, type, dataSet, basicInfoDs));
   };
 
   const handleFinanceReview = (record: any) => {
-    openFinanceReviewModal(record, type, dataSet, basicInfoDs);
+    openReviewAfterConfirm(record, 'finSubmitFlag', '财务', (r) => openFinanceReviewModal(r, type, dataSet, basicInfoDs));
   };
 
   const handleAddSupplier = () => {
