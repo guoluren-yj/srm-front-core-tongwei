@@ -494,9 +494,11 @@ export const technicalReviewCaseDS = (nominationHeaderId, nominationSupLineId): 
   autoQuery: !!nominationHeaderId,
   forceValidate: true,
   paging: false,
+  selection: DataSetSelection.multiple,
   primaryKey: 'technologyReviewLineId',
   dataToJSON: DataToJSON.all,
   fields: [
+    { name: 'technologyReviewLineId', type: FieldType.string, readOnly: true },
     { name: 'seqNum', type: FieldType.number, label: intl.get(`${prefix}.field.seqNum`).d('序号') },
     { name: 'caseName', type: FieldType.string, label: intl.get(`${prefix}.field.caseName`).d('案例名称'), required: true },
     { name: 'employer', type: FieldType.string, label: intl.get(`${prefix}.field.employer`).d('发包人'), required: true },

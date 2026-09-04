@@ -128,10 +128,54 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
     }
   };
 
+  // 二开：批量删除案例行
+  // - 无 technologyReviewLineId（新增/未落库）的行：前端直接物理移除，不调删除接口
+  // - 有 technologyReviewLineId（已落库）的行：调删除接口（TECH_LINE_DELETE），成功后前端物理移除
+  const handleDeleteCase = () => {
+    const selectedRecords = caseDs.selected.slice();
+    if (selectedRecords.length === 0) {
+      notification.warning({
+        message: intl.get('hzero.common.message.selectRecord').d('请先选择要删除的数据'),
+      });
+      return;
+    }
+    const localRecords = selectedRecords.filter((row: any) => !row.get('technologyReviewLineId'));
+    const serverRecords = selectedRecords.filter((row: any) => !!row.get('technologyReviewLineId'));
+    Modal.confirm({
+      title: intl.get('hzero.common.message.confirm').d('删除确认'),
+      children: intl.get(`${prefix}.message.deleteCaseLine`).d('确定批量删除选中的案例行吗？'),
+      onOk: async () => {
+        if (serverRecords.length > 0) {
+          // delete() 的第二个参数 false：避免重复弹删除确认框；delete 内部会调 TECH_LINE_DELETE 接口
+          try {
+            const res = await caseDs.delete(serverRecords, false);
+            if (getResponse(res)) {
+              // 接口删除成功：forceRemove 物理移除，避免停留在删除标记（变灰）状态
+              caseDs.remove(serverRecords, true);
+            } else {
+              // 接口删除失败：重新查询，恢复被 delete 误标记的行
+              caseDs.query();
+              return;
+            }
+          } catch (e) {
+            // 接口异常：重新查询恢复
+            caseDs.query();
+            return;
+          }
+        }
+        if (localRecords.length > 0) {
+          caseDs.remove(localRecords, true);
+        }
+      },
+    });
+  };
+
   // 二开：案例表格新增保存按钮，接口调用与弹框左下角保存一致（TECH_REVIEW_SAVE）
   const caseButtons = isReadOnly ? [] : [
     TableButtonType.add,
-    TableButtonType.delete,
+    <Button key="delete" onClick={handleDeleteCase}>
+      {intl.get('hzero.common.button.deleteAll').d('批量删除')}
+    </Button>,
     <Button key="save" color={ButtonColor.primary} onClick={() => handleSaveOrSubmit()}>
       {intl.get('hzero.common.button.save').d('保存')}
     </Button>,
