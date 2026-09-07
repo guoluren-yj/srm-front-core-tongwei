@@ -113,11 +113,17 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
         const { bidOpenList, expertList, supplierList } = headerRes;
         // 通威二开 - 供应商列表无 priceBid 字段，从开标列表按供应商名称对照补上价格标状态
         const priceBidMap = {};
+        const priceBidFlagMap = {};
         (bidOpenList || []).forEach((item) => {
           priceBidMap[item.supplierName] = item.priceBid;
+          priceBidFlagMap[item.supplierName] = item.priceBidFlag;
         });
         (supplierList || []).forEach((item) => {
           item.priceBid = priceBidMap[item.supplierCompanyName];
+          // 行内缺 priceBidFlag 时同样从开标列表补上，用于控制报价总金额/投标详情的展示
+          if (isNil(item.priceBidFlag)) {
+            item.priceBidFlag = priceBidFlagMap[item.supplierCompanyName];
+          }
         });
         evaluationExpertDs.loadData(expertList || []);
         evaluationSupplierDs.loadData(supplierList || []);

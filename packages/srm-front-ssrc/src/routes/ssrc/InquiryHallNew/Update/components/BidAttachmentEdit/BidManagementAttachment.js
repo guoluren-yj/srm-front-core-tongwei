@@ -193,7 +193,7 @@ const BidManagementAttachment = (props) => {
     },
     {
       name: 'remark',
-      editor: true,
+      // editor: true,
     },
   ];
 

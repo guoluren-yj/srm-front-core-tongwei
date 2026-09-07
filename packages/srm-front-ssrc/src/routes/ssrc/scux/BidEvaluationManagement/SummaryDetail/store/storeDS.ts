@@ -172,10 +172,10 @@ export const evaluationExpertDataSet = (): DataSetProps => {
       //   label: intl.get(`${prefix}.model.twnf.summary.scoreStatus`).d('评分状态'),
       //   lookupCode: 'SSRC.BID_EVALUATE_STATUS',
       // },
-      {
-        name: 'attributeLongtext1',
-        label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),
-      },
+      // {
+      //   name: 'attributeLongtext1',
+      //   label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),
+      // },
       {
         name: 'loginName',
         label: intl.get(`${prefix}.model.twnf.summary.loginName`).d('专家账户'),
@@ -204,21 +204,26 @@ export const supplierListDataSet = (): DataSetProps => {
         label: intl.get(`${prefix}.model.twnf.summary.supplierName`).d('供应商名称'),
       },
       {
+        name: 'priceBidFlag',
+        label: intl.get(`${prefix}.model.twnf.summary.priceBidFlag`).d('价格标开启标识'),
+        type: FieldType.number,
+      },
+      {
         name: 'qtnTotalAmount',
         label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
         type: FieldType.number,
       },
       {
-        name: 'techSum',
+        name: 'techExpertRatio',
         label: intl.get(`${prefix}.model.twnf.summary.techGroup`).d('技术组'),
       },
       {
-        name: 'businessSum',
-        label: intl.get(`${prefix}.model.twnf.summary.businessGroup`).d('商务组'),
+        name: 'businessExpertRatio',
+        label: intl.get(`${prefix}.model.twnf.summary.businessExpertRatio`).d('商务组'),
       },
       {
-        name: 'priceSum',
-        label: intl.get(`${prefix}.model.twnf.summary.priceGroup`).d('价格组'),
+        name: 'priceExpertRatio',
+        label: intl.get(`${prefix}.model.twnf.summary.priceExpertRatio`).d('价格组'),
       },
     ],
   };

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Button } from 'choerodon-ui/pro';
 import { ButtonColor } from "choerodon-ui/pro/lib/button/enum";
+import querystring from 'querystring';
 
 import { Header } from 'components/Page';
 import intl from 'utils/intl';
@@ -14,6 +15,9 @@ import {
 } from '../../api';
 import { useStore } from '../store/StoreProvider';
 import HistoryVersionListBtn from './HistoryVersionListBtn';
+
+// 返回列表路径
+const LIST_PATH = '/scux/ssrc/tender-workbench/list';
 
 // 操作记录icon
 const statusIconTypes = [
@@ -113,22 +117,6 @@ const PageHeader: React.FC<any> = () => {
     });
   };
 
-  // 删除
-  const handleDelete = () => {
-    setPageLoading(true);
-    return tenderListBillCommonApi({
-      operationType: 'DELETE_CATALOG',
-      catalogHeader: baseInfoDs?.current?.toData() || {},
-    }).then(res => {
-      if (getResponse(res)) {
-        notification.success({});
-        history.push('/scux/ssrc/tender-workbench/list');
-      };
-    }).finally(() => {
-      setPageLoading(false);
-    });
-  };
-
   // 操作记录
   const operationBtn = useMemo(() => [
     <OperationRecordCux
@@ -157,10 +145,24 @@ const PageHeader: React.FC<any> = () => {
     return intl.get('scux.tenderDetail.view.title.page.detail').d('招标清单详情');
   }, []);
 
+  // 通威二开 - 返回逻辑：
+  // 切换版本进入的详情页（URL 带 bidVersion/bidCatalogHistoryId）点击返回，回到同路由的无版本号详情页；
+  // 无版本号详情页点击返回才回到列表。避免版本页返回时跳过“无版本号详情页”直接回列表。
+  const backPath = useMemo(() => {
+    const { search = '', pathname = '' } = history?.location || {};
+    const searchParams = search ? querystring.parse(search.substr(1)) : {};
+    if (searchParams.bidVersion || searchParams.bidCatalogHistoryId) {
+      const { bidVersion, bidCatalogHistoryId, ...restParams } = searchParams;
+      const nextSearch = querystring.stringify(restParams);
+      return `${pathname}${nextSearch ? `?${nextSearch}` : ''}`;
+    }
+    return LIST_PATH;
+  }, [history?.location?.search, history?.location?.pathname]);
+
   return (
     <Header
       title={pageTitle}
-      backPath="/scux/ssrc/tender-workbench/list"
+      backPath={backPath}
     >
       <HistoryVersionListBtn bidCatalogId={bidCatalogId} history={history} />
       {editorFlag ? (
@@ -171,9 +173,6 @@ const PageHeader: React.FC<any> = () => {
           <Button icon="save" wait={1000} onClick={handleSave} disabled={pageLoading}>
             {intl.get('hzero.common.button.save').d('保存')}
           </Button>
-          {/* <Button icon="delete" wait={1000} onClick={handleDelete} disabled={pageLoading}>
-            {intl.get('hzero.common.button.delete').d('删除')}
-          </Button> */}
           {operationBtn}
         </>
       ) : operationBtn}

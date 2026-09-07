@@ -7,6 +7,9 @@ const EvaluationExpert = (props) => {
   const columns = useMemo(
     () => [
       {
+        name: 'loginName',
+      },
+      {
         name: 'expertName',
       },
       {
@@ -18,9 +21,9 @@ const EvaluationExpert = (props) => {
       // {
       //   name: 'scoreStatus',
       // },
-      {
-        name: 'attributeLongtext1',
-      },
+      // {
+      //   name: 'attributeLongtext1',
+      // },
     ],
     []
   );

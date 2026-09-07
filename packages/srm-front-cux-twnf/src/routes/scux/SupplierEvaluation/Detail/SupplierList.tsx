@@ -315,7 +315,8 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
           {intl.get('hzero.common.button.save').d('保存')}
         </Button>
       );
-      if (type === 'edit') {
+      // 二开：变更（change）与编辑（edit）一样可维护入围标准，同样展示「商务/技术入围标准设置」按钮
+      if (type === 'edit' || type === 'change') {
         btns.push(
           <Button
             funcType={FuncType.flat}

@@ -109,7 +109,27 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
   }, []);
 
   const handlePublish = useCallback(async () => {
-    // 二开：发布评审前校验 —— 当前供应商列表与头接口 prevSupplierIds 做完全匹配判断
+    const ok = await validateAll();
+    if (!ok) {
+      return;
+    }
+
+    // 二开：发布评审前手动调用头接口，重新查询最新的 supplierQueryConfig.needWarnFlag。
+    // 页面打开时加载到 basicInfoDs 的值可能滞后——例如刚维护并保存过商务/技术入围标准，
+    // needWarnFlag 需要按最新维护状态重算。这里用一次性 DataSet 走与页面相同的 read 管线
+    // 查询，避免污染正在编辑的 basicInfoDs。
+    let headerRecord: any = basicInfoDs.current;
+    try {
+      const headDs = new DataSet({ ...basicInfoDS(nominationHeaderId, type), autoQuery: false });
+      await headDs.query();
+      headerRecord = headDs.current || basicInfoDs.current;
+    } catch (e) {
+      // 头接口查询失败时降级使用页面上的 basicInfoDs 数据，不阻断发布
+      headerRecord = basicInfoDs.current;
+    }
+
+    // 当前供应商列表与头接口 prevSupplierIds 做完全匹配判断（多一个/少一个/换一个都不匹配）
+    // prevSupplierIds 沿用页面加载的 basicInfoDs 值，仅 needWarnFlag 使用上面刚查回的最新头数据
     const rawPrevIds: any = basicInfoDs.current?.get('prevSupplierIds');
     const prevIdList: string[] = Array.isArray(rawPrevIds)
       ? rawPrevIds.map((id: any) => String(id))
@@ -120,12 +140,25 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
       .filter(Boolean);
     // 完全匹配：数量一致且每个当前供应商都在 prevSupplierIds 中；多一个/少一个/换一个都不匹配
     const exactMatch = currentIds.length === prevIdList.length && currentIds.every((id: string) => prevIds.has(id));
-    const ok = await validateAll();
-    if (!ok) {
-      return;
+
+    // 二次确认弹框：头接口 supplierQueryConfig.needWarnFlag = '1' 时，用「未维护商务、技术入围标准」提醒代替「是否确认发布」文案；
+    // 否则与 prev 完全一致（未发生任何变更）时展示「单据信息未发生任何变更」，有增删改（多/少/换）时展示原有「是否确定发布？」，
+    // 两者同时只展示一个
+    const supplierQueryConfig: any = headerRecord?.get?.('supplierQueryConfig');
+    // 兼容后端返回对象 / JSON 字符串两种形态
+    let needWarn = false;
+    try {
+      const config =
+        typeof supplierQueryConfig === 'string'
+          ? JSON.parse(supplierQueryConfig)
+          : supplierQueryConfig || {};
+      needWarn = String(config?.needWarnFlag) === '1';
+    } catch (e) {
+      needWarn = false;
     }
-    // 二次确认弹框：与 prev 完全一致（未发生任何变更）时展示「单据信息未发生任何变更」，有增删改（多/少/换）时展示原有「是否确定发布？」，两者同时只展示一个
-    const confirmMessage = exactMatch
+    const confirmMessage = needWarn
+      ? '未维护商务、技术入围标准，是否确认推送评审？'
+      : exactMatch
       ? '单据信息未发生任何变更，是否确认发布?'
       : intl.get(`${prefix}.message.publishConfirm`).d('是否确定发布？');
     Modal.confirm({
@@ -139,7 +172,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
         }
       },
     });
-  }, [backList]);
+  }, [basicInfoDs, supplierListDs, nominationHeaderId, type, backList]);
 
 const handleBusinessStandard = useCallback(() => {
     const businessStandardDs = new DataSet(businessStandardDS(nominationHeaderId, basicInfoDs));
@@ -251,7 +284,7 @@ const handleBusinessStandard = useCallback(() => {
         supplierListDs.query();
         return true;
       }
-      return true;
+      return false;
     };
 
     const buttons = [TableButtonType.add, TableButtonType.delete];

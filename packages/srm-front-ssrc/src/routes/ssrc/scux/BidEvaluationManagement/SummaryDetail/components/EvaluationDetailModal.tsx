@@ -10,9 +10,12 @@ import { Popover } from 'choerodon-ui';
 
 import intl from 'utils/intl';
 import { getResponse } from 'utils/utils';
+import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
 
 import { confirmAndSummaryPageData } from '../../api';
 import Style from '../index.less';
+
+const prefix = 'scux.bidEvaluationManagement';
 
 // 定义数据项接口类型，修复 TS 类型推断问题
 interface EvaluationScoreItem {
@@ -52,6 +55,24 @@ const EvaluationDetailModal = (props) => {
         {
           name: 'rfxTitle',
           label: intl.get(`scux.bidEvaluationManagement.model.twnf.summary.rfxTitle`).d('项目名称'),
+        },
+        // 通威二开 - 评标明细弹框补充综评字段（参照 查看综评 展示：综评结果翻译 / 评分附件 / 综评意见）
+        {
+          name: 'summaryInvalidFlag',
+          label: intl.get(`${prefix}.model.twnf.techSummaryResult`).d('综评结果'),
+          type: FieldType.string,
+          lookupCode: 'SSRC.SCORE.INVALID_FLAG',
+        },
+        {
+          name: 'summaryAttributeLongtext1',
+          label: intl.get(`${prefix}.model.twnf.scoreAttachmentUuid`).d('评分附件'),
+          type: FieldType.attachment,
+          bucketName: PRIVATE_BUCKET,
+          bucketDirectory: 'ssrc-expert-header',
+        },
+        {
+          name: 'summaryInvalidReason',
+          label: intl.get(`${prefix}.model.twnf.techSummarySuggestion`).d('综评意见'),
         },
       ],
     };
@@ -212,7 +233,7 @@ const EvaluationDetailModal = (props) => {
   const renderDataSource = (dataSource: EvaluationScoreItem[] = []) => {
     const arrayItem: any[] = [];
     let totalDataSource: any = {};
-    const supplierDataSource = dataSource.map((item: EvaluationScoreItem = {} as any) => {
+    const supplierDataSource = dataSource.map((item: EvaluationScoreItem = {}) => {
       const { detailEnabledFlag, evaluateScoreLineDetailS = [], ...otherItem } = item || {};
       const hasCount =
         item.approvedCount !== undefined &&
@@ -380,12 +401,21 @@ const EvaluationDetailModal = (props) => {
     const evaluationDetailDs = new DataSet(evaluationDetailDataSet());
     const res = await confirmAndSummaryPageData({
       postType: 'DETAIL',
-      quotationHeaderId
+      quotationHeaderId,
     });
     if (getResponse(res)) {
       const { scoreList, ...others } = res;
       evaluationFormDs.loadData([others]);
       evaluationDetailDs.loadData(scoreList ? renderDataSource(scoreList || []) : []);
+      // 综评字段若接口明细未返回，则回退取供应商行数据兜底
+      const formRecord = evaluationFormDs.current;
+      if (formRecord && outsideRecord) {
+        ['summaryInvalidFlag', 'summaryAttributeLongtext1', 'summaryInvalidReason'].forEach((fieldName) => {
+          if (isNil(formRecord.get(fieldName)) && !isNil(outsideRecord.get(fieldName))) {
+            formRecord.set(fieldName, outsideRecord.get(fieldName));
+          }
+        });
+      }
     };
     Modal.open({
       title: intl.get(`scux.bidEvaluationManagement.view.title.viewEvaluationDetail`).d('评标明细查看'),
@@ -403,6 +433,9 @@ const EvaluationDetailModal = (props) => {
             <Form dataSet={evaluationFormDs} columns={2} labelLayout={LabelLayout.float}>
               <Output name="supplierCompanyName" />
               <Output name="rfxTitle" />
+              <Output name="summaryInvalidFlag" />
+              <Output name="summaryAttributeLongtext1" />
+              <Output name="summaryInvalidReason" colSpan={2} />
             </Form>
           </div>
           <Table
@@ -422,7 +455,7 @@ const EvaluationDetailModal = (props) => {
     >
       {!isNil(btnName) ? btnName : intl.get(`scux.bidEvaluationManagement.model.twnf.summary.evaluationDetail`).d('评标明细')}
     </Button>
-  )
+  );
 };
 
 export default EvaluationDetailModal;

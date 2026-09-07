@@ -4,6 +4,7 @@ import { getCurrentOrganizationId, getDateTimeFormat, getDateFormat } from 'util
 import { EMAIL, NOT_CHINA_PHONE, PHONE } from 'utils/regExp';
 import { isNil, isEmpty, isArray } from 'lodash';
 import { math } from 'choerodon-ui/dataset';
+import moment from 'moment';
 
 import { getQtyName, getUomName } from '@/utils/utils';
 
@@ -77,6 +78,56 @@ const getBaseInfoDSFields = () => {
   ];
 };
 
+// 节点顺序归一化：优先按数值比较，非纯数值时退化为字符串比较
+const getNodeOrderKey = (v) => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? String(v) : n;
+};
+
+// 判断节点 a 的顺序是否晚于节点 b（晚于 → 属于 b 的后续节点）
+const isLaterNodeOrder = (a, b) => {
+  const ka = getNodeOrderKey(a);
+  const kb = getNodeOrderKey(b);
+  if (ka === null || kb === null) return false;
+  if (typeof ka === 'number' && typeof kb === 'number') return ka > kb;
+  return String(ka).localeCompare(String(kb)) > 0;
+};
+
+// 计算某节点计划完成时间的合法下限（与选择器的限制保持一致）：
+// - 首个节点（nodeOrder 最小）不能早于今天
+// - 后续节点不能早于上一节点所有记录中最早的 planFinishDate
+// 顺序缺失、自身无 nodeOrder 或上一节点未填日期时返回 null（不限制）
+const getPlanFinishDateMin = (record) => {
+  const dataSet = record?.dataSet;
+  const allRecords = dataSet?.records || [];
+  const currentOrder = getNodeOrderKey(record?.get('nodeOrder'));
+  if (currentOrder === null) return null;
+  const uniqueOrders = Array.from(
+    new Set(allRecords.map((r) => getNodeOrderKey(r.get('nodeOrder'))).filter((k) => k !== null))
+  );
+  if (uniqueOrders.length === 0) return null;
+  const numericOnly = uniqueOrders.every((o) => typeof o === 'number');
+  const sortedOrders = [...uniqueOrders].sort((a, b) =>
+    numericOnly ? a - b : String(a).localeCompare(String(b))
+  );
+  const index = sortedOrders.findIndex((o) => o === currentOrder);
+  // 首个节点：不能早于今天
+  if (index === 0) {
+    return moment().startOf('day');
+  }
+  if (index === -1) return null;
+  // 后续节点：上一节点多条数据取最前面的日期（最早）
+  const prevOrder = sortedOrders[index - 1];
+  const prevDates = allRecords
+    .filter((r) => getNodeOrderKey(r.get('nodeOrder')) === prevOrder)
+    .map((r) => r.get('planFinishDate'))
+    .filter((d) => moment(d).isValid())
+    .map((d) => moment(d));
+  if (prevDates.length === 0) return null;
+  return prevDates.reduce((min, d) => (d.isBefore(min) ? d : min));
+};
+
 // 招标计划 - 招标节点
 const bidPlanNodeDS = () => {
   return {
@@ -85,6 +136,24 @@ const bidPlanNodeDS = () => {
     selection: false,
     paging: false,
     forceValidate: true,
+    events: {
+      update: ({ dataSet, record, name }) => {
+        // 上一节点改变了计划完成时间时，不再清空后续节点时间；
+        // 后续节点时间早于前节点的，触发其自身校验标红，时间合规的保持不变、不清空
+        if (name !== 'planFinishDate') return;
+        // 加载/回显数据触发的 set 不算用户改动，跳过，避免把已保存的时间清掉
+        if (!['add', 'update'].includes(record.status)) return;
+        const changedOrder = record.get('nodeOrder');
+        if (getNodeOrderKey(changedOrder) === null) return;
+        dataSet.records.forEach((r) => {
+          if (r === record || r.status === 'delete') return;
+          if (!isLaterNodeOrder(r.get('nodeOrder'), changedOrder)) return;
+          if (!r.get('planFinishDate')) return;
+          // 触发一次行校验：若时间早于前节点则由 planFinishDate 校验标红，否则保持不变
+          r.validate().catch(() => {});
+        });
+      },
+    },
     fields: [
       {
         name: 'nodeName',
@@ -119,6 +188,21 @@ const bidPlanNodeDS = () => {
         label: intl.get('scux.bidPlanDetail.model.twnf.processNode.planFinishDate').d('计划完成时间'),
         type: "date",
         required: true,
+        validator: (value, _name, record) => {
+          if (!value) {
+            return;
+          }
+          const minDate = getPlanFinishDateMin(record);
+          if (!minDate) {
+            return;
+          }
+          if (moment(value).isBefore(minDate, 'day')) {
+            return intl
+              .get('scux.bidPlanDetail.model.twnf.processNode.planFinishDateBeforePrev')
+              .d('计划完成时间不能早于其前序节点（首个节点不能早于今天）');
+          }
+          return true;
+        },
       },
       {
         name: 'adjustFlag',

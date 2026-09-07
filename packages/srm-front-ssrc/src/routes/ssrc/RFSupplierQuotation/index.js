@@ -615,11 +615,36 @@ class Supplierquotation extends Component {
     const { remoteHoc } = this.props;
     const { activeKey } = this.state;
     // const { roundFlag, quotationRoundNumber } = record.get(['roundFlag', 'quotationRoundNumber']);
-    if (record.get('mainOperations')?.length <= 3) {
+
+    // 通威二开 - 招标（投标）列表：全部/进行中 页签下，已投标状态也展示“投标查询”。
+    // QUOTED：报价阶段已提交投标；CHECK_PENDING：定标（待确定供应商）阶段，供应商也已投标。
+    // 该按钮其它状态（如已结束）由后端 mainOperations 下发；此处仅在前端补齐“已投标”场景，避免重复。
+    const rawMainOperations = record.get('mainOperations') || [];
+    const { displayQuotationStatus } = record.get(['displayQuotationStatus']) || {};
+    const shouldAppendBidQuery =
+      this.bidFlag &&
+      ['onGoing', 'rfxAll'].includes(activeKey) &&
+      ['QUOTED', 'CHECK_PENDING'].includes(displayQuotationStatus) &&
+      !rawMainOperations.some(
+        (item) => item.operation === 'QUOTATION_VIEW' || item.operationMeaning === '投标查询'
+      );
+    const mainOperations = shouldAppendBidQuery
+      ? [
+          {
+            operation: 'QUOTATION_VIEW',
+            operationMeaning: intl
+              .get('ssrc.supplierQuotation.view.message.button.bidQuery')
+              .d('投标查询'),
+          },
+          ...rawMainOperations,
+        ]
+      : rawMainOperations;
+
+    if (mainOperations?.length <= 3) {
       return (
         <div className="actions">
-          {record.get('mainOperations')?.length
-            ? record.get('mainOperations').map((item) => {
+          {mainOperations?.length
+            ? mainOperations.map((item) => {
                 return (
                   <div className="action">
                     {item.operation === 'CLARIFY' ? (
@@ -696,9 +721,8 @@ class Supplierquotation extends Component {
 
     return (
       <div className="actions">
-        {record.get('mainOperations')?.length
-          ? record
-              .get('mainOperations')
+        {mainOperations?.length
+          ? mainOperations
               ?.slice(0, 2)
               ?.map((item) => {
                 return (
@@ -772,7 +796,7 @@ class Supplierquotation extends Component {
               })
           : null}
         <Dropdown
-          overlay={this.renderMoreAction(record.get('mainOperations')?.slice(2), record)}
+          overlay={this.renderMoreAction(mainOperations?.slice(2), record)}
           trigger={['click', 'hover']}
           placement="bottomLeft"
         >
@@ -1157,7 +1181,7 @@ class Supplierquotation extends Component {
             title: intl.get('ssrc.common.message.confirm.title').d('提示'),
             children: intl
               .get('ssrc.supplierQuotation.view.message.confirmModifyBid')
-              .d('已投标，是否进行修改投标'),
+              .d('已完成投标，是否确认修改？'),
             onOk: () => this.handleQuotationOperate(record, operation),
           });
         }

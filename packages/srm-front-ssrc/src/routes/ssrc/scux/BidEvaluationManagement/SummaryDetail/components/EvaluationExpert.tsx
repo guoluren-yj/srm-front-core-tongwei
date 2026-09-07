@@ -63,6 +63,9 @@ const EvaluationExpert: React.FC = () => {
 
   const columns: ColumnProps[] = useMemo(() => [
     {
+      name: 'loginName',
+    },
+    {
       name: 'expertName',
     },
     {
@@ -74,24 +77,21 @@ const EvaluationExpert: React.FC = () => {
     // {
     //   name: 'scoredStatus',
     // },
-    {
-      header: intl.get('scux.bidEvaluationManagement.model.twnf.summary.stopEvaluation').d('中止评标'),
-      renderer: ({ record }) => record?.get('scoredStatus') === 'NEW' ? (
-        <Button
-          funcType={FuncType.link}
-          wait={1200}
-          onClick={() => handleStopEvaluation(record)}
-        >
-          {intl.get('scux.bidEvaluationManagement.model.twnf.summary.stopEvaluation').d('中止评标')}
-        </Button>
-      ) : null,
-    },
-    {
-      name: 'attributeLongtext1',
-    },
-    {
-      name: 'loginName',
-    },
+    // {
+    //   header: intl.get('scux.bidEvaluationManagement.model.twnf.summary.stopEvaluation').d('中止评标'),
+    //   renderer: ({ record }) => record?.get('scoredStatus') === 'NEW' ? (
+    //     <Button
+    //       funcType={FuncType.link}
+    //       wait={1200}
+    //       onClick={() => handleStopEvaluation(record)}
+    //     >
+    //       {intl.get('scux.bidEvaluationManagement.model.twnf.summary.stopEvaluation').d('中止评标')}
+    //     </Button>
+    //   ) : null,
+    // },
+    // {
+    //   name: 'attributeLongtext1',
+    // },
   ], []);
 
 

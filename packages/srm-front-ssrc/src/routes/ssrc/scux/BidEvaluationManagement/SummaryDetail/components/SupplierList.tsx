@@ -6,9 +6,11 @@ import querystring from 'querystring';
 
 import intl from 'utils/intl';
 import { openTab } from 'utils/menuTab';
+import { numberSeparatorRender } from '@/utils/renderer';
 
 import { useStore } from '../store/StoreProvider';
 import EvaluationDetailModal from './EvaluationDetailModal';
+import TeamScoreDetail from './TeamScoreDetail';
 
 const SupplierList: React.FC = () => {
   const {
@@ -18,6 +20,13 @@ const SupplierList: React.FC = () => {
     rfxHeaderId,
     prefix,
   } = useStore();
+
+  /**
+   * 价格标是否已开启（priceBidFlag = 1）
+   * @param {*} record
+   * @returns {boolean}
+   */
+  const isPriceBidOpened = (record): boolean => Number(record?.get('priceBidFlag')) === 1;
 
   /**
    * 标段描述行跳转到报价详情
@@ -38,7 +47,7 @@ const SupplierList: React.FC = () => {
     const path = `/ssrc/bid-supplier-reply/query/${quotationHeaderId}`;
     openTab({
       key: path,
-      path: path,
+      path,
       title: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       search: querystring.stringify(searchObj),
@@ -61,14 +70,14 @@ const SupplierList: React.FC = () => {
     },
     {
       name: 'qtnTotalAmount',
-      width: 100,
-      renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
+      width: 140,
+      renderer: ({ record, value }) => (isPriceBidOpened(record) ? numberSeparatorRender(value) : '-'),
     },
     {
       name: 'bidDetail',
       header: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       renderer: ({ record }) =>
-        record?.get('priceBid') === '已开启' ? (
+        isPriceBidOpened(record) ? (
           <Button
             funcType={FuncType.link}
             wait={1200}
@@ -86,14 +95,23 @@ const SupplierList: React.FC = () => {
       renderer: ({ record }) => (<EvaluationDetailModal record={record} />),
     },
     {
-      name: 'techSum',
+      name: 'techExpertRatio',
+      renderer: ({ record, value }) => (
+        <TeamScoreDetail record={record} scoreTeam="TECHNOLOGY" teamName="技术组" value={value} />
+      ),
     },
     {
-      name: 'businessSum',
+      name: 'businessExpertRatio',
+      renderer: ({ record, value }) => (
+        <TeamScoreDetail record={record} scoreTeam="BUSINESS" teamName="商务组" value={value} />
+      ),
     },
     {
-      name: 'priceSum',
-    }
+      name: 'priceExpertRatio',
+      renderer: ({ record, value }) => (
+        <TeamScoreDetail record={record} scoreTeam="PRICE" teamName="价格组" value={value} />
+      ),
+    },
   ], []);
 
 

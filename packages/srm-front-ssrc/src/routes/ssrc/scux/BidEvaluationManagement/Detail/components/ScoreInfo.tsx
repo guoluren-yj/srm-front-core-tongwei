@@ -129,17 +129,6 @@ const EvaluationInfo: React.FC = () => {
         },
       },
       {
-        name: 'teamWeight',
-        renderer: ({ value }) => (value ? `${value}%` : null),
-      },
-      {
-        name: 'attributeVarchar1',
-      },
-      {
-        name: 'indicWeight',
-        renderer: ({ value }) => (value ? `${value}%` : null),
-      },
-      {
         name: 'remark',
         width: 150,
         editor: true,
@@ -150,6 +139,17 @@ const EvaluationInfo: React.FC = () => {
           }
           return { hidden: false };
         },
+      },
+      {
+        name: 'teamWeight',
+        renderer: ({ value }) => (value ? `${value}%` : null),
+      },
+      {
+        name: 'attributeVarchar1',
+      },
+      {
+        name: 'indicWeight',
+        renderer: ({ value }) => (value ? `${value}%` : null),
       },
 
     ];

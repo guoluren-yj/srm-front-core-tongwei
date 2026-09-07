@@ -18,6 +18,7 @@ import C7nPrecisionInputNumber from '@/routes/components/Precision/C7nPrecisionI
 import SearchBarTable from 'srm-front-boot/lib/components/SearchBarTable';
 
 import QuotationDetailModal from '@/routes/components/QuotationDetailCurrent/Supplier';
+import RFSupplierQuotationDetailImport from '@/routes/components/RFSupplierQuotationDetailImport';
 import LadderPriceEditor from '@/routes/ssrc/components/LadderPrice/LadderPriceEditor';
 import { InputNumberZeroTooltipWrap } from '@/routes/ssrc/SupplierQuotation/components/WrapperTooltip';
 import { renderStatusTag } from '@/routes/ssrc/RFSupplierQuotation/util';
@@ -1655,7 +1656,24 @@ const QuotationLineTable = (props) => {
   };
 
   const getTableButtons = () => {
+    const wholeAbandonFlag =
+      supplierStatus === 'QUOTATION_ABANDONED' || supplierStatus === 'ABANDONED'; // 报价-整单放弃标识
+
     let buttons = [
+      // 报价明细导入：原位于页面头部（更多菜单），移至报价行表格上方工具条
+      <RFSupplierQuotationDetailImport
+        key="rfxSupQuoDetailImport"
+        quotationHeaderCurrentId={quotationHeaderCurrentId}
+        templateCode={!bidFlag ? 'SSRC.RFX_SUP_QUO_DETAIL_CUR' : 'SSRC.NEW_BID_SUP_QUO_DETAIL_CUR'}
+        onOk={queryQuotationLines}
+        onClose={queryQuotationLines}
+        calibrateImportFinishBeforeClose={1} // 关闭弹窗前校验导入是否完成
+        buttonProps={{
+          funcType: 'flat',
+          disabled: wholeAbandonFlag || allPageDisabled,
+          loading: custLoading,
+        }}
+      />,
       batchMaintainButton(),
       Number(jdSupplierQuoteFlag) ? (
         <Button
@@ -1733,6 +1751,7 @@ const QuotationLineTable = (props) => {
     quotationLineDS,
     quotationLineDS.status,
     quotationLineDS?.length,
+    supplierStatus,
     columns,
     tableCustomAggregrationChange,
     tableSearchQuery,

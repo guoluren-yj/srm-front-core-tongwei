@@ -94,8 +94,8 @@ const attachmentDS = ({
     {
       name: 'attributeLongtext10',
       label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
-        .d('模板描述'),
+        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeRemark`)
+        .d('备注'),
     },
     {
       name: 'remark',

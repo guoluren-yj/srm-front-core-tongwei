@@ -13,7 +13,6 @@ import PrintProButton from 'srm-front-boot/lib/components/PrintProButton';
 import useBidAnnouncementQueryModal from '@/routes/ssrc/components/BidAnnouncementQuery';
 
 // import QuotationDetailImport from '@/routes/components/QuotationDetailImport';
-import RFSupplierQuotationDetailImport from '@/routes/components/RFSupplierQuotationDetailImport';
 import ChatRoomSourceLink from '@/routes/components/ChatRoomSource/ChatRoomSourceLink';
 import ApplyToSection from '../Modals/ApplyToSection';
 import HistoryVersionListBtn from '../Modals/HistoryVersionListBtn';
@@ -28,7 +27,6 @@ const Buttons = (props = {}) => {
     submitQuotation = noop,
     saveQuotation = noop,
     batchImportOk = noop,
-    queryQuotationLines = noop,
     getCurrentPageSubmitData = noop,
     // getSectionList = noop,
     quotationHeaderId,
@@ -259,27 +257,6 @@ const Buttons = (props = {}) => {
                 fontWeight: '600',
               },
               disabled: wholeAbandonDisabledFlag,
-            },
-          },
-          {
-            name: 'supplierQuotation',
-            btnComp: RFSupplierQuotationDetailImport,
-            inMenuItem: true,
-            btnProps: {
-              quotationHeaderCurrentId,
-              buttonProps: {
-                loading,
-                funcType: 'flat',
-                disabled: wholeAbandonFlag || allPageDisabled,
-                icon: '',
-              },
-              funcType: 'flat',
-              templateCode: !bidFlag
-                ? 'SSRC.RFX_SUP_QUO_DETAIL_CUR'
-                : 'SSRC.NEW_BID_SUP_QUO_DETAIL_CUR',
-              onOk: queryQuotationLines,
-              onClose: queryQuotationLines,
-              calibrateImportFinishBeforeClose: 1, // 关闭弹窗前校验导入是否完成
             },
           },
           needBidAnnouncement

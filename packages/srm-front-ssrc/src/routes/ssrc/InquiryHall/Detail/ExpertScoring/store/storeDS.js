@@ -51,9 +51,13 @@ const evaluationExpertDataSet = () => {
       //   name: 'scoreStatus',
       //   label: intl.get(`${prefix}.model.twnf.summary.scoreStatus`).d('评分状态'),
       // },
+      // {
+      //   name: 'attributeLongtext1',
+      //   label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),
+      // },
       {
-        name: 'attributeLongtext1',
-        label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('中止原因'),
+        name: 'loginName',
+        label: intl.get(`${prefix}.model.twnf.summary.stopReason`).d('专家账户'),
       },
     ],
   };

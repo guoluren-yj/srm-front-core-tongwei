@@ -15,6 +15,10 @@ import FileTemplateAttachmentCheckPricePage from '@/routes/components/FileTempla
 import useIPDetailModal from '@/routes/components/IPDetails';
 
 import EvaluationDetailModal from '../../BidEvaluationManagement/SummaryDetail/components/EvaluationDetailModal';
+import SummaryDetailStoreProvider from '../../BidEvaluationManagement/SummaryDetail/store/StoreProvider';
+import {
+  SupplierList as ScoreDetailSupplierList,
+} from '../../BidEvaluationManagement/SummaryDetail/components';
 import { useStore } from '../store/StoreProvider';
 
 const { openIPDetailModal } = useIPDetailModal();
@@ -35,6 +39,13 @@ const SupplierList: React.FC = observer(() => {
 
   const { scoreWay } = useObserver(() => headerDs?.current?.get(['scoreWay']) || {});
 
+  // 通威二开 - 是否启用评标：templateScoreType 为 SCORE_NEW / WEIGHT 即启用了评标，
+  // 此时才新增「评标明细」tab（内容同评标管理-评标明细供应商表）
+  const ratingEnabled = useObserver(() => {
+    const { templateScoreType } = headerDs?.current?.get(['templateScoreType']) || {};
+    return templateScoreType === 'SCORE_NEW' || templateScoreType === 'WEIGHT';
+  });
+
   /**
    * 标段描述行跳转到报价详情
    *
@@ -54,7 +65,7 @@ const SupplierList: React.FC = observer(() => {
     const path = `/ssrc/bid-supplier-reply/query/${quotationHeaderId}`;
     openTab({
       key: path,
-      path: path,
+      path,
       title: 'hzero.common.tab.title.cux.twnf.tenderDetail',
       action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       search: querystring.stringify(searchObj),
@@ -243,19 +254,41 @@ const SupplierList: React.FC = observer(() => {
     fileEditorFlag: true, // 附件表格列对齐招标文件及附件表格(文件编辑 OnlyOffice 在线编辑 / 附件模板 文案)
   }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef]);
 
+  const tabPanes = [
+    <TabPane tab={tabTitle} key="supplierList">
+      <Table
+        dataSet={supplierListDs}
+        columns={columns}
+        border={false}
+        customizedCode='SCUX_TONGWEI_PRE_WINNING_BID_SUPPLIER_LIST'
+      />
+    </TabPane>,
+  ];
+  // 通威二开 - 启用了评标才展示「评标明细」tab，复用评标管理-评标明细供应商表
+  if (ratingEnabled) {
+    tabPanes.push(
+      <TabPane
+        tab={intl.get('scux.preWinningBid.view.title.evaluationDetail').d('评标明细')}
+        key="evaluationDetail"
+      >
+        <SummaryDetailStoreProvider
+          match={{ params: { rfxHeaderId, pageType: 'view' } }}
+          location={{ pathname: '', search: '' }}
+        >
+          <ScoreDetailSupplierList />
+        </SummaryDetailStoreProvider>
+      </TabPane>
+    );
+  }
+  tabPanes.push(
+    <TabPane forceRender tab={intl.get(`ssrc.common.view.attachmentTable`).d('附件表格')} key="attachmentTable">
+      <FileTemplateAttachmentCheckPricePage {...fileProps} />
+    </TabPane>
+  );
+
   return (
     <Tabs tabBarExtraContent={tabBarExtraContent}>
-      <TabPane tab={tabTitle} key="supplierList">
-        <Table
-          dataSet={supplierListDs}
-          columns={columns}
-          border={false}
-          customizedCode='SCUX_TONGWEI_PRE_WINNING_BID_SUPPLIER_LIST'
-        />
-      </TabPane>
-      <TabPane forceRender tab={intl.get(`ssrc.common.view.attachmentTable`).d('附件表格')} key="attachmentTable">
-        <FileTemplateAttachmentCheckPricePage {...fileProps} />
-      </TabPane>
+      {tabPanes}
     </Tabs>
   );
 });

@@ -37,7 +37,7 @@ const Page: React.FC<any> = (props) => {
               </Card>
             ) : null}
             <Card
-              title={<CommonLevel title={intl.get(`${prefix}.view.card.title.evaluationExpert`).d('评标明细')} />}
+              title={<CommonLevel title={intl.get(`${prefix}.view.card.title.evaluationExpert`).d('评标详情')} />}
               id="cuxSupplierList"
               bordered={false}
             >

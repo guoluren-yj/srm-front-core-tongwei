@@ -18,6 +18,8 @@ import { getResponse } from 'utils/utils';
 
 import useIPDetailModal from '@/routes/components/IPDetails';
 import CuxSupplierListDetail from '@/routes/ssrc/scux/PreWinningBid/components/SupplierListDetail';
+import SummaryDetailStoreProvider from '@/routes/ssrc/scux/BidEvaluationManagement/SummaryDetail/store/StoreProvider';
+import { SupplierList as ScoreDetailSupplierList } from '@/routes/ssrc/scux/BidEvaluationManagement/SummaryDetail/components';
 import { queryBidFileTemplateConfig } from '@/utils/utils';
 import { fetchInquiryHeaderDetail } from '@/services/inquiryHallService';
 import ApplicationScopeDetail from '@/routes/ssrc/components/ApplicationOrganization/Detail';
@@ -64,12 +66,13 @@ class CheckPriceNewDetail extends PureComponent {
     this.state = {
       header: {},
       pageLoading: false,
+      // 通威二开 - 决标详情 / 评标明细 面板均默认展开（面板不存在时 Collapse 忽略多余 key）
       CheckPriceCollapseKeys: [
         'basicInfo',
         'costComment',
         'details',
-        'cuxTab',
         'cuxAwardBidDetail',
+        'cuxScoreDetail',
       ],
       settings: {},
       fileTemplateManageFlag: 0, // 招标文件tab
@@ -462,6 +465,11 @@ class CheckPriceNewDetail extends PureComponent {
 
     const showCuxSupplierListFlag = currentStep === 'CHECK_PENDING' && bidFlag;
 
+    // 通威二开 - 是否启用评标：templateScoreType 为 SCORE_NEW / WEIGHT 即启用了评标
+    const { header = {} } = this.state;
+    const ratingEnabled =
+      header.templateScoreType === 'SCORE_NEW' || header.templateScoreType === 'WEIGHT';
+
     const panels = [
       <Panel
         showArrow={false}
@@ -542,6 +550,28 @@ class CheckPriceNewDetail extends PureComponent {
           key="cuxAwardBidDetail"
         >
           <CuxSupplierListDetail rfxHeaderId={rfxHeaderId} />
+        </Panel>
+      ),
+      // 通威二开 - 启用了评标才新增「评标明细」面板，复用评标管理-评标明细供应商表
+      showCuxSupplierListFlag && ratingEnabled && (
+        <Panel
+          showArrow={false}
+          header={
+            <React.Fragment>
+              <h3>
+                {intl.get('ssrc.inquiryHall.view.title.inquiryHall.evaluationDetail').d('评标明细')}
+              </h3>
+              {this.renderPanelArrawSymbol({ currentKey: 'cuxScoreDetail' })}
+            </React.Fragment>
+          }
+          key="cuxScoreDetail"
+        >
+          <SummaryDetailStoreProvider
+            match={{ params: { rfxHeaderId, pageType: 'view' } }}
+            location={{ pathname: '', search: '' }}
+          >
+            <ScoreDetailSupplierList />
+          </SummaryDetailStoreProvider>
         </Panel>
       ),
     ].filter(Boolean);
