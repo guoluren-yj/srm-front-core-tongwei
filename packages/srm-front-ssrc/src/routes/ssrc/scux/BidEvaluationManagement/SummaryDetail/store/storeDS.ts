@@ -185,7 +185,9 @@ export const evaluationExpertDataSet = (): DataSetProps => {
 };
 
 // 评分汇总 - 供应商列表数据集
-export const supplierListDataSet = (): DataSetProps => {
+// legacy = true 时使用老版字段（评标汇总详情页 SupplierListOld 消费），
+// 默认新版字段供 PreWinningBid / CheckPriceNewDetail 等复用场景使用
+export const supplierListDataSet = ({ legacy = false }: { legacy?: boolean } = {}): DataSetProps => {
   return {
     autoQuery: false,
     selection: false,
@@ -203,28 +205,49 @@ export const supplierListDataSet = (): DataSetProps => {
         name: 'supplierCompanyName',
         label: intl.get(`${prefix}.model.twnf.summary.supplierName`).d('供应商名称'),
       },
-      {
-        name: 'priceBidFlag',
-        label: intl.get(`${prefix}.model.twnf.summary.priceBidFlag`).d('价格标开启标识'),
-        type: FieldType.number,
-      },
+      ...(legacy
+        ? []
+        : [
+          {
+            name: 'priceBidFlag',
+            label: intl.get(`${prefix}.model.twnf.summary.priceBidFlag`).d('价格标开启标识'),
+            type: FieldType.number,
+          },
+        ]),
       {
         name: 'qtnTotalAmount',
         label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
         type: FieldType.number,
       },
-      {
-        name: 'techExpertRatio',
-        label: intl.get(`${prefix}.model.twnf.summary.techGroup`).d('技术组'),
-      },
-      {
-        name: 'businessExpertRatio',
-        label: intl.get(`${prefix}.model.twnf.summary.businessExpertRatio`).d('商务组'),
-      },
-      {
-        name: 'priceExpertRatio',
-        label: intl.get(`${prefix}.model.twnf.summary.priceExpertRatio`).d('价格组'),
-      },
+      ...(legacy
+        ? [
+          {
+            name: 'techSum',
+            label: intl.get(`${prefix}.model.twnf.summary.techGroup`).d('技术组'),
+          },
+          {
+            name: 'businessSum',
+            label: intl.get(`${prefix}.model.twnf.summary.businessGroup`).d('商务组'),
+          },
+          {
+            name: 'priceSum',
+            label: intl.get(`${prefix}.model.twnf.summary.priceGroup`).d('价格组'),
+          },
+        ]
+        : [
+          {
+            name: 'techExpertRatio',
+            label: intl.get(`${prefix}.model.twnf.summary.techGroup`).d('技术组'),
+          },
+          {
+            name: 'businessExpertRatio',
+            label: intl.get(`${prefix}.model.twnf.summary.businessExpertRatio`).d('商务组'),
+          },
+          {
+            name: 'priceExpertRatio',
+            label: intl.get(`${prefix}.model.twnf.summary.priceExpertRatio`).d('价格组'),
+          },
+        ]),
     ],
   };
 };

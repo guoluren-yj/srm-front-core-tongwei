@@ -167,7 +167,6 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       ),
     },
     { name: 'supplierCompanyName', width: 200 },
-    { name: 'stageDescription', width: 100 },
     { name: 'contactPersonLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'contactMobilephone', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 130 },
     { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
@@ -258,6 +257,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         </>
       ),
     },
+    { name: 'stageDescription', width: 100 },
   ].filter(Boolean) as ColumnProps[];
 
   const hasEmptyReview = dataSet.some((r: any) => !r.get('technologyReviewResult') || !r.get('businessReviewResult') || !r.get('financeReviewResult'));

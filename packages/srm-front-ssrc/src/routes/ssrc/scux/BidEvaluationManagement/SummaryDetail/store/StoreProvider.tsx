@@ -61,6 +61,8 @@ interface StoreProviderProps {
     search: string;
   };
   history?: any;
+  /** 通威二开 - 评标汇总详情页使用老版供应商字段（techSum/businessSum/priceSum），其余复用场景默认新版字段 */
+  supplierListLegacy?: boolean;
   [key: string]: any;
 };
 
@@ -70,6 +72,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
     children,
     location = { pathname: '', search: '' },
     history,
+    supplierListLegacy = false,
   } = props;
 
   const { params } = match;
@@ -90,7 +93,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const evaluationExpertDs = useDataSet(() => evaluationExpertDataSet(), []);
 
   // 评标汇总 - 供应商列表
-  const evaluationSupplierDs = useDataSet(() => supplierListDataSet(), []);
+  const evaluationSupplierDs = useDataSet(() => supplierListDataSet({ legacy: supplierListLegacy }), []);
 
   const [pageLoading, setPageLoading] = useState(false);
 

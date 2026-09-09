@@ -81,7 +81,6 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
     { name: 'isSelected', type: FieldType.string, lookupCode: 'HPFM.FLAG.NEW', label: intl.get(`${prefix}.field.isSelected`).d('是否入围'), required: type === 'submit' },
     { name: 'supplierCompanyNum', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCode`).d('供应商编码') },
     { name: 'supplierCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCompanyName`).d('供应商名称') },
-    { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.stageDescription`).d('生命周期') },
     { name: 'contactPersonLov', type: FieldType.object, lovCode: 'SSRC.SUPPLIER_CONTANCTS',dynamicProps: {
           lovPara({ record }) {
             return {
@@ -115,6 +114,7 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
     { name: 'teachSubmitFlag', type: FieldType.string },
     { name: 'bussSubmitFlag', type: FieldType.string },
     { name: 'finSubmitFlag', type: FieldType.string },
+    { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.stageDescription`).d('供应商状态') },
   ],
   transport: {
     read: ({ params }) => ({
@@ -256,12 +256,12 @@ export const supplierSelectDS = (): DataSetProps => ({
   primaryKey: 'supplierCompanyId',
   queryFields: [
     { name: 'supplierCompanyName', display: true, type: FieldType.string, label: intl.get(`${prefix}.field.supplierName`).d('供应商名称') },
-    { name: 'stageDescription', lovCode: 'SSLM.LIFE_CYCLE_STAGE_TENANT', valueField: 'stageDescription', textField: 'stageDescription', display: true, type: FieldType.object, label: intl.get(`${prefix}.field.lifeCycleStage`).d('供应商生命周期阶段'), },
+    { name: 'stageDescription', lovCode: 'SSLM.LIFE_CYCLE_STAGE_TENANT', valueField: 'stageDescription', textField: 'stageDescription', display: true, type: FieldType.object, label: intl.get(`${prefix}.field.lifeCycleStage`).d('供应商状态'), },
   ] as any[],
   fields: [
     { name: 'supplierCompanyName', type: FieldType.string, label: intl.get(`${prefix}.field.supplierName`).d('供应商名称') },
     { name: 'supplierCompanyNum', type: FieldType.string, label: intl.get(`${prefix}.field.supplierCode`).d('供应商编码') },
-    { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.lifeCycleStage`).d('供应商生命周期阶段') },
+    { name: 'stageDescription', type: FieldType.string, label: intl.get(`${prefix}.field.lifeCycleStage`).d('供应商状态') },
     { name: 'registeredCapital', type: FieldType.number, label: intl.get(`${prefix}.field.registeredCapital`).d('注册资本') },
     { name: 'paidInCapital', type: FieldType.number, label: intl.get(`${prefix}.field.paidInCapital`).d('实缴资本') },
     { name: 'buildDate', type: FieldType.date, label: intl.get(`${prefix}.field.establishmentDate`).d('成立日期') },
