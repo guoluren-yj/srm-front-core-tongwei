@@ -61,6 +61,15 @@ const BidManagementAttachment = (props) => {
   // 电签(sign) / 作废(cancel)，针对某一附件行
   const handleElectronicSign = (record, action) => {
     if (!rfxHeaderId) return;
+    // 电签前校验：附件为空不允许发起电签
+    if (action === 'sign' && !record.get('attachmentUuid')) {
+      notification.error({
+        message: intl
+          .get('scux.bidAttachment.view.message.attachmentRequiredForSign')
+          .d('附件为空，请先上传附件后再进行电签！'),
+      });
+      return;
+    }
     const attachmentLine = { ...record.toData(), sourceId: quotationHeaderCurrentId };
     const rfxQuotationHeaderCurDTO = getRfxQuotationHeaderCurDTO
       ? getRfxQuotationHeaderCurDTO()
@@ -93,7 +102,7 @@ const BidManagementAttachment = (props) => {
 
   // 生成附件（参考：new-bid-hall/bid-update 招标文件及附件的附件模板 生成附件）
   const handleGenerateAttachment = (record) => {
-    const { fileManageId, attachmentUuid, editableFlag } =
+    const { fileManageId, attachmentUuid } =
       record.get(['fileManageId', 'attachmentUuid', 'editableFlag']) || {};
 
     if (!rfxHeaderId || !fileManageId) return;
@@ -102,7 +111,8 @@ const BidManagementAttachment = (props) => {
       fileManageId: Number(fileManageId),
       sourceCategory: 'RFX',
       sourceId: rfxHeaderId,
-      ...(editableFlag === 1 ? {} : { attachmentUuid }), // editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
+      attachmentUuid,
+      // ...(editableFlag === 1 ? {} : { attachmentUuid }), // editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
     };
 
     return generateAttTemplate(params).then((res) => {
@@ -135,11 +145,15 @@ const BidManagementAttachment = (props) => {
     });
   };
 
+  // 是否电签（attributeVarchar1）为「是」
+  const isElectronicSign = (record) => !!record.get('fileManageId');
+
   // table columns
   const columns = [
     {
       name: 'attributeVarchar19',
-      editor: true,
+      // cuxSupplierCreateFlag 为 1（供应商新建/上传的行）才允许编辑文件名称
+      editor: (record) => String(record.get('cuxSupplierCreateFlag')) === '1',
     },
     {
       name: 'attachmentType',
@@ -148,6 +162,10 @@ const BidManagementAttachment = (props) => {
     {
       name: 'templateAttachment',
       renderer: ({ record }) => {
+        // 是否电签为「否」时，附件模板列以 - 展示
+        if (!isElectronicSign(record)) {
+          return '-';
+        }
         if (record.get('fileManageId')) {
           // 来自于寻源模板的招标文件管理中的，可生成附件
           return (
@@ -163,24 +181,24 @@ const BidManagementAttachment = (props) => {
             </Button>
           );
         }
-        if (record.get('tempAttachmentUuid')) {
-          // 来自于寻源模板的上传本地附件
-          return (
-            <Attachment
-              record={record}
-              name="tempAttachmentUuid"
-              viewMode="popup"
-              bucketName={PRIVATE_BUCKET}
-              bucketDirectory="ssrc-template-requirement"
-              labelLayout="float"
-              readOnly
-              funcType="link"
-            >
-              {intl.get('hzero.common.upload.view').d('查看附件')}
-            </Attachment>
-          );
-        }
-        return null;
+        // if (record.get('tempAttachmentUuid')) {
+        //   // 来自于寻源模板的上传本地附件
+        //   return (
+        //     <Attachment
+        //       record={record}
+        //       name="tempAttachmentUuid"
+        //       viewMode="popup"
+        //       bucketName={PRIVATE_BUCKET}
+        //       bucketDirectory="ssrc-template-requirement"
+        //       labelLayout="float"
+        //       readOnly
+        //       funcType="link"
+        //     >
+        //       {intl.get('hzero.common.upload.view').d('查看附件')}
+        //     </Attachment>
+        //   );
+        // }
+        return '-';
       },
     },
     {
@@ -198,6 +216,10 @@ const BidManagementAttachment = (props) => {
     {
       header: intl.get('scux.bidAttachment.model.inquiryHall.attachmentEditor').d('文件编辑'),
       renderer: ({ record }) => {
+        // 是否电签为「否」时，文件编辑列以 - 展示
+        if (!isElectronicSign(record)) {
+          return '-';
+        }
         return (
           <OnlyOfficeEditorOnline
             headerId={rfxHeaderId}

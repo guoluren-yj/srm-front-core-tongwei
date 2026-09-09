@@ -9,3 +9,11 @@ export const confirmAndSummaryPageData = (params) => {
     body: params,
   });
 };
+
+// 中止评标（整单中止，参数：rfxHeaderId 招标单头id，validateFlag=1）
+export const stopBidEvaluation = (params) => {
+  return request(`${SRM_MARMOT}/v1/${getCurrentOrganizationId()}/marmot-api/rmUqg9ywibfy5EQkyBniaKb2dDGv5Cm4bxk9HzkH4K7cE`, {
+    method: 'POST',
+    body: params,
+  });
+};

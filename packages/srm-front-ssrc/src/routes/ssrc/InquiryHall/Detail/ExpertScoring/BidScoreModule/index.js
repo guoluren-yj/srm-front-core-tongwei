@@ -70,6 +70,7 @@ const BidScoreModule = (props) => {
           evaluationSupplierDs={evaluationSupplierDs}
           rfxHeaderId={rfxHeaderId}
           prefix={prefix}
+          onRefresh={fetchBidScoreModule}
         />
       </Content>
       <Content>

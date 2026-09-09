@@ -27,6 +27,13 @@ const Page: React.FC<any> = (props) => {
             >
               <BaseInfo />
             </Card>
+            <Card
+              title={<CommonLevel title={intl.get(`${prefix}.view.card.title.evaluationExpert`).d('评标详情')} />}
+              id="cuxSupplierList"
+              bordered={false}
+            >
+              <SupplierList showStopEvaluation />
+            </Card>
             {pageType === 'view' ? (
               <Card
                 title={<CommonLevel title={intl.get(`${prefix}.view.card.title.bidOpeningList`).d('开标列表')} />}
@@ -36,13 +43,6 @@ const Page: React.FC<any> = (props) => {
                 <OpenBidList />
               </Card>
             ) : null}
-            <Card
-              title={<CommonLevel title={intl.get(`${prefix}.view.card.title.evaluationExpert`).d('评标详情')} />}
-              id="cuxSupplierList"
-              bordered={false}
-            >
-              <SupplierList />
-            </Card>
             <Card
               title={<CommonLevel title={intl.get(`${prefix}.view.card.title.evaluationExpert`).d('评标专家')} />}
               id="cuxEvaluationExpert"

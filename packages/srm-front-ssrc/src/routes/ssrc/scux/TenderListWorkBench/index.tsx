@@ -83,27 +83,43 @@ const Index: React.FC<any> = (props) => {
     });
   };
 
-  // 列表按钮
+  // 是否本人维护的招标清单（createdBy 与当前登录人一致）
+  const isOwnCatalog = (record) => `${record.get('createdBy')}` === `${currentUser.id}`;
+
+  // 列表按钮：本人记录才展示；NEW → 清单提供；APPROVED → 发起变更；CHANGING/SOURCE_CHANGING → 继续编辑
   const getListButtons = ({ record }) => {
+    if (!isOwnCatalog(record)) {
+      return [];
+    }
     const catalogStatus = record.get('catalogStatus');
-    const createdBy = record.get('createdBy');
     const commonButtonsProps = {
       funcType: FuncType.link,
       wait: 500,
     };
-    console.log('当前记录信息:', createdBy, currentUser.id);
-    return [
-      catalogStatus === 'NEW' && `${createdBy}` === `${currentUser.id}` && (
-        <Button {...commonButtonsProps} onClick={() => handleEdit(record)}>
+    // 各状态互斥，同一行至多展示一个操作按钮
+    if (catalogStatus === 'NEW') {
+      return [
+        <Button {...commonButtonsProps} key="provideList" onClick={() => handleEdit(record)}>
           {intl.get('scux.bidPlanWorkBench.view.button.provideList').d('清单提供')}
-        </Button>
-      ),
-      (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING' || catalogStatus === 'SOURCE_CHANGING') && `${createdBy}` === `${currentUser.id}` && (
-        <Button {...commonButtonsProps} onClick={() => (catalogStatus === 'APPROVED') ? handleChange(record) : handleEdit(record)}>
+        </Button>,
+      ];
+    }
+    if (catalogStatus === 'APPROVED' || catalogStatus === 'CHANGING' || catalogStatus === 'SOURCE_CHANGING') {
+      // bidReleaseFlag = '1'（清单已发布）时不提供变更入口
+      if (String(record.get('bidReleaseFlag')) === '1') {
+        return [];
+      }
+      return [
+        <Button
+          {...commonButtonsProps}
+          key="change"
+          onClick={() => (catalogStatus === 'APPROVED' ? handleChange(record) : handleEdit(record))}
+        >
           {intl.get('scux.bidPlanWorkBench.view.button.change').d('变更')}
-        </Button>
-      ),
-    ].filter(Boolean);
+        </Button>,
+      ];
+    }
+    return [];
   };
 
   // 跳转招标计划明细页面

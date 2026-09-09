@@ -14,6 +14,8 @@ import { attachmentDS } from './storeDS';
  * attachType 采购方PUR、供应商SUP
  * actionFrom RELEASE-询价单维护、明细; OTHER-【除了询价单维护、明细之外的其他地方的比如供应商投标、定标页面显示的列和调用的接口都不一样】
  * queryParams 需要传给接口的参数
+ * signedAttachmentMode 仅供【供应商报价-招标文件】引用时开启：将「电签附件」列名改为「签章附件」，
+ *   且某行存在签章附件时，其「附件」列以 - 展示，否则才展示原始附件。其他引用处保持原逻辑
  */
 const BidManagementAttachment = (props) => {
   const {
@@ -22,6 +24,7 @@ const BidManagementAttachment = (props) => {
     attachType = 'PUR',
     actionFrom = 'OTHER',
     queryParams = {},
+    signedAttachmentMode = false,
   } = props;
 
   const [sourceQueryParams, setSourceQueryParams] = useState({});
@@ -108,11 +111,41 @@ const BidManagementAttachment = (props) => {
           {
             name: 'attachmentTypeMeaning',
           },
+          // signedAttachmentMode（仅供应商报价-招标文件）下：行内存在签章附件 attributeLongtext1 时，
+          // 「附件」列以 - 展示；否则展示原始附件。其他引用场景不设 renderer，走字段默认附件渲染
           {
             name: 'attachmentUuid',
+            renderer: signedAttachmentMode
+              ? ({ record }) => {
+                if (record.get('attributeLongtext1')) {
+                  return '-';
+                }
+                if (!record.get('attachmentUuid')) {
+                  return null;
+                }
+                return (
+                  <Attachment
+                    record={record}
+                    name="attachmentUuid"
+                    viewMode="popup"
+                    bucketName={PRIVATE_BUCKET}
+                    bucketDirectory="ssrc-template-requirement"
+                    labelLayout="float"
+                    readOnly
+                    previewTarget
+                    funcType="link"
+                  >
+                    {intl.get('hzero.common.upload.view').d('查看附件')}
+                  </Attachment>
+                );
+              }
+              : undefined,
           },
           {
             name: 'attributeLongtext1',
+            header: signedAttachmentMode
+              ? intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.sealAttachment').d('签章附件')
+              : undefined,
           },
           { name: 'remark' },
           // {
@@ -120,7 +153,7 @@ const BidManagementAttachment = (props) => {
           //   renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
           // },
         ],
-    []
+    [actionFrom, signedAttachmentMode]
   );
 
   return attachType === 'PUR' && customizeTable ? (

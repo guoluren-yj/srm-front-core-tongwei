@@ -142,6 +142,7 @@ const getProcessOperationAction = (
   const {
     bidFlag = false,
     documentTypeName = intl.get('ssrc.common.view.message.rfx').d('询价单'),
+    tenderDocumentFlag = false, // 通威二开 - 招标文件详情页操作记录专用开关
     sourceCategoryName = intl.get('ssrc.common.inquiryPrice').d('询价'),
     quotationName = intl.get('ssrc.common.model.common.quotation').d('报价'),
     checkPriceName = intl.get('ssrc.common.view.message.nuclearPrice').d('核价'),
@@ -150,13 +151,16 @@ const getProcessOperationAction = (
   const { secondarySourceCategory, processRemark = '', opener = '', cuxMap = {} } =
     actionSurplusPayload || {};
   const realNameTitle = `{realName} ({loginName}) `;
+  // 通威二开 - 单据对象统一称「招标文件」（原招标书/询价单）
+  const tenderDocumentTitle = `【${intl.get('ssrc.common.view.message.tenderDocument').d('招标文件')}】`;
   let rfxTitle;
   if (dataType === 'rf') {
     rfxTitle = `【${rfTitle}】`;
   } else if (secondarySourceCategory === 'RFA') {
     rfxTitle = `【${biddingTypeName}】`;
   } else {
-    rfxTitle = `【${documentTypeName}】`;
+    // 通威二开 - 仅招标文件详情页（tenderDocumentFlag）对象统一称「招标文件」
+    rfxTitle = tenderDocumentFlag ? tenderDocumentTitle : `【${documentTypeName}】`;
   }
 
   const { expertName = '', supplierCompanyName = '' } = actionExpandParam || {};
@@ -174,14 +178,18 @@ const getProcessOperationAction = (
     ], // 取消
     ISSUE: [
       realNameTitle,
-      intl.get('ssrc.common.view.message.releaseAction').d('发布了'),
+      tenderDocumentFlag
+        ? intl.get('ssrc.common.view.message.submitAction').d('提交了')
+        : intl.get('ssrc.common.view.message.releaseAction').d('发布了'),
       rfxTitle,
-    ], // 发布
+    ], // 发布 -> 通威二开: 招标文件详情页统一为「提交了」
     RELEASE: [
       realNameTitle,
-      intl.get('ssrc.common.view.message.releaseAction').d('发布了'),
+      tenderDocumentFlag
+        ? intl.get('ssrc.common.view.message.submitAction').d('提交了')
+        : intl.get('ssrc.common.view.message.releaseAction').d('发布了'),
       rfxTitle,
-    ], // 发布
+    ], // 发布 -> 通威二开: 招标文件详情页统一为「提交了」
     RELEASE_REVOKE: [
       realNameTitle,
       intl.get('ssrc.common.view.message.revokeAction').d('撤回了'),
@@ -495,9 +503,11 @@ const getProcessOperationAction = (
     ], // 退回推荐候选人
     UPDATE_RFX: [
       realNameTitle,
-      intl.get('ssrc.common.view.message.updateRfx').d('修改了'),
+      tenderDocumentFlag
+        ? intl.get('ssrc.common.view.message.submitAction').d('提交了')
+        : intl.get('ssrc.common.view.message.updateRfx').d('修改了'),
       rfxTitle,
-    ], // 修改了询价单
+    ], // 修改了询价单 -> 通威二开: 招标文件详情页统一为「提交了」
     SUBMIT_PREQUEL: [
       realNameTitle,
       intl.get('ssrc.common.view.message.submitPrequel').d('提交了预审结果'),

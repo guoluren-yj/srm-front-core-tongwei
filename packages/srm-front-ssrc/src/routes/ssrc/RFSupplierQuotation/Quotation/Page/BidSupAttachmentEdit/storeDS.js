@@ -47,7 +47,7 @@ const attachmentDS = () => ({
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
       dynamicProps: {
-        readOnly: ({ record }) => Number(record.get('editableFlag') === 1),
+        readOnly: ({ record }) => !!record.get('fileManageId'),
       },
       max: 1,
       help: intl
@@ -74,7 +74,7 @@ const attachmentDS = () => ({
       name: 'attributeLongtext1',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.electronicSignatureAttachment')
-        .d('电签附件'),
+        .d('签章附件'),
       type: 'attachment',
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',

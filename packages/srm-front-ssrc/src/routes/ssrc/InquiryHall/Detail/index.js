@@ -3171,14 +3171,19 @@ class Detail extends PureComponent {
   // 打开操作记录弹框
   @Bind()
   handleShowOperationRecordModal() {
-    const { modelName = 'inquiryHall' } = this.props;
+    const { modelName = 'inquiryHall', location = {} } = this.props;
     const {
       match: { params },
       [modelName]: { header = {} },
     } = this.props;
+    const { pathname = '' } = location;
     openModal({
       rfxHeaderId: params.rfxId,
-      rfx: this.rfx,
+      rfx: {
+        ...this.rfx,
+        // 通威二开 - 仅招标文件详情页(/ssrc/new-bid-hall/bid-detail)启用「提交了【招标文件】」
+        tenderDocumentFlag: this.bidFlag && pathname.indexOf('/bid-detail/') > -1,
+      },
       header,
     });
   }

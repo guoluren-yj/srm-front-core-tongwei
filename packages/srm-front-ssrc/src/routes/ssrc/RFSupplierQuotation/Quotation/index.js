@@ -3290,6 +3290,7 @@ const QuotationComponent = (props = {}) => {
                     >
                       <CuxPurBidManagementAttachment
                         attachType="PUR"
+                        signedAttachmentMode
                         queryParams={{
                           rfxHeaderId,
                         }}
