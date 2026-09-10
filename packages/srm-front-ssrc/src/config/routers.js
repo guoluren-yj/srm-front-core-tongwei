@@ -1342,6 +1342,17 @@ module.exports = [
         component: () => import('../routes/ssrc/InquiryHallNew/BidIndex'),
         FilterSupplier: true,
       },
+      // 自采招标
+      // {
+      //   path: '/ssrc/new-bid-hall/sourced-bidding/list',
+      //   models: [
+      //     () => import('../models/inquiryHall.js'),
+      //     () => import('../models/commonModel.js'),
+      //     () => import('../models/expertScoring.js'),
+      //   ],
+      //   component: () => import('../routes/ssrc/InquiryHallNew/BidIndex'),
+      //   FilterSupplier: true,
+      // },
       // 寻源大厅/中标公告预览
       {
         path: '/ssrc/new-bid-hall/accept-rfx-notice-detail/:rfxId',

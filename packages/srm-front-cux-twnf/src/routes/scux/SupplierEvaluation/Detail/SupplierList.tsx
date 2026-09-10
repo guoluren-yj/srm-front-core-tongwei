@@ -172,32 +172,32 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
     { name: 'recommenderLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'employeeCompanyName', width: 150 },
-    !isNew && type !== 'pendingReview' &&{
+    !isNew &&{
       name: 'technologyReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showTech ? (
         <Button funcType={FuncType.link} onClick={() => openTechnicalReviewModal(record, 'unreleasedReadOnly', dataSet)}>
           {text}
         </Button>
-      ) : text,
+      ) : '-',
     },
-    !isNew && type !== 'pendingReview' &&{
+    !isNew &&{
       name: 'businessReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showBiz ? (
         <Button funcType={FuncType.link} onClick={() => openBusinessReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>
-      ) : text,
+      ) : '-',
     },
-    !isNew && type !== 'pendingReview' && {
+    !isNew && {
       name: 'financeReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => clickableReview ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showFin ? (
         <Button funcType={FuncType.link} onClick={() => openFinanceReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>
-      ) : text,
+      ) : '-',
     },
     !isNew && type !== 'pendingReview' && { name: 'summaryReviewResult', width: 120 },
     type !== 'pendingReview' && { name: 'riskScanDate', width: 160 },
