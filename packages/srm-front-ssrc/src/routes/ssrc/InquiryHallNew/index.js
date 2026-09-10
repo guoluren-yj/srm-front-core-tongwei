@@ -31,7 +31,7 @@ import { isEmpty, isNil, isFunction, noop, throttle, isArray } from 'lodash';
 import querystring from 'querystring';
 import moment from 'moment';
 import uuid from 'uuid/v4';
-import { getActiveTabKey } from 'utils/menuTab';
+import { getActiveTabKey, openTab } from 'utils/menuTab';
 import { observer } from 'mobx-react';
 import { observable, runInAction } from 'mobx';
 import { routerRedux } from 'dva/router';
@@ -4528,7 +4528,6 @@ class InquiryHall extends React.Component {
    */
   @Bind()
   inquiryDetail(record = {}, type = '') {
-    const { history } = this.props;
     const {
       rfHeaderId,
       rfxHeaderId,
@@ -4557,14 +4556,24 @@ class InquiryHall extends React.Component {
       });
       if (rfxHeaderId) {
         const DetailUrl = this.distinguishDetailPageUrl(rfxHeaderId);
-        history.push({
-          pathname: DetailUrl,
+        openTab({
+          key: DetailUrl,
+          path: DetailUrl,
+          title: this.bidFlag
+            ? 'hzero.common.view.message.title.bidHall'
+            : 'hzero.common.view.message.title.inquiryHall',
+          closable: true,
           search,
         });
       }
     } else if (rfHeaderId) {
-      history.push({
-        pathname: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+      openTab({
+        key: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+        path: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+        title: this.bidFlag
+          ? 'hzero.common.view.message.title.bidHall'
+          : 'hzero.common.view.message.title.inquiryHall',
+        closable: true,
       });
     }
   }
