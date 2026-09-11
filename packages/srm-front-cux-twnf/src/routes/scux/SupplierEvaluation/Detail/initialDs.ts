@@ -64,7 +64,8 @@ export const basicInfoDS = (nominationHeaderId, type): DataSetProps => ({
       params: {
         ...params,
         nominationHeaderId,
-        queryType: 'HEADER'
+        queryType: 'HEADER',
+        type
       },
     }),
   },
