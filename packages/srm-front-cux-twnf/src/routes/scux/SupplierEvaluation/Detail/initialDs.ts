@@ -345,7 +345,7 @@ export const businessStandardDS = (nominationHeaderId, basicInfoDs): DataSetProp
             switch (item.itemCode) {
               case 'taxGrade':
                 row.valueCode = data.taxGrade ? data.taxGrade.split(',') : [];
-                row.isRequired = data.taxGradeRequired
+                row.isRequired = data.taxGradeRequired || '0';
                 break;
               case 'supplierRating':
                 row.valueCode = data.supplierRating ? data.supplierRating.split(',') : [];

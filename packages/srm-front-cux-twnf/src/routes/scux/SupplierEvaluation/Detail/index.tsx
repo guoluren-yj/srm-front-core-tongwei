@@ -205,7 +205,7 @@ const handleBusinessStandard = useCallback(() => {
         switch (row.itemCode) {
           case 'taxGrade':
             businessCfg.taxGrade = Array.isArray(row.valueCode) ? row.valueCode.join(',') : row.valueCode;
-            businessCfg.taxGradeRequired = '1';
+            businessCfg.taxGradeRequired = row.isRequired || '0';
             break;
           case 'supplierRating':
             businessCfg.supplierRating = Array.isArray(row.valueCode) ? row.valueCode.join(',') : row.valueCode;
