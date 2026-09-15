@@ -78,7 +78,12 @@ const BaseInfo: React.FC = observer(() => {
             labelLayout={LabelLayout.float}
             useWidthPercent
           >
+            <Output name="currencyCode" />
+            <Output name="attributeDecimal7" />
+            <Output name="attributeDecimal9" />
+            <TextArea name="attributeLongtext30" newLine colSpan={2} resize={ResizeType.vertical} />
             <Output
+              newLine
               name="attributeLongtext31"
               renderer={({ value }) =>
                 value && attributeLongtext3 ? (
@@ -90,7 +95,6 @@ const BaseInfo: React.FC = observer(() => {
             />
             <TextField name="attributeLongtext32" />
             {/* <TextField name="attributeLongtext3" /> */}
-            <TextArea name="attributeLongtext30" newLine colSpan={2} resize={ResizeType.vertical} />
           </Form>
         </Card>
       </Panel>

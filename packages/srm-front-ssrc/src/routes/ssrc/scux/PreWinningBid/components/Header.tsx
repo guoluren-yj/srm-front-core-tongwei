@@ -19,7 +19,7 @@ const TypedBidPriceComparison = BidPriceComparison as React.ComponentType<any>;
 
 const PageHeader: React.FC = observer(() => {
   const { pageLoading, setPageLoading = noop, history, getStoreData, initData = noop, rfxHeaderId, commonDs } = useStore();
-  const { headerDs, supplierListDs } = commonDs || {};
+  const { headerDs, supplierListDs, sectionListDs } = commonDs || {};
 
   const { biddingTarget, diyLadderQuotationFlag, scoreWay } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag', 'scoreWay']) || {});
   // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
@@ -75,12 +75,14 @@ const PageHeader: React.FC = observer(() => {
     return {};
   };
 
-  // 获取页面数据，包含header、supplierList、attachmentList
+  // 获取页面数据，包含header、supplierList、sectionList、attachmentList
   const getPageData = () => {
     if (!headerDs || !supplierListDs) return;
     return {
       rfxHeader: headerDs.current?.toData(),
       supplierList: supplierListDs.toData(),
+      // 通威二开 - 标段列表的「推荐中标」开关改的是 sectionListDs，保存/提交时一并发给后端
+      sectionList: sectionListDs?.toData(),
       ...getAttachmentList(),
     };
   };
@@ -168,7 +170,7 @@ const PageHeader: React.FC = observer(() => {
     const commonBtnProps = {
       wait: 500,
       loading: pageLoading,
-      funcType: FuncType.flat,
+      funcType: FuncType.raised,
     };
     return (
       <>

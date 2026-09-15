@@ -16,7 +16,7 @@ const NonGeneralVariable = (props) => {
     commonDs: { nonGeneralVariableDs },
   } = useContext(Store);
 
-  // 新建（无 templateId）：仅展示默认列表；编辑（有 templateId）：可增删改存
+  // 新建（无 templateId）：默认列表 + 本地增删；编辑（有 templateId）：可增删改存
   const editorFlag = !!(templateId && templateId !== 'null');
 
   useEffect(() => {
@@ -27,11 +27,11 @@ const NonGeneralVariable = (props) => {
     }
   }, [templateId]);
 
-  // table columns
+  // table columns：编辑页整表可编辑；新建页仅新增的行可编辑
   const columns = useMemo(
     () => [
       { name: 'sequence', width: 100 },
-      { name: 'variableId', editor: editorFlag },
+      { name: 'variableId', editor: (record) => editorFlag || record.status === 'add' },
       { name: 'variableName' },
     ],
     [editorFlag]
@@ -51,16 +51,10 @@ const NonGeneralVariable = (props) => {
     }
   };
 
-  // 删除：新增行本地移除，线上行逐条 DELETE ?templateVariableId=xxx
+  // 删除：二次确认后，新建页/新增行仅本地移除；编辑页的线上行逐条 DELETE ?templateVariableId=xxx
   const handleDelete = () => {
     const selectedRecords = nonGeneralVariableDs?.selected || [];
-    const addRecords = selectedRecords?.filter((r) => r.status === 'add') || [];
-    const oldRecords = selectedRecords?.filter((r) => r.get('templateVariableId')) || [];
-
-    // 删除新增（未落库）数据
-    nonGeneralVariableDs.remove(addRecords);
-
-    if (isEmpty(oldRecords)) {
+    if (isEmpty(selectedRecords)) {
       return;
     }
 
@@ -70,12 +64,26 @@ const NonGeneralVariable = (props) => {
         .get('hzero.c7nProUI.DataSet.delete_selected_row_confirm')
         .d('确认删除选中行？'),
       onOk: async () => {
+        // 新建页：只删前端数据，不调接口
+        if (!editorFlag) {
+          nonGeneralVariableDs.remove(selectedRecords, true);
+          return;
+        }
+
+        const addRecords = selectedRecords?.filter((r) => r.status === 'add') || [];
+        const oldRecords = selectedRecords?.filter((r) => r.get('templateVariableId')) || [];
+
+        // 删除新增（未落库）数据
+        nonGeneralVariableDs.remove(addRecords);
+
+        if (isEmpty(oldRecords)) {
+          return;
+        }
+
         setPageLoading(true);
         try {
           // 批量删除：templateVariableId 逗号拼接
-          const templateVariableId = oldRecords
-            .map((r) => r.get('templateVariableId'))
-            .join(',');
+          const templateVariableId = oldRecords.map((r) => r.get('templateVariableId')).join(',');
           await deleteNonGeneralVariable({ templateVariableId });
           notification.success();
         } catch (error) {
@@ -86,14 +94,10 @@ const NonGeneralVariable = (props) => {
     });
   };
 
-  // table buttons
+  // table buttons：新建页无保存按钮，数据随模板新建一起提交
   const buttons = useMemo(() => {
-    if (!editorFlag) return [];
-    return [
-      'add',
-      ['delete', { onClick: handleDelete }],
-      ['save', { onClick: handleSave }],
-    ];
+    const baseButtons = ['add', ['delete', { onClick: handleDelete }]];
+    return editorFlag ? [...baseButtons, ['save', { onClick: handleSave }]] : baseButtons;
   }, [editorFlag, handleDelete, handleSave]);
 
   return (

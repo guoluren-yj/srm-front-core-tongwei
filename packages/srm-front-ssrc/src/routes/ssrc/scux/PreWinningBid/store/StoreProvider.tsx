@@ -7,7 +7,7 @@ import { set, get, toJS } from 'mobx';
 import intl from 'utils/intl';
 import { getResponse } from 'utils/utils';
 
-import { headerDataSet, supplierListDataSet } from './storeDS';
+import { headerDataSet, supplierListDataSet, sectionListDataSet } from './storeDS';
 import { queryPreWinningBid } from '../api';
 
 const prefix = 'scux.preWinningBid';
@@ -17,6 +17,7 @@ interface StoreContextValue {
   commonDs?: {
     headerDs: DataSet;
     supplierListDs: DataSet;
+    sectionListDs: DataSet;
   };
   history?: any;
   setStoreData?: (key: string, value: any) => void;
@@ -78,6 +79,9 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
 
   const supplierListDs = useDataSet(() => supplierListDataSet({ rfxHeaderId }), [rfxHeaderId]);
 
+  // 通威二开 - 标段列表，数据取自 queryPreWinningBid 返回的 sectionList
+  const sectionListDs = useDataSet(() => sectionListDataSet(), []);
+
   useEffect(() => {
     initData();
   }, []);
@@ -106,12 +110,13 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
     try {
       const res = await queryPreWinningBid({ rfxHeaderId });
       if (getResponse(res)) {
-        const { rfxHeader = {}, supplierList = [] } = res;
+        const { rfxHeader = {}, supplierList = [], sectionList = [] } = res;
         headerDs.loadData([rfxHeader]);
         // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
         supplierListDs.setState('finalPriceSync', !['10', '20', '30', '40'].includes(rfxHeader?.scoreWay));
         supplierListDs.loadData(supplierList);
         supplierListDs.setState('headerDs', headerDs);
+        sectionListDs.loadData(sectionList);
       };
       fetchAttachmentList();
       setPageLoading(false);
@@ -126,6 +131,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       commonDs: {
         headerDs,
         supplierListDs,
+        sectionListDs,
       },
       history,
       rfxHeaderId: rfxHeaderId || '',
@@ -142,6 +148,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
     [
       headerDs,
       supplierListDs,
+      sectionListDs,
       history,
       rfxHeaderId,
       pageLoading,

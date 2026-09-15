@@ -11,6 +11,27 @@ const preWinningBidModel = 'scux.preWinningBid.model.';
 function getAttributeHeaderFields() {
   return [
     {
+      name: 'currencyCode',
+      label: intl.get(`${preWinningBidModel}currencyCode`).d('币种'),
+      type: FieldType.string,
+    },
+    {
+      name: 'attributeDecimal7',
+      label: intl.get(`${preWinningBidModel}attributeDecimal7`).d('定标总金额'),
+      type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
+    },
+    {
+      name: 'attributeDecimal9',
+      label: intl.get(`${preWinningBidModel}attributeDecimal9`).d('概算金额'),
+      type: FieldType.number,
+      precision: 2,
+      numberGrouping: true,
+      padDecimalZeros: true,
+    },
+    {
       name: 'attributeLongtext30',
       label: intl.get(`${preWinningBidModel}decisionRemark`).d('定标备注'),
       type: FieldType.string,
@@ -155,6 +176,9 @@ function getFinalPriceSyncFields() {
       name: 'attributeDecimal2', // 保存/提交时接收 qtnTotalAmount 的赋值，两字段值保持一致
       label: intl.get(`${preWinningBidModel}attributeDecimal2`).d('最终价（同步）'),
       type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
     },
     {
       name: 'attributeLongtext9', // 最终价附件，attributeDecimal2（最终价）有值时必填
@@ -177,51 +201,120 @@ function getCommonSupplierListFields() {
       label: intl.get(`${preWinningBidModel}supplierCompanyName`).d('供应商名称'),
       type: FieldType.string,
     },
-    {
-      name: 'bidDetail',
-      label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
-      type: FieldType.string,
-    },
+    // {
+    //   name: 'bidDetail',
+    //   label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
+    //   type: FieldType.string,
+    // },
     {
       name: 'sectionName',
       label: intl.get(`${preWinningBidModel}sectionName`).d('标段名称'),
       type: FieldType.string,
     },
-    {
-      name: 'sectionBidQtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}sectionBidQtnTotalAmount`).d('标段投标价（元）'),
-      type: FieldType.number,
-    },
-    {
-      name: 'sectionQtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}sectionQtnTotalAmount`).d('标段最终价（元）'),
-      type: FieldType.number,
-    },
+    // {
+    //   name: 'sectionBidQtnTotalAmount',
+    //   label: intl.get(`${preWinningBidModel}sectionBidQtnTotalAmount`).d('标段投标价（元）'),
+    //   type: FieldType.number,
+    //   precision: 2,
+    //   numberGrouping: true,
+    //   padDecimalZeros: true,
+    // },
+    // {
+    //   name: 'sectionQtnTotalAmount',
+    //   label: intl.get(`${preWinningBidModel}sectionQtnTotalAmount`).d('标段最终价（元）'),
+    //   type: FieldType.number,
+    //   precision: 2,
+    //   numberGrouping: true,
+    //   padDecimalZeros: true,
+    // },
     {
       name: 'bidQtnTotalAmount',
       label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标价（元）'),
       type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
     },
     {
       name: 'qtnTotalAmount',
       label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('最终价（元）'),
       type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
     },
     ...getFinalPriceSyncFields(),
+    // {
+    //   name: 'attributeVarchar2',
+    //   label: intl.get(`${preWinningBidModel}proposedBid`).d('拟定标'),
+    //   type: FieldType.boolean,
+    //   trueValue: '1',
+    //   falseValue: '0',
+    // },
+    // {
+    //   name: 'attributeLongtext2',
+    //   label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
+    //   type: FieldType.string,
+    //   dynamicProps: {
+    //     // required: ({ record }: { record: any }) => String(record.get('attributeVarchar2')) === '1',
+    //   },
+    // },
+  ];
+}
+
+// 通威二开 - 标段列表 tab 的字段，数据来自 queryPreWinningBid 接口的 sectionList
+function getSectionListFields() {
+  return [
     {
-      name: 'attributeVarchar2',
-      label: intl.get(`${preWinningBidModel}proposedBid`).d('拟定标'),
+      name: 'bidDetail', // 虚拟字段，仅用于承接投标详情列的点击跳转，数据由 renderer 渲染
+      label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
+      type: FieldType.string,
+    },
+    {
+      name: 'attributeVarchar9', // 1-推荐，其余为不推荐
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',
     },
     {
+      name: 'attributeLongtext8',
+      label: intl.get(`${preWinningBidModel}sectionName`).d('标段名称'),
+      type: FieldType.string,
+    },
+    {
+      name: 'supplierCompanyName',
+      label: intl.get(`${preWinningBidModel}supplierCompanyName`).d('供应商名称'),
+      type: FieldType.string,
+    },
+    {
+      name: 'awardAmount',
+      label: intl.get(`${preWinningBidModel}awardAmount`).d('中标金额'),
+      type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
+    },
+    {
+      name: 'quotationAmount',
+      label: intl.get(`${preWinningBidModel}quotationAmount`).d('投标价格（元）'),
+      type: FieldType.number,
+      precision: 2,
+      numberGrouping: true,
+      padDecimalZeros: true,
+    },
+    {
+      name: 'finalAmount',
+      label: intl.get(`${preWinningBidModel}finalAmount`).d('最终价（元）'),
+      type: FieldType.number,
+      precision: 2,
+      numberGrouping: true,
+      padDecimalZeros: true,
+    },
+    {
       name: 'attributeLongtext2',
       label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
       type: FieldType.string,
-      dynamicProps: {
-        // required: ({ record }: { record: any }) => String(record.get('attributeVarchar2')) === '1',
-      },
     },
   ];
 }
@@ -265,5 +358,16 @@ export const supplierListDataSet = ({ rfxHeaderId }: { rfxHeaderId: string }): D
         };
       },
     },
+  };
+};
+
+// 通威二开 - 标段列表 tab。数据由 StoreProvider 从 queryPreWinningBid 的 sectionList 一次性下发，
+// 故 autoQuery 关闭、不配置 read，直接 loadData
+export const sectionListDataSet = (): DataSetProps => {
+  return {
+    autoQuery: false,
+    paging: false,
+    selection: false,
+    fields: getSectionListFields(),
   };
 };
