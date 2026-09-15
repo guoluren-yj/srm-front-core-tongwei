@@ -10,6 +10,7 @@ import notification from 'utils/notification';
 import DynamicButtons from '_components/DynamicButtons';
 import intl from 'utils/intl';
 
+import QRCode from 'qrcode.react';
 import { showCheckInCode, cuxOpenBidNew, checkDrawLots } from '@/services/inquiryHallService';
 
 import { openBidListDS, baseInfoDS, prefix } from './store/ds';
@@ -49,31 +50,35 @@ const OrganizeBidOpening = (props) => {
 
   // 内部签到\供应商签到
   const handleCheckIn = async ({ type }) => {
-    const res = await showCheckInCode({ rfxHeaderId, type });
+    const res = getResponse(await showCheckInCode({ rfxHeaderId, type }));
     if (res) {
-      const blobURL = window.URL.createObjectURL(res);
+      // 接口返回 list 的签到链接，逐个生成二维码
+      const list = Array.isArray(res) ? res : res.list || res.data || [];
+      const urls = list
+        .map((item) => (typeof item === 'string' ? item : item?.uniqueLabelNum))
+        .filter(Boolean);
+      if (!urls.length) return;
       return Modal.open({
         key: Modal.key(),
-        title: null,
+        title:
+          type === 1
+            ? intl.get(`${prefix}.model.supplierCheckIn`).d('供应商签到')
+            : intl.get(`${prefix}.model.internalCheckIn`).d('内部签到'),
         footer: null,
         bodyStyle: {
-          padding: 0,
+          padding: 24,
         },
         destroyOnClose: true,
-        style: { width: '80%' },
+        style: { width: 'fit-content', maxWidth: '90%' },
         closable: true,
         children: (
-          <iframe
-            id={`EditOnline${rfxHeaderId}`}
-            style={{
-              border: '0',
-              width: '100%',
-              height: `${(document.body.clientHeight - 96) * 0.9}px`,
-            }}
-            title="Edit Online"
-            // eslint-disable-next-line react/no-unknown-property
-            src={blobURL}
-          />
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24 }}>
+            {urls.map((url) => (
+              <div key={url} style={{ textAlign: 'center' }}>
+                <QRCode value={url} size={200} />
+              </div>
+            ))}
+          </div>
         ),
       });
     }

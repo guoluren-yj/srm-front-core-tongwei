@@ -2791,12 +2791,11 @@ export async function cuxOpenBidNew(params) {
  */
 export async function showCheckInCode(params) {
   const { rfxHeaderId, type } = params;
-  const url = `/marmot/v1/${commonOrganizationId}/marmot-report/print/SCUX_TWNF_SIGN_IN_PRINT`;
+  const url = `/marmot/v1/1/marmot-api/mPZpJPkn13RNjJPkNtOfcmt5icjic7xX2vic1bLYyKQCb4`;
   return request(url, {
     method: 'POST',
     query: { rfxHeaderId, type },
     body: { rfxHeaderId, type },
-    responseType: 'blob',
   });
 }
 /**

@@ -854,6 +854,7 @@ const Page = (props) => {
           attachRequirementDs?.getState('fileTemplateManageFlag') === 1
             ? attachRequirementDs?.toData()
             : [],
+        variableList: nonGeneralVariableDs?.toData(),
         releaseNode: releaseRuleDs?.current?.toData(),
         [baseInfoDs?.current?.get('sourceCategory') === 'RFA'
           ? 'biddingNode'
