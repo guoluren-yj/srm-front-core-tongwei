@@ -144,6 +144,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     type === 'submit' && {
       name: 'isSelected',
       width: 100,
+      lock: 'left',
       editor: (record: any) => (
         <Select
           name="isSelected"

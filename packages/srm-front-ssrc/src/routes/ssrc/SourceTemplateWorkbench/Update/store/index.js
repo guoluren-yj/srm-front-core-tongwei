@@ -9,6 +9,7 @@ import {
   baseInfoDS,
   approveRuleDS,
   attachRequirementDS,
+  nonGeneralVariableDS,
   releaseRuleDS,
   quotationRuleDS,
   auctionBidDS,
@@ -96,6 +97,8 @@ export function StoreProvider(props) {
       }),
     [templateId]
   );
+  // 非通用变量DS
+  const nonGeneralVariableDs = useDataSet(() => nonGeneralVariableDS(), [templateId]);
   // 招投标 - 招标计划 - 流程节点ds
   const processNodeDs = useDataSet(() => processNodeDS(), []);
   // 招投标 - 招标计划 - 邀请控制ds
@@ -138,6 +141,7 @@ export function StoreProvider(props) {
       baseInfoDs,
       approveRuleDs,
       attachRequirementDs,
+      nonGeneralVariableDs, // 非通用变量DS
       processNodeDs,
       invitationControlDs,
       bidPlanFormDs,

@@ -100,6 +100,7 @@ export const openTechnicalReviewModal = async (record: any, type?: string, dataS
   ];
 
   const handleSaveOrSubmit = async (submitFlag?:boolean) => {
+    // 仅提交时校验必填，保存（表格内保存、底部大保存）均不校验
     if (submitFlag) {
       const valid = await Promise.all([
         caseDs.validate(),

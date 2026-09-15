@@ -77,7 +77,6 @@ const BidManagementAttachment = (props) => {
                   viewMode="popup"
                   bucketName={PRIVATE_BUCKET}
                   bucketDirectory="ssrc-template-requirement"
-                  labelLayout="float"
                   readOnly
                   previewTarget
                   funcType="link"
@@ -130,7 +129,6 @@ const BidManagementAttachment = (props) => {
                     viewMode="popup"
                     bucketName={PRIVATE_BUCKET}
                     bucketDirectory="ssrc-template-requirement"
-                    labelLayout="float"
                     readOnly
                     previewTarget
                     funcType="link"

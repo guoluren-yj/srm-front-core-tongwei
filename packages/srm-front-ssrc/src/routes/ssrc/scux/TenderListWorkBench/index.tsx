@@ -78,7 +78,7 @@ const Index: React.FC<any> = (props) => {
     };
     Modal.confirm({
       title: '变更确认',
-      children: '请确认是否进行变更。若无需变更，可直接点击招标计划单号进行查看。',
+      children: '请确认是否进行变更。若无需变更，可直接点击招标清单编号进行查看。',
       onOk: doChange,
     });
   };
@@ -100,7 +100,7 @@ const Index: React.FC<any> = (props) => {
     if (catalogStatus === 'NEW') {
       return [
         <Button {...commonButtonsProps} key="provideList" onClick={() => handleEdit(record)}>
-          {intl.get('scux.bidPlanWorkBench.view.button.provideList').d('清单提供')}
+          {intl.get('scux.bidPlanWorkBench.view.button.provideList').d('清单维护')}
         </Button>,
       ];
     }

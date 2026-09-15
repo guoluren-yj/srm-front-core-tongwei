@@ -78,7 +78,7 @@ const tableDataSet = ({ queryTab }): DataSetProps => {
       },
       {
         name: 'techFileNum',
-        label: intl.get('scux.technicalDocumentsWorkBench.model.twnf.techFileNum').d('技术文件编码'),
+        label: intl.get('scux.technicalDocumentsWorkBench.model.twnf.techFileNum').d('技术文件编号'),
       },
       {
         name: 'sourceProjectNum',

@@ -87,7 +87,7 @@ const Index: React.FC<any> = (props) => {
     };
     Modal.confirm({
       title: '变更确认',
-      children: '请确认是否进行变更。若无需变更，可直接点击招标计划单号进行查看。',
+      children: '请确认是否进行变更。若无需变更，可直接点击技术文件编号进行查看。',
       onOk: doChange,
     });
   };

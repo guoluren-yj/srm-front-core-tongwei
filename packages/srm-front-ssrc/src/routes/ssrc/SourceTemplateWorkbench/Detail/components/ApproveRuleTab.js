@@ -8,6 +8,7 @@ import SecLevelTitle from '../../components/SecLevelTitle';
 
 import ApproveRule from './ApproveRule';
 import AttachmentRequirements from './AttachmentRequirements';
+import NonGeneralVariable from './NonGeneralVariable';
 import Store from '../store/index';
 
 const ApproveRuleTab = (props) => {
@@ -35,6 +36,12 @@ const ApproveRuleTab = (props) => {
           title={intl.get('ssrc.sourceTemplate.view.title.attachmentRequirements').d('附件要求')}
         />
         <AttachmentRequirements />
+      </div>
+      <div>
+        <SecLevelTitle
+          title={intl.get('ssrc.sourceTemplate.view.title.nonGeneralVariable').d('非通用变量')}
+        />
+        <NonGeneralVariable />
       </div>
     </>
   ) : (

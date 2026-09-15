@@ -10,6 +10,7 @@ import {
   baseInfoDS,
   approveRuleDS,
   attachRequirementDS,
+  nonGeneralVariableDS,
   releaseRuleDS,
   quotationRuleDS,
   auctionBidDS,
@@ -96,6 +97,8 @@ export function StoreProvider(props) {
       }),
     [templateId]
   );
+  // 非通用变量DS
+  const nonGeneralVariableDs = useDataSet(() => nonGeneralVariableDS(), []);
   const releaseRuleDs = useDataSet(() => releaseRuleDS(), []);
   const quotationRuleDs = useDataSet(() => quotationRuleDS(baseInfoDs), [baseInfoDs]);
   const auctionBidDs = useDataSet(() => auctionBidDS(), []);
@@ -134,6 +137,7 @@ export function StoreProvider(props) {
       baseInfoDs,
       approveRuleDs,
       attachRequirementDs,
+      nonGeneralVariableDs, // 非通用变量DS
       releaseRuleDs,
       quotationRuleDs,
       auctionBidDs,

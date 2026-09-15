@@ -50,6 +50,7 @@ const Page = () => {
       baseInfoDs,
       approveRuleDs,
       attachRequirementDs, // 询价全局规则-附件要求DS
+      nonGeneralVariableDs, // 非通用变量DS
       releaseRuleDs,
       quotationRuleDs,
       auctionBidDs,
@@ -127,6 +128,8 @@ const Page = () => {
         }
       } else {
         approveRuleDs.loadData([res?.approveRuleNode]);
+        // 非通用变量：取 detail 返回的 variableList 展示（明细只读）
+        nonGeneralVariableDs.loadData(res?.variableList || []);
         attachRequirementDs.query();
         releaseRuleDs.loadData([res?.releaseNode]);
         quotationRuleDs.loadData([

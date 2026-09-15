@@ -1717,10 +1717,38 @@ const bidPlanFormDS = () => ({
   },
 });
 
+// 寻源模板 - 非通用变量（明细只读，数据由 detail 的 variableList 直接 loadData）
+const nonGeneralVariableDS = () => ({
+  autoQuery: false,
+  dataToJSON: 'all',
+  paging: false,
+  fields: [
+    // 主键/模板id：仅接口返回，不在表格展示
+    { name: 'templateVariableId', type: 'string' },
+    { name: 'templateId', type: 'string' },
+    {
+      name: 'sequence',
+      type: 'number',
+      label: intl.get(`ssrc.sourceTemplate.model.nonGeneralVariable.sequence`).d('序号'),
+    },
+    {
+      name: 'variableCode',
+      type: 'string',
+      label: intl.get(`ssrc.sourceTemplate.model.nonGeneralVariable.variableCode`).d('变量编码'),
+    },
+    {
+      name: 'variableName',
+      type: 'string',
+      label: intl.get(`ssrc.sourceTemplate.model.nonGeneralVariable.variableName`).d('变量名称'),
+    },
+  ],
+});
+
 export {
   baseInfoDS,
   approveRuleDS,
   attachRequirementDS,
+  nonGeneralVariableDS, // 非通用变量DS
   releaseRuleDS,
   quotationRuleDS,
   auctionBidDS,

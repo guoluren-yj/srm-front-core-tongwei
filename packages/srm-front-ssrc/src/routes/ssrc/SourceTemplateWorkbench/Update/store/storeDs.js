@@ -1034,8 +1034,8 @@ const quotationRuleDS = ({ baseInfoDs }) => {
             const isRfaFlag = baseInfoDs?.current?.get('sourceCategory') === 'RFA';
             return isRfaFlag
               ? intl
-                  .get(`ssrc.sourceTemplate.model.template.tooltip.allowProhibitQuotation`)
-                  .d('竞价员可操作禁止供应商出价，点击后清除该供应商的所有出价信息和排名信息。')
+                .get(`ssrc.sourceTemplate.model.template.tooltip.allowProhibitQuotation`)
+                .d('竞价员可操作禁止供应商出价，点击后清除该供应商的所有出价信息和排名信息。')
               : null;
           },
         },
@@ -1059,10 +1059,10 @@ const quotationRuleDS = ({ baseInfoDs }) => {
             const isRfaFlag = baseInfoDs?.current?.get('sourceCategory') === 'RFA';
             return isRfaFlag
               ? intl
-                  .get(`ssrc.sourceTemplate.model.template.tooltip.allowDeleteLatestQuotation`)
-                  .d(
-                    '竞价员可操作删除供应商的最新一次出价信息，点击后删除该供应商的最新一次出价信息和排名信息。'
-                  )
+                .get(`ssrc.sourceTemplate.model.template.tooltip.allowDeleteLatestQuotation`)
+                .d(
+                  '竞价员可操作删除供应商的最新一次出价信息，点击后删除该供应商的最新一次出价信息和排名信息。'
+                )
               : null;
           },
         },
@@ -2580,10 +2580,80 @@ const bidPlanFormDS = () => ({
   },
 });
 
+// 寻源模板 - 非通用变量
+const nonGeneralVariableDS = () => ({
+  autoQuery: false,
+  dataToJSON: 'all',
+  selection: 'multiple',
+  paging: false,
+  primaryKey: 'templateVariableId',
+  fields: [
+    // 主键/模板id：仅接口返回，不在表格展示
+    { name: 'templateVariableId', type: 'string' },
+    { name: 'templateId', type: 'string' },
+    {
+      name: 'sequence',
+      type: 'number',
+      label: intl.get(`ssrc.sourceTemplate.model.nonGeneralVariable.sequence`).d('序号'),
+      bind: 'variableId.sequence',
+    },
+    {
+      name: 'variableId',
+      type: 'object',
+      label: intl
+        .get('scux.nonGeneralVariables.model.nonGeneralVariables.twnf.variableCode')
+        .d('字段值'),
+      lovCode: 'SCUX_TWNF_BID_NON_COMMON_VARIABLE',
+      required: true,
+      transformRequest: (value) => (value ? value.variableId : null),
+      transformResponse: (value, data) => {
+        return value ? data : null;
+      },
+    },
+    {
+      name: 'variableCode',
+      bind: 'variableId.variableCode',
+    },
+    {
+      name: 'variableName',
+      type: 'string',
+      label: intl.get(`ssrc.sourceTemplate.model.nonGeneralVariable.variableName`).d('字段名称'),
+      required: true,
+      bind: 'variableId.variableName',
+    },
+  ],
+  transport: {
+    read: ({ dataSet }) => {
+      const {
+        queryParameter: { templateId },
+      } = dataSet;
+      // 编辑：数据由 initQuery 用 detail 返回的 variableList 直接 loadData，不走 read
+      if (templateId && templateId !== 'null') return;
+      // 新建：GET 获取默认非通用变量列表
+      return {
+        url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/72YoFL95Y4ZdKrbDUqmibohcBYDe2xSBR7b9c4JMCEanLG2LEyFaEBB4cSliaVUBtC`,
+        method: 'GET',
+      };
+    },
+    submit: ({ data, dataSet }) => {
+      const {
+        queryParameter: { templateId },
+      } = dataSet;
+      return {
+        url: `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/72YoFL95Y4ZdKrbDUqmibohcBYDe2xSBR7b9c4JMCEanLG2LEyFaEBB4cSliaVUBtC`,
+        method: 'POST',
+        params: { templateId },
+        data,
+      };
+    },
+  },
+});
+
 export {
   baseInfoDS,
   approveRuleDS,
   attachRequirementDS,
+  nonGeneralVariableDS, // 非通用变量DS
   releaseRuleDS,
   quotationRuleDS,
   auctionBidDS,

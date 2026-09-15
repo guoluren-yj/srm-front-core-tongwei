@@ -36,7 +36,7 @@ export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
     paging: false,
     // 本地静默提交成功提示，覆盖全局 feedback 的“操作成功”弹框
     feedback: {
-      submitSuccess: () => {},
+      submitSuccess: () => { },
     },
     fields: [
       {
@@ -45,6 +45,7 @@ export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
         label: intl
           .get('scux.nonGeneralVariables.model.nonGeneralVariables.twnf.sequence')
           .d('序号'),
+        bind: 'variableId.sequence',
       },
       {
         name: 'variableId',

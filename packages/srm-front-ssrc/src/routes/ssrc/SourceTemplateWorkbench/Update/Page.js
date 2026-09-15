@@ -62,6 +62,7 @@ const Page = (props) => {
       baseInfoDs,
       approveRuleDs,
       attachRequirementDs, // 询价全局规则-附件要求DS
+      nonGeneralVariableDs, // 非通用变量DS
       releaseRuleDs,
       quotationRuleDs,
       auctionBidDs,
@@ -216,6 +217,7 @@ const Page = (props) => {
     let statusMap = {};
     setLoading(true);
     attachRequirementDs.setQueryParameter('templateId', _templateId || templateId);
+    nonGeneralVariableDs.setQueryParameter('templateId', _templateId || templateId);
     const res = await queryDetail({
       templateId: _templateId || templateId,
       requestFrom: 'EDIT', // 值：EDIT/编辑页｜DETAIL/明细页
@@ -266,6 +268,8 @@ const Page = (props) => {
         };
         baseInfoDs.loadData([filterNode(res)]);
         approveRuleDs.loadData([res?.approveRuleNode]);
+        // 编辑：非通用变量直接取 detail 返回的 variableList 加载到表格
+        nonGeneralVariableDs.loadData(res?.variableList || []);
         ((templateId && templateId !== 'null') || (_templateId && _templateId !== 'null')) &&
         attachRequirementDs?.getState('fileTemplateManageFlag') === 1
           ? attachRequirementDs.query()

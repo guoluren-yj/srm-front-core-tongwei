@@ -76,3 +76,14 @@ export async function definitionQuery(params) {
     body: params,
   });
 }
+
+// 非通用变量接口地址（寻源模板）
+const NON_GENERAL_VARIABLE_URL = `/marmot/v1/${organizationId}/marmot-api/72YoFL95Y4ZdKrbDUqmibohcBYDe2xSBR7b9c4JMCEanLG2LEyFaEBB4cSliaVUBtC`;
+
+// 非通用变量：删除（单条）
+export async function deleteNonGeneralVariable(params = {}) {
+  return request(NON_GENERAL_VARIABLE_URL, {
+    method: 'DELETE',
+    query: params,
+  });
+}
