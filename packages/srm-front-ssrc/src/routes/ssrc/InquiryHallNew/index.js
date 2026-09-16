@@ -4528,6 +4528,7 @@ class InquiryHall extends React.Component {
    */
   @Bind()
   inquiryDetail(record = {}, type = '') {
+    const { history } = this.props;
     const {
       rfHeaderId,
       rfxHeaderId,
@@ -4556,25 +4557,38 @@ class InquiryHall extends React.Component {
       });
       if (rfxHeaderId) {
         const DetailUrl = this.distinguishDetailPageUrl(rfxHeaderId);
-        openTab({
-          key: DetailUrl,
-          path: DetailUrl,
-          title: this.bidFlag
-            ? 'hzero.common.view.message.title.bidHall'
-            : 'hzero.common.view.message.title.inquiryHall',
-          closable: true,
-          search,
-        });
+        if (!this.bidFlag) {
+          history.push({
+            pathname: DetailUrl,
+            search,
+          });
+        } else {
+          openTab({
+            key: DetailUrl,
+            path: DetailUrl,
+            title: this.bidFlag
+              ? 'ssrc.inquiryHall.view.message.title.bidHall'
+              : 'ssrc.inquiryHall.view.message.title.inquiryHall',
+            closable: true,
+            search,
+          });
+        }
       }
     } else if (rfHeaderId) {
-      openTab({
-        key: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
-        path: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
-        title: this.bidFlag
-          ? 'hzero.common.view.message.title.bidHall'
-          : 'hzero.common.view.message.title.inquiryHall',
-        closable: true,
-      });
+      if (!this.bidFlag) {
+        history.push({
+          pathname: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+        });
+      } else {
+        openTab({
+          key: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+          path: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+          title: this.bidFlag
+            ? 'ssrc.inquiryHall.view.message.title.bidHall'
+            : 'ssrc.inquiryHall.view.message.title.inquiryHall',
+          closable: true,
+        });
+      }
     }
   }
 
@@ -5531,6 +5545,8 @@ class InquiryHall extends React.Component {
     const search = querystring.stringify({
       createFlag: record.createFlag,
       sourceCategory,
+      // 通威二开 - 澄清截止时间，用于澄清函维护页面控制【新建】按钮显隐，直接取行上的字段
+      clarifyEndDate: record.clarifyEndDate,
     });
 
     history.push({
@@ -5542,12 +5558,21 @@ class InquiryHall extends React.Component {
   @Bind()
   directQuestionAnswerRF(record) {
     const { history } = this.props;
-    const { rfHeaderId, rfNum, companyId, sourceCategory, createFlag } =
-      record.get(['rfHeaderId', 'rfNum', 'companyId', 'sourceCategory', 'createFlag']) || {};
+    const { rfHeaderId, rfNum, companyId, sourceCategory, createFlag, clarifyEndDate } =
+      record.get([
+        'rfHeaderId',
+        'rfNum',
+        'companyId',
+        'sourceCategory',
+        'createFlag',
+        'clarifyEndDate',
+      ]) || {};
     const url = `${getActiveTabKey()}/inter-question/${rfHeaderId}/${rfNum}/sourceTitle/${companyId}/1`;
     const search = querystring.stringify({
       createFlag,
       sourceCategory,
+      // 通威二开 - 澄清截止时间，用于澄清函维护页面控制【新建】按钮显隐，直接取行上的字段
+      clarifyEndDate,
     });
     history.push({
       pathname: url,

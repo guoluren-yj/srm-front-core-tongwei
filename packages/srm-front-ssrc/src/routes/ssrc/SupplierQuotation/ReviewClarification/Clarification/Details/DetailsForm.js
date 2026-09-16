@@ -10,13 +10,14 @@ import React from 'react';
 import intl from 'utils/intl';
 import { Row, Col } from 'hzero-ui';
 import { valueMapMeaning } from 'utils/renderer';
+import UploadModal from 'srm-front-boot/lib/components/Upload/index';
 import styles from './index.less';
 
 const promptCode = 'ssrc.supplierQuotation';
 
 export default class DetailsForm extends React.Component {
   render() {
-    const { clarifyStatus, clarificationDetails = {} } = this.props;
+    const { clarifyStatus, clarificationDetails = {}, uploadProps } = this.props;
     return (
       <div className={styles['information-container']}>
         <Row className={styles['information-item']}>
@@ -66,6 +67,16 @@ export default class DetailsForm extends React.Component {
                 {intl.get(`${promptCode}.model.supQuo.submittedDate`).d('发布时间')}:
               </Col>
               <Col span={15}>{clarificationDetails.submittedDate}</Col>
+            </Row>
+          </Col>
+        </Row>
+        <Row className={styles['information-item']}>
+          <Col span={8}>
+            <Row>
+              <Col span={9}>{intl.get(`${promptCode}.model.supQuo.attachment`).d('附件')}:</Col>
+              <Col span={15}>
+                <UploadModal {...uploadProps} />
+              </Col>
             </Row>
           </Col>
         </Row>

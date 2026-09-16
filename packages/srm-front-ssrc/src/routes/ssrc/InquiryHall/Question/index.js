@@ -9,8 +9,11 @@ import React from 'react';
 import { connect } from 'dva';
 import { Tabs, Button, Popover, Badge } from 'hzero-ui';
 import { isUndefined, compose, isFunction, map } from 'lodash';
+// 通威二开 - 可见供应商逻辑暂时停用，需要还原时改回下面这行
+// import { isUndefined, compose, isFunction, map, uniq } from 'lodash';
 import { Bind } from 'lodash-decorators';
 import querystring from 'querystring';
+import moment from 'moment';
 import { routerRedux } from 'dva/router';
 
 import remote from 'hzero-front/lib/utils/remote';
@@ -395,6 +398,14 @@ class Question extends React.Component {
       return;
     }
 
+    // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面这段注释
+    // // 招标大厅的关联问题只能关联同一家供应商的问题行
+    // const selectedSupplierNames = uniq(
+    //   clarifySelectedRows.map((item) => item.supplierCompanyName).filter(Boolean)
+    // );
+    // const supplierNameConflict =
+    //   this.bidFlag && type === 'question' && selectedSupplierNames.length > 1;
+
     // 过滤出勾选数据
     // 关联问题新建时需要勾选关联行
     if (type === 'question' && clarifySelectedRows.length === 0) {
@@ -403,7 +414,26 @@ class Question extends React.Component {
           .get(`ssrc.inquiryHall.model.inquiryHall.noSelectedRows`)
           .d('请勾选需要关联行!'),
       });
+      // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面整段注释
+      // } else if (supplierNameConflict) {
+      //   notification.warning({
+      //     message: intl
+      //       .get(`ssrc.inquiryHall.model.inquiryHall.sameSupplierLimited`)
+      //       .d('只能勾选同一家供应商的问题行!'),
+      //   });
     } else {
+      // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面整段注释，并改回 searchParams 写法
+      // // 关联问题新建时，把勾选行的供应商带到澄清函预览页，用于锁定可见供应商
+      // const visibleSupplierNames =
+      //   type === 'question' ? selectedSupplierNames.join(',') : '';
+      // const searchParams = {
+      //   current,
+      //   createFlag,
+      //   sourceCategory: ['RFQ', 'RFA'].includes(sourceCategory) ? 'RFX' : sourceCategory,
+      // };
+      // if (visibleSupplierNames) {
+      //   searchParams.visibleSupplierNames = visibleSupplierNames;
+      // }
       this.setState(
         {
           clarifySelectedRows: [],
@@ -593,8 +623,16 @@ class Question extends React.Component {
       sourceKey = INQUIRY,
       customizeBtnGroup,
     } = this.props;
-    const { sourceCategory: type, isReadOnly = '' } = querystring.parse(search.substr(1));
+    const { sourceCategory: type, isReadOnly = '', clarifyEndDate } = querystring.parse(
+      search.substr(1)
+    );
     const { sourceId } = match.params;
+    // 通威二开 - 只有招标单才校验澄清截止时间：当前时间超过澄清截止时间后不允许再新建澄清函
+    // 询价单（bidFlag 为 false）不走这段逻辑，按钮显隐保持原样
+    let clarifyExpiredFlag = false;
+    if (this.bidFlag) {
+      clarifyExpiredFlag = !!clarifyEndDate && moment().isAfter(moment(clarifyEndDate));
+    }
     const { clarifySelectedRows = {}, headerInfo } = this.state;
     const { sourceTitle, sourceNum } = headerInfo || {};
     // const routerParam = querystring.parse(this.props.location.search.substr(1));
@@ -757,7 +795,7 @@ class Question extends React.Component {
                     {intl.get('hzero.common.button.create').d('新建')}
                   </Button>
                 )} */}
-                {!isReadOnly && (
+                {!isReadOnly && !clarifyExpiredFlag && (
                   <Button type="primary" onClick={this.createIssue.bind(this, 'clarification')}>
                     {intl.get('hzero.common.button.create').d('新建')}
                   </Button>

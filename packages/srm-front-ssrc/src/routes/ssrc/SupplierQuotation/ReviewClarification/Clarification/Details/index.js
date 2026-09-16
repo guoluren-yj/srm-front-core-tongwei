@@ -7,12 +7,11 @@
  */
 
 import React, { Component, Fragment } from 'react';
-import { Collapse, Icon, Table, Spin, Button } from 'hzero-ui';
+import { Collapse, Icon, Table, Spin } from 'hzero-ui';
 
 import intl from 'utils/intl';
 import { connect } from 'dva';
 import { Bind } from 'lodash-decorators';
-import UploadModal from 'srm-front-boot/lib/components/Upload/index';
 import { valueMapMeaning } from 'utils/renderer';
 import { Header, Content } from 'components/Page';
 import queryString from 'querystring';
@@ -154,6 +153,7 @@ class Details extends Component {
     const detailsFormProps = {
       clarifyStatus,
       clarificationDetails,
+      uploadProps,
     };
     const columns = [
       {
@@ -193,11 +193,7 @@ class Details extends Component {
         <Header
           title={intl.get(`${promptCode}.view.message.title.clarifyDetails`).d('澄清函详情')}
           backPath={isPubPage(path, `${this.activeTabKey}/review-clarification?${search}`)}
-        >
-          <Button>
-            <UploadModal {...uploadProps} />
-          </Button>
-        </Header>
+        />
         <Content>
           <Spin
             spinning={detailsLoading || tableLoading}

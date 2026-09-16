@@ -232,7 +232,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       ),
     },
     type !== 'pendingReview' && { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
-    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && nominationStatus === 'PENDING_REVIEW' && {
+    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && (nominationStatus === 'PENDING_REVIEW' || nominationStatus === 'TO_BE_RELEASED') && {
       name: 'action',
       header: intl.get(`${prefix}.button.operation`).d('操作'),
       width: btnCount * 90,

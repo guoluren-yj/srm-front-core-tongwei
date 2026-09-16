@@ -61,6 +61,9 @@ export default class BaseInfo extends Component {
       sourceId,
       sourceCategory,
       supplierSelectRows,
+      // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面两行注释
+      // defaultVisibleSupplierText,
+      // visibleSupplierDisabled,
       handleChangeVisibleSupplier = () => {},
     } = this.props;
     const { rfxTitle } = matchDate;
@@ -196,6 +199,8 @@ export default class BaseInfo extends Component {
                 })(
                   <LovMultiple
                     code="SSRC.CLARIFY_VISIBLE_SUPPLIER"
+                    // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面两行注释
+                    // disabled={visibleSupplierDisabled}
                     onChange={this.handleChangeCompany}
                     queryParams={{
                       sourceId,
@@ -207,7 +212,11 @@ export default class BaseInfo extends Component {
                     }}
                     textField="supplierCompanyName"
                     selectedRows={supplierSelectRows}
+                    // 通威二开 - 可见供应商逻辑暂时停用，需要还原时改回下面注释里的写法
                     textValue={clarificationDetails.visibleSuppliersMeaning}
+                    // textValue={
+                    //   clarificationDetails.visibleSuppliersMeaning || defaultVisibleSupplierText
+                    // }
                     changeSelectRows={handleChangeVisibleSupplier}
                   />
                 )}

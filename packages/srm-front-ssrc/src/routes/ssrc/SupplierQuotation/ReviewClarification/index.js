@@ -12,6 +12,8 @@ import { Tabs, Button, Badge, Tooltip } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import { isUndefined, isNil, compose } from 'lodash';
 import querystring from 'querystring';
+// 通威二开 - 澄清截止时间校验，用于控制问题维护页签【新建】按钮显隐
+import moment from 'moment';
 import withCustomize from 'srm-front-cuz/lib/h0Customize';
 import remotes from 'hzero-front/lib/utils/remote';
 import intl from 'utils/intl';
@@ -530,6 +532,13 @@ class ReviewClarification extends Component {
       headerInfo,
     } = this.state;
     const { sourceTitle = '', sourceNum } = headerInfo || {};
+    // 通威二开 - 只有招标单才校验澄清截止时间：当前时间超过澄清截止时间后不允许再新建问题
+    // 询价单（bidFlag 为 false）不走这段逻辑，按钮显隐保持原样
+    const { clarifyEndDate } = querystring.parse(search.substr(1));
+    let clarifyExpiredFlag = false;
+    if (this.bidFlag) {
+      clarifyExpiredFlag = !!clarifyEndDate && moment().isAfter(moment(clarifyEndDate));
+    }
 
     const commonProps = {
       bidFlag: this.bidFlag,
@@ -646,7 +655,7 @@ class ReviewClarification extends Component {
                 <div className="table-list-search">
                   <MaintainForm {...maintainFormProps} />
                 </div>
-                {createPermission && (
+                {createPermission && !clarifyExpiredFlag && (
                   <div className={styles['question-create']}>
                     <Button type="primary" onClick={this.handleCreate}>
                       {intl.get('hzero.common.button.create').d('新建')}

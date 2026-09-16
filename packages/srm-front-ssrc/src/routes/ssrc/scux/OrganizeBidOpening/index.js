@@ -71,6 +71,7 @@ const OrganizeBidOpening = (props) => {
         destroyOnClose: true,
         style: { width: 'fit-content', maxWidth: '90%' },
         closable: true,
+        movable: false, // 宽度依赖 fit-content，禁止拖动避免定位方式切换后宽度重算
         children: (
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24 }}>
             {urls.map((url) => (

@@ -23,9 +23,13 @@ import { Header, Content } from 'components/Page';
 import RichTextEditor from 'components/RichTextEditor';
 import { getCurrentOrganizationId, getResponse } from 'utils/utils';
 import formatterCollections from 'utils/intl/formatterCollections';
+// 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面的注释
+// import { queryLov, queryLovData } from 'services/api';
 import { PRIVATE_BUCKET } from '_utils/config';
 import { FIlESIZE, ChunkUploadProps } from '@/utils/SsrcRegx';
 import { INQUIRY } from '@/utils/globalVariable';
+// 通威二开 - 可见供应商逻辑暂时停用，需要还原时改回下面这行
+// import { BID, INQUIRY } from '@/utils/globalVariable';
 import { isPubPage, getTabKey } from '@/utils/utils';
 
 import { getClarifyHeaderInfo } from '@/services/inquiryHallService';
@@ -43,6 +47,9 @@ class Create extends Component {
       selectedkeys: [],
       headerInfo: {}, // 简单头查询基本信息
       supplierSelectRows: [], // 可见供应商选中数据
+      // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面两行注释
+      // defaultVisibleSupplierText: '', // 默认全选时的可见供应商回显文案
+      // visibleSupplierDisabled: false, // 从关联问题新建时，可见供应商不允许再改
     };
   }
 
@@ -77,7 +84,128 @@ class Create extends Component {
       }
     }
     this.handleClarificationQuestion(clarificationQuestionPagination);
+    // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面的注释
+    // 招标大厅新建澄清函时，可见供应商默认勾选全部；
+    // 从「关联问题」新建时改为只选勾选行的供应商，并置为只读
+    // if (this.sourceKey === BID && isUndefined(params.clarifyId)) {
+    //   this.initVisibleSuppliers();
+    // }
   }
+
+  // 通威二开 - 以下可见供应商相关方法暂时停用，需要还原时取消整段注释
+  // /**
+  //  * 处理值集查询地址
+  //  * 替换掉 URL 上的占位符，并去掉自带的查询串（查询条件统一由参数传入）
+  //  * 逻辑与 LovMultiple/LovModal 的 getUrl 保持一致
+  //  */
+  // getLovDataUrl(url, queryParams) {
+  //   let result = url;
+  //   Object.keys(queryParams || {}).forEach((key) => {
+  //     result = result.replace(new RegExp(`{${key}}`, 'g'), queryParams[key]);
+  //   });
+  //   if (/\{organizationId\}|\{tenantId\}/.test(result)) {
+  //     result = result.replace(/\{organizationId\}|\{tenantId\}/g, getCurrentOrganizationId());
+  //   }
+  //   const queryIndex = result.indexOf('?');
+  //   return queryIndex === -1 ? result : result.substr(0, queryIndex);
+  // }
+  //
+  // /**
+  //  * 初始化可见供应商
+  //  * 取数路径与 LovMultiple 弹窗保持一致：先查值集配置拿 queryUrl，再翻页取全量
+  //  * 从「关联问题」新建时（URL 带 visibleSupplierNames），只取勾选行的供应商并置为只读；否则默认全选
+  //  */
+  // @Bind()
+  // async initVisibleSuppliers() {
+  //   const {
+  //     match: { params },
+  //     location: { search },
+  //   } = this.props;
+  //   const { sourceCategory: type, visibleSupplierNames } = querystring.parse(search.substr(1));
+  //   const sourceType = ['RFQ', 'RFA'].includes(type) ? 'RFX' : type;
+  //   const queryParams = { sourceId: params.sourceId, sourceType };
+  //
+  //   try {
+  //     const lovInfo = await queryLov({ viewCode: 'SSRC.CLARIFY_VISIBLE_SUPPLIER' });
+  //     if (!lovInfo?.queryUrl) {
+  //       return;
+  //     }
+  //     const url = this.getLovDataUrl(lovInfo.queryUrl, queryParams);
+  //     const sourceQueryParams = querystring.parse(lovInfo.queryUrl.split('?')[1] || '');
+  //
+  //     const pageSize = 500;
+  //     let page = 0;
+  //     let allRows = [];
+  //     let total = Infinity;
+  //     // 值集可能分页返回，翻页取完，避免漏选供应商
+  //     while (allRows.length < total) {
+  //       // 需要拿到上一页的总数才能决定是否继续翻页，只能串行请求
+  //       // eslint-disable-next-line no-await-in-loop
+  //       const res = await queryLovData(url, {
+  //         ...sourceQueryParams,
+  //         ...queryParams,
+  //         page,
+  //         size: pageSize,
+  //       });
+  //       const content = (Array.isArray(res) ? res : res?.content) || [];
+  //       if (!content.length) {
+  //         break;
+  //       }
+  //       allRows = allRows.concat(content);
+  //       total = Number(res?.totalElements ?? allRows.length);
+  //       page += 1;
+  //     }
+  //
+  //     if (!allRows.length) {
+  //       return;
+  //     }
+  //
+  //     // 从「关联问题」新建时，只保留勾选行所属供应商，并把字段置为只读
+  //     const visibleSupplierDisabled = !!visibleSupplierNames;
+  //     let targetRows = allRows;
+  //     if (visibleSupplierDisabled) {
+  //       const supplierNames = String(visibleSupplierNames)
+  //         .split(',')
+  //         .map((name) => name.trim());
+  //       targetRows = allRows.filter((item) =>
+  //         supplierNames.includes((item.supplierCompanyName || '').trim())
+  //       );
+  //     }
+  //
+  //     if (!targetRows.length) {
+  //       return;
+  //     }
+  //
+  //     const supplierRows = targetRows.map((item) => ({
+  //       supplierCompanyId: Number(item.supplierCompanyId),
+  //       supplierCompanyName: item.supplierCompanyName,
+  //     }));
+  //
+  //     this.setState({
+  //       supplierSelectRows: supplierRows,
+  //       defaultVisibleSupplierText: supplierRows.map((item) => item.supplierCompanyName).join(','),
+  //       visibleSupplierDisabled,
+  //     });
+  //     this.syncVisibleSupplierToForm(supplierRows);
+  //   } catch (e) {
+  //     // 取不到供应商时不预置，页面表现与改动前一致
+  //   }
+  // }
+  //
+  // /**
+  //  * 把可见供应商写进表单
+  //  * visibleSuppliers 的 initialValue 只在挂载时求值，且该字段要等 sourceMethod 回来才渲染，
+  //  * 所以取到数据后显式写入一次，headerInfo 回来后再补写一次，保证提交时能取到
+  //  */
+  // @Bind()
+  // syncVisibleSupplierToForm(supplierRows = this.state.supplierSelectRows) {
+  //   if (!this.form || !supplierRows.length) {
+  //     return;
+  //   }
+  //   this.form.setFieldsValue({
+  //     visibleSuppliers: supplierRows.map((item) => item.supplierCompanyId).join(','),
+  //   });
+  // }
 
   // 查询头信息
   @Bind()
@@ -91,9 +219,17 @@ class Create extends Component {
     }).then((res) => {
       const result = getResponse(res);
       if (result) {
+        // 通威二开 - 可见供应商逻辑暂时停用，需要还原时改用下面注释里的写法
+        // （回调里补写可见供应商：该字段要等 sourceMethod 回来才渲染，晚于预取数据返回时靠这里兜底）
         this.setState({
           headerInfo: result,
         });
+        // this.setState(
+        //   {
+        //     headerInfo: result,
+        //   },
+        //   this.syncVisibleSupplierToForm
+        // );
 
         if (clarifyRemote && clarifyRemote.event) {
           clarifyRemote.event.fireEvent('remoteHandleAfterFetchHeaderInfo', {
@@ -559,7 +695,15 @@ class Create extends Component {
     } = this.props;
     const { sourceCategory } = querystring.parse(this.props.location.search.substr(1));
     const { rfxNum, sourceId } = match.params;
-    const { collapseKeys, selectedkeys, headerInfo, supplierSelectRows } = this.state;
+    const {
+      collapseKeys,
+      selectedkeys,
+      headerInfo,
+      supplierSelectRows,
+      // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面两行注释
+      // defaultVisibleSupplierText,
+      // visibleSupplierDisabled,
+    } = this.state;
     const { context = '' } = clarificationDetails;
     const staticTextProps = {
       docType: 0,
@@ -666,6 +810,9 @@ class Create extends Component {
                   sourceId={sourceId}
                   sourceCategory={sourceCategory}
                   supplierSelectRows={supplierSelectRows}
+                  // 通威二开 - 可见供应商逻辑暂时停用，需要还原时取消下面两行注释
+                  // defaultVisibleSupplierText={defaultVisibleSupplierText}
+                  // visibleSupplierDisabled={visibleSupplierDisabled}
                   handleChangeVisibleSupplier={this.handleChangeVisibleSupplier}
                 />
               </Panel>

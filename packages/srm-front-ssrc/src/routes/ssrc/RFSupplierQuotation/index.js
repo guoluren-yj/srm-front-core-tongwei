@@ -1932,6 +1932,8 @@ class Supplierquotation extends Component {
       sourceCategory,
       rfHeaderId = 0,
       tenantId,
+      // 通威二开 - 澄清截止时间，用于澄清答疑页面控制【新建】按钮显隐
+      clarifyEndDate,
       // rfxNum = '',
       // rfxTitle = '',
       // rfNum = '',
@@ -1946,6 +1948,8 @@ class Supplierquotation extends Component {
       'sourceCategory',
       'rfHeaderId',
       'tenantId',
+      // 通威二开 - 澄清截止时间，用于澄清答疑页面控制【新建】按钮显隐
+      'clarifyEndDate',
       // 'rfNum',
       // 'rfTitle',
     ]);
@@ -1961,6 +1965,8 @@ class Supplierquotation extends Component {
       sourceHeaderId: ['RFQ', 'RFA'].includes(sourceCategory) ? rfxHeaderId : rfHeaderId,
       backPath: `${pathname}?${search}`,
       tenantId,
+      // 通威二开 - 澄清截止时间，用于澄清答疑页面控制【新建】按钮显隐
+      clarifyEndDate,
     });
     const CURRENTACTIVETABKEY = getActiveTabKey();
     history.push({
