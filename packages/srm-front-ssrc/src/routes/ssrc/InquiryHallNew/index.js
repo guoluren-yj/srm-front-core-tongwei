@@ -2338,8 +2338,8 @@ class InquiryHall extends React.Component {
      */
     const biddingDocumentsSealFlag =
       this.bidFlag &&
-      rfxStatus === 'NOT_START' &&
-      (!attributeVarchar20 || attributeVarchar20 === 'ESIGNFAILED');
+      rfxStatus === 'NOT_START';
+    // && (!attributeVarchar20 || attributeVarchar20 === 'ESIGNFAILED');
     /**
      * ① 状态=「未开始」&二级状态=「电签完成」
      * ② 电签=N&状态=「未开始」

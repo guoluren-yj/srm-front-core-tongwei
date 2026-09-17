@@ -75,8 +75,8 @@ const OrganizeBidOpening = (props) => {
         children: (
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24 }}>
             {urls.map((url) => (
-              <div key={url} style={{ textAlign: 'center' }}>
-                <QRCode value={url} size={200} />
+              <div key={decodeURIComponent(url)} style={{ textAlign: 'center' }}>
+                <QRCode value={decodeURIComponent(url)} size={200} />
               </div>
             ))}
           </div>

@@ -42,9 +42,14 @@ export default class EditorOnline extends Component {
 
   @Bind()
   initFetch() {
-    const { fileTemplateId, attachmentLineId, pageType } = this.props;
+    const { fileTemplateId, attachmentLineId, pageType, source } = this.props;
     // pageType等于【template】取fileTemplateId，pageType等于【attachLine】取attachmentLineId
     const requestProps = pageType === 'template' ? { fileTemplateId } : { attachmentLineId };
+    // 业务来源标识：仅部分场景需要（如中标公告-供应商列表传 suggestNotice），
+    // 其他调用方不传该属性时不进请求体，保持原有请求参数不变
+    if (source) {
+      requestProps.source = source;
+    }
     cuxQueryOnlyOffice(requestProps).then((url) => {
       if (getResponse(url)) {
         this.writeFrameDocumentWps(url);

@@ -56,6 +56,8 @@ import { PRIVATE_BUCKET } from '_utils/config';
 import { FIlESIZE, ChunkUploadProps } from '@/utils/SsrcRegx';
 import { openOrFreshTab } from '@/utils/utils';
 import PrintProButton from 'srm-front-boot/lib/components/PrintProButton';
+import BidSupplierList from '@/routes/ssrc/scux/BidAcceptanceNotice/SupplierList';
+import { publishBidAcceptanceNotice } from '@/services/bidAcceptanceNoticeService';
 
 import common from '@/routes/sbid/common.less';
 import style from './index.less';
@@ -69,10 +71,16 @@ class AcceptRfxNotice extends Component {
     super(props);
 
     this.state = {
-      collapseKeys: ['baseInfos', 'bidNotice'], // 折叠面板
+      collapseKeys: ['baseInfos', 'bidNotice', 'bidSupplierList'], // 折叠面板
       publishWInnerBidNoticeLoading: false,
+      bidPublishLoading: false, // 招标场景-发布（二开发布接口）
       validateParmas: {}, // 额外的校验参数
     };
+
+    // 招标场景-供应商列表（保存时取其变更行一起提交）
+    this.supplierListApi = React.createRef();
+    // 是否存在已发送通知的供应商，用于置灰头部的【电子签章经办人】【中标通知模板】
+    this.noticeSentFlag = false;
   }
 
   sourceKey = this.props.sourceKey || INQUIRY;
@@ -178,7 +186,7 @@ class AcceptRfxNotice extends Component {
     const {
       dispatch,
       organizationId,
-      form: { validateFields },
+      form: { validateFields, getFieldValue },
       match: { params = {} },
       [modelName]: { winBidNoticeInfo = {} },
     } = this.props;
@@ -188,6 +196,11 @@ class AcceptRfxNotice extends Component {
     }
     validateFields((err, values) => {
       if (!err) {
+        // 招标场景-供应商列表：附件列的变更（上传/删除）随头部保存一起提交
+        const supplierList =
+          this.bidFlag && getFieldValue('winMessageFlag') && this.supplierListApi.current
+            ? this.supplierListApi.current.getSaveData() || []
+            : null;
         dispatch({
           type: `${modelName}/saveWInnerBidNotice`,
           payload: {
@@ -195,6 +208,7 @@ class AcceptRfxNotice extends Component {
             data: {
               ...winBidNoticeInfo,
               ...values,
+              ...(supplierList && supplierList.length ? { supplierList } : {}),
               noticeType: 'BR_ACCEPTED',
               sourceFrom: 'RFX',
               sourceHeaderId: params.rfxId,
@@ -634,6 +648,7 @@ class AcceptRfxNotice extends Component {
                   noticeRuleStatus: winBidNoticeInfo.noticeRuleStatus,
                   form,
                   winBidNoticeInfo,
+                  noticeSentFlag: this.noticeSentFlag,
                 })
               : null}
           </Col>
@@ -664,6 +679,8 @@ class AcceptRfxNotice extends Component {
       sourceTitle,
       rfxHeaderId: params.rfxId,
       handleSave: this.handleSave,
+      // 供应商列表中有通知已发送的行时，个性化注入的【电子签章经办人】【中标通知模板】需要置灰
+      noticeSentFlag: this.noticeSentFlag,
     };
     return (
       <React.Fragment>
@@ -1172,6 +1189,85 @@ class AcceptRfxNotice extends Component {
     }
   }
 
+  /**
+   * 供应商列表中有任一行的通知已发送时，
+   * 头部的【电子签章经办人 attributeVarchar16】【中标通知模板 attributeLongtext8】需要置灰为只读。
+   * 这两个字段由个性化注入，本页只负责计算并透出标识（noticeSentFlag），供二开脚本取用。
+   */
+  @Bind()
+  handleSupplierNoticeSent(noticeSent) {
+    const {
+      dispatch,
+      modelName = 'inquiryHall',
+      [modelName]: { winBidNoticeInfo = {} },
+    } = this.props;
+    if (this.noticeSentFlag === noticeSent) {
+      return;
+    }
+    this.noticeSentFlag = noticeSent;
+    dispatch({
+      type: `${modelName}/updateState`,
+      payload: {
+        winBidNoticeInfo: {
+          ...winBidNoticeInfo,
+          noticeSentFlag: noticeSent,
+        },
+      },
+    });
+  }
+
+  /**
+   * 招标场景(bidFlag)-发布：
+   * 调用二开发布接口，body 为 { supplierList: [{ rfxHeaderId, supplierCompanyId }], rfxHeaderId, winMessageFlag }
+   */
+  @Throttle(500)
+  @Bind()
+  async handleBidPublish() {
+    const {
+      modelName = 'inquiryHall',
+      match: { params = {} },
+      form: { getFieldValue },
+      [modelName]: { winBidNoticeInfo = {} },
+    } = this.props;
+
+    const formWinMessageFlag = getFieldValue('winMessageFlag');
+    // 中标通知标识：优先取页面上的复选框，取不到时回退到详情接口的值
+    const winMessageFlag = Number(
+      formWinMessageFlag === undefined || formWinMessageFlag === null
+        ? winBidNoticeInfo.winMessageFlag
+        : formWinMessageFlag
+    )
+      ? 1
+      : 0;
+
+    // 供应商列表如有勾选，只发布勾选行；未勾选时退回全量
+    const selectedRows = this.supplierListApi.current?.getSelectedData?.() || [];
+    const supplierRows = selectedRows.length ? selectedRows : winBidNoticeInfo.supplierList || [];
+
+    const supplierList = supplierRows.map((item) => ({
+      rfxHeaderId: item.rfxHeaderId || params.rfxId,
+      supplierCompanyId: item.supplierCompanyId,
+      supplierCompanyName: item.supplierCompanyName,
+    }));
+
+    this.setState({ bidPublishLoading: true });
+    try {
+      const result = getResponse(
+        await publishBidAcceptanceNotice({
+          supplierList,
+          rfxHeaderId: params.rfxId,
+          winMessageFlag,
+        })
+      );
+      if (result) {
+        notification.success();
+        this.fetchWInnerBidNotice();
+      }
+    } finally {
+      this.setState({ bidPublishLoading: false });
+    }
+  }
+
   renderHeaderButtons() {
     const {
       modelName = 'inquiryHall',
@@ -1183,10 +1279,23 @@ class AcceptRfxNotice extends Component {
       [modelName]: { winBidNoticeInfo = {} },
       remote,
     } = this.props;
-    const { publishWInnerBidNoticeLoading } = this.state;
+    const { publishWInnerBidNoticeLoading, bidPublishLoading } = this.state;
     const buttons = [
+      // 招标场景(bidFlag)：走二开发布接口（提交中标通知标识 + 供应商列表）
+      this.bidFlag && (
+        <Button
+          type="primary"
+          icon="rocket"
+          name="release"
+          onClick={this.handleBidPublish}
+          loading={bidPublishLoading}
+        >
+          {intl.get('hzero.common.button.release').d('发布')}
+        </Button>
+      ),
       // 增加 招标公告 发布后 但是中标通知和未中标通知有一个没发就还能发布 用于分开发布通知
-      (winBidNoticeInfo.noticeRuleStatus !== 'RELEASE' || (this.bidFlag && winBidNoticeInfo.noticeRuleStatus === 'RELEASE' && (!winBidNoticeInfo.winMessageFlag || !winBidNoticeInfo.loseMessageFlag))) && (
+      !this.bidFlag &&
+        winBidNoticeInfo.noticeRuleStatus !== 'RELEASE' && (
         <Button
           type="primary"
           icon="rocket"
@@ -1214,21 +1323,24 @@ class AcceptRfxNotice extends Component {
           {intl.get('ssrc.acceptBidNotice.model.button.recallNotice').d('撤销公告')}
         </C7NButton>
       ) : null,
-      this.bidFlag && (
-        <>
-          <Button
-            onClick={this.handleEcSign}
-          >
-            {intl.get('ssrc.acceptBidNotice.model.button.getEcSign').d('生成附件')}
-          </Button>
-        </>
+      // 招标场景(bidFlag)下不展示【生成附件】【外部签章】按钮
+      // this.bidFlag && (
+      //   <>
+      //     <Button
+      //       onClick={this.handleEcSign}
+      //     >
+      //       {intl.get('ssrc.acceptBidNotice.model.button.getEcSign').d('生成附件')}
+      //     </Button>
+      //   </>
+      // ),
+      !this.bidFlag && (
+        <Button
+          style={{ marginLeft: 8 }}
+          onClick={this.handleExternalSign}
+        >
+          外部签章
+        </Button>
       ),
-      <Button
-        style={{ marginLeft: 8 }}
-        onClick={this.handleExternalSign}
-      >
-        外部签章
-      </Button>,
     ].filter(Boolean);
     if (!remote) {
       return buttons;
@@ -1264,7 +1376,7 @@ class AcceptRfxNotice extends Component {
           <Spin spinning={fetchWInnerBidNoticeLoading}>
             <Collapse
               className="form-collapse"
-              defaultActiveKey={['baseInfos', 'bidNotice']}
+              activeKey={collapseKeys}
               onChange={this.onCollapseChange}
             >
               <Panel
@@ -1330,6 +1442,35 @@ class AcceptRfxNotice extends Component {
                     : this.renderBidNoticeForm()}
                 </Panel>
               )}
+              {this.bidFlag && getFieldValue('winMessageFlag') ? (
+                <Panel
+                  showArrow={false}
+                  // 折叠时也保持挂载，避免表格里的未保存变更（附件上传/生成）丢失
+                  forceRender
+                  header={
+                    <React.Fragment>
+                      <h3>
+                        {intl.get(`ssrc.inquiryHall.view.panel.bidSupplierList`).d('供应商列表')}
+                      </h3>
+                      <a>
+                        {collapseKeys.includes('bidSupplierList')
+                          ? intl.get(`hzero.common.button.up`).d('收起')
+                          : intl.get(`hzero.common.button.expand`).d('展开')}
+                      </a>
+                      <Icon type={collapseKeys.includes('bidSupplierList') ? 'up' : 'down'} />
+                    </React.Fragment>
+                  }
+                  key="bidSupplierList"
+                >
+                  <BidSupplierList
+                    apiRef={this.supplierListApi}
+                    rfxHeaderId={params.rfxId}
+                    supplierList={winBidNoticeInfo.supplierList}
+                    onRefresh={this.fetchWInnerBidNotice}
+                    onNoticeSent={this.handleSupplierNoticeSent}
+                  />
+                </Panel>
+              ) : null}
             </Collapse>
           </Spin>
         </Content>

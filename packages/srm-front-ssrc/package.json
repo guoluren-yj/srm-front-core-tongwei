@@ -107,7 +107,7 @@
     "lint:fix": "eslint --quiet --fix 'src/**/*.{js,jsx,tsx,ts}' && npm run lint:style",
     "lint:style": "stylelint \"src/**/*.less\" --syntax less",
     "lint-staged": "lint-staged",
-    "transpile": "cross-env NODE_ENV=production BABEL_ENV=production npx babel src --out-dir lib --copy-files --delete-dir-on-start --ignore 'src/**/*.spec.js','src/**/*.test.js'",
+    "transpile": "cross-env NODE_ENV=production BABEL_ENV=production npx babel -x .js,.ts,.jsx,.tsx src --out-dir lib --copy-files --delete-dir-on-start --ignore 'src/**/*.spec.js','src/**/*.test.js'",
     "test": "hzero-cli test",
     "changelog": "node node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "prettier": "prettier --write ./src/**/**/**/*",

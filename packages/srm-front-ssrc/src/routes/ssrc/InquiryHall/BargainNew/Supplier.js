@@ -459,7 +459,7 @@ class SupplierComponnet extends Component {
   syncBargainTotalPrice(line, supplierRecord) {
     if (!line || !supplierRecord) return;
     const total = line.dataSet.toData().reduce(
-      (sum, row) => sum + (Number(row.currentBargainPrice) || 0),
+      (sum, row) => sum + ((Number(row.currentBargainPrice) || 0) * (Number(row.currentQuotationQuantity) || 0)),
       0
     );
     supplierRecord.set('attributeDecimal1', total);
