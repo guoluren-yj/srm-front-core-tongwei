@@ -222,6 +222,8 @@ const Index: React.FC<any> = (props) => {
               funcType={FuncType.link}
               disabled={record.get('bidNumLinkFlag') !== '1'}
               onClick={() => handleJumpBidDetail(record)}
+              // 允许鼠标拖动选中单号文本，方便复制
+              style={{ userSelect: 'auto' }}
             >
               {value}
             </Button>

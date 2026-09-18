@@ -8,8 +8,11 @@
 import React, { PureComponent } from 'react';
 import { Table, Popover } from 'hzero-ui';
 import { isEmpty } from 'lodash';
+import querystring from 'querystring';
 
 import intl from 'utils/intl';
+import { filterNullValueObject } from 'utils/utils';
+import { getActiveTabKey } from 'utils/menuTab';
 import {
   phoneRender,
   abandonRemarkRender,
@@ -45,6 +48,29 @@ class SupplierTable extends PureComponent {
     return renderer;
   };
 
+  /**
+   * 澄清答疑：跳转到澄清函维护页面
+   * 路径参数：询价单头 rfxHeaderId / rfxNum / 公司 companyId，末位固定 1（采购方视角）
+   */
+  handleClarifyAnswer = (rfxHeaderId) => {
+    const { header = {}, history } = this.props;
+    if (!history || !rfxHeaderId) {
+      return;
+    }
+    const { rfxNum, companyId, sourceCategory, createFlag, clarifyEndDate } = header || {};
+    history.push({
+      pathname: `${getActiveTabKey()}/inter-question/${rfxHeaderId}/${rfxNum}/sourceTitle/${companyId}/1`,
+      search: querystring.stringify(
+        filterNullValueObject({
+          createFlag,
+          sourceCategory,
+          // 澄清截止时间：澄清函维护页面据此控制【新建】按钮显隐
+          clarifyEndDate,
+        })
+      ),
+    });
+  };
+
   render() {
     const {
       dataSource,
@@ -57,6 +83,7 @@ class SupplierTable extends PureComponent {
       customizeTable = () => {},
       sourceKey,
       history,
+      rfxHeaderId,
       sslmLifeCycleFlag = true,
     } = this.props;
     const {
@@ -177,6 +204,32 @@ class SupplierTable extends PureComponent {
         width: 130,
         render: this.renderQuotationStatus,
       },
+      {
+        title: intl
+          .get(`ssrc.supplierQuotation.model.supQuo.depositStatus`)
+          .d('保证金状态'),
+        dataIndex: 'depositStatus',
+        width: 100,
+        render: (value, record) => {
+          return record.depositStatusMeaning ?? '-';
+        },
+      },
+      {
+        title: intl
+          .get(`ssrc.supplierQuotation.model.supQuo.clarifyReadRatio`)
+          .d('澄清答疑'),
+        dataIndex: 'clarifyReadRatio',
+        width: 100,
+        render: (value, record) => {
+          const clarifyReadRatio = record?.clarifyReadRatio;
+          if (clarifyReadRatio === null || clarifyReadRatio === undefined || clarifyReadRatio === '') {
+            return '-';
+          }
+          // 点击跳转到该供应商的澄清答疑页面
+          return <a onClick={() => this.handleClarifyAnswer(rfxHeaderId)}>{clarifyReadRatio}</a>;
+        },
+      },
+
       {
         title: intl
           .get(`ssrc.supplierQuotation.model.supQuo.currentQuotationTotalCount`, { quotationName })

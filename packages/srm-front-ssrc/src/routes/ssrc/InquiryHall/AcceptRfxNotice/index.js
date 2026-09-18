@@ -55,7 +55,6 @@ import { BID, getDocumentTypeName, INQUIRY } from '@/utils/globalVariable';
 import { PRIVATE_BUCKET } from '_utils/config';
 import { FIlESIZE, ChunkUploadProps } from '@/utils/SsrcRegx';
 import { openOrFreshTab } from '@/utils/utils';
-import PrintProButton from 'srm-front-boot/lib/components/PrintProButton';
 import BidSupplierList from '@/routes/ssrc/scux/BidAcceptanceNotice/SupplierList';
 import { publishBidAcceptanceNotice } from '@/services/bidAcceptanceNoticeService';
 
@@ -65,6 +64,22 @@ import style from './index.less';
 const { Panel } = Collapse;
 const { Option } = Select;
 const FormItem = Form.Item;
+
+// 「基础信息」面板(SSRC.*_HALL_NOTICE.NOTICE_FORM_INFO)的字段，需与 renderBasicInfosForm 保持一致。
+// 其中 attributeVarchar16【电子签章经办人】、attributeLongtext8【中标模板】由个性化渲染并配为必填
+const BASE_INFO_FIELDS = [
+  'sourceNum',
+  'sourceTitle',
+  'companyName',
+  'purName',
+  'purPhone',
+  'purEmail',
+  'winMessageFlag',
+  'loseMessageFlag',
+  'winNoticeFlag',
+  'attributeVarchar16',
+  'attributeLongtext8',
+];
 
 class AcceptRfxNotice extends Component {
   constructor(props) {
@@ -79,8 +94,6 @@ class AcceptRfxNotice extends Component {
 
     // 招标场景-供应商列表（保存时取其变更行一起提交）
     this.supplierListApi = React.createRef();
-    // 是否存在已发送通知的供应商，用于置灰头部的【电子签章经办人】【中标通知模板】
-    this.noticeSentFlag = false;
   }
 
   sourceKey = this.props.sourceKey || INQUIRY;
@@ -446,12 +459,20 @@ class AcceptRfxNotice extends Component {
       match: { params },
       customizeForm,
     } = this.props;
+    // 供应商列表中有任一行「通知是否已发送」为是时，中标模板/电子签章经办人不可再修改
+    const noticeSentFlag = this.getNoticeSentFlag();
 
     return customizeForm(
       {
         code: `SSRC.${this.sourceKey}_HALL_NOTICE.NOTICE_FORM_INFO`,
         form,
         dataSource: winBidNoticeInfo,
+        // 个性化里这两个字段配的是「可编辑」，会把组件上的 disabled 改写成 false，
+        // 这里在字段属性合并的最后一步把 disabled 盖回去
+        customFieldPropsIntercept: {
+          attributeVarchar16: () => ({ disabled: noticeSentFlag }),
+          attributeLongtext8: () => ({ disabled: noticeSentFlag }),
+        },
       },
       <Form className="writable-row-custom">
         <Row gutter={48}>
@@ -648,7 +669,7 @@ class AcceptRfxNotice extends Component {
                   noticeRuleStatus: winBidNoticeInfo.noticeRuleStatus,
                   form,
                   winBidNoticeInfo,
-                  noticeSentFlag: this.noticeSentFlag,
+                  noticeSentFlag,
                 })
               : null}
           </Col>
@@ -679,8 +700,7 @@ class AcceptRfxNotice extends Component {
       sourceTitle,
       rfxHeaderId: params.rfxId,
       handleSave: this.handleSave,
-      // 供应商列表中有通知已发送的行时，个性化注入的【电子签章经办人】【中标通知模板】需要置灰
-      noticeSentFlag: this.noticeSentFlag,
+      noticeSentFlag: this.getNoticeSentFlag(),
     };
     return (
       <React.Fragment>
@@ -1189,30 +1209,27 @@ class AcceptRfxNotice extends Component {
     }
   }
 
+  // 供应商列表中有任一行「通知是否已发送」为是时返回 true：通知发出后不再允许改经办人/模板
+  getNoticeSentFlag() {
+    const { modelName = 'inquiryHall' } = this.props;
+    const { winBidNoticeInfo = {} } = this.props[modelName] || {};
+    return (winBidNoticeInfo.supplierList || []).some(
+      (item) => Number(item.noticeFlag) === 1
+    );
+  }
+
   /**
-   * 供应商列表中有任一行的通知已发送时，
-   * 头部的【电子签章经办人 attributeVarchar16】【中标通知模板 attributeLongtext8】需要置灰为只读。
-   * 这两个字段由个性化注入，本页只负责计算并透出标识（noticeSentFlag），供二开脚本取用。
+   * 发送通知前的校验：校验「基础信息」面板的必填项
+   * 通知一旦发出，【电子签章经办人】【中标模板】就置灰不能再改，所以在发送前先拦住空值
+   * @returns {Boolean} true 表示校验通过
    */
   @Bind()
-  handleSupplierNoticeSent(noticeSent) {
+  validateBaseInfo() {
     const {
-      dispatch,
-      modelName = 'inquiryHall',
-      [modelName]: { winBidNoticeInfo = {} },
+      form: { validateFields },
     } = this.props;
-    if (this.noticeSentFlag === noticeSent) {
-      return;
-    }
-    this.noticeSentFlag = noticeSent;
-    dispatch({
-      type: `${modelName}/updateState`,
-      payload: {
-        winBidNoticeInfo: {
-          ...winBidNoticeInfo,
-          noticeSentFlag: noticeSent,
-        },
-      },
+    return new Promise((resolve) => {
+      validateFields(BASE_INFO_FIELDS, (err) => resolve(!err));
     });
   }
 
@@ -1240,8 +1257,16 @@ class AcceptRfxNotice extends Component {
       ? 1
       : 0;
 
-    // 供应商列表如有勾选，只发布勾选行；未勾选时退回全量
+    // 供应商列表可见时必须先勾选，未勾选不允许发布；列表不可见时（未启用中标通知）退回全量
     const selectedRows = this.supplierListApi.current?.getSelectedData?.() || [];
+    if (this.supplierListApi.current && !selectedRows.length) {
+      notification.error({
+        message: intl
+          .get('ssrc.scux.bidAcceptanceNotice.message.selectSupplierRequired')
+          .d('请先勾选需要发布的供应商'),
+      });
+      return;
+    }
     const supplierRows = selectedRows.length ? selectedRows : winBidNoticeInfo.supplierList || [];
 
     const supplierList = supplierRows.map((item) => ({
@@ -1252,17 +1277,18 @@ class AcceptRfxNotice extends Component {
 
     this.setState({ bidPublishLoading: true });
     try {
-      const result = getResponse(
-        await publishBidAcceptanceNotice({
-          supplierList,
-          rfxHeaderId: params.rfxId,
-          winMessageFlag,
-        })
-      );
-      if (result) {
-        notification.success();
-        this.fetchWInnerBidNotice();
+      const res = await publishBidAcceptanceNotice({
+        supplierList,
+        rfxHeaderId: params.rfxId,
+        winMessageFlag,
+      });
+      // 接口可能没有返回体，只要没有失败标识即为发布成功
+      if (res && res.failed === true) {
+        getResponse(res);
+        return;
       }
+      notification.success();
+      this.fetchWInnerBidNotice();
     } finally {
       this.setState({ bidPublishLoading: false });
     }
@@ -1467,7 +1493,7 @@ class AcceptRfxNotice extends Component {
                     rfxHeaderId={params.rfxId}
                     supplierList={winBidNoticeInfo.supplierList}
                     onRefresh={this.fetchWInnerBidNotice}
-                    onNoticeSent={this.handleSupplierNoticeSent}
+                    onBeforeSendNotice={this.validateBaseInfo}
                   />
                 </Panel>
               ) : null}

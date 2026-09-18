@@ -1904,6 +1904,7 @@ class Monitor extends PureComponent {
       customizeTable,
       history,
       remote,
+      match: { params = {} } = {},
     } = this.props;
     const {
       collapseKeys,
@@ -1950,6 +1951,8 @@ class Monitor extends PureComponent {
 
     const supplierTableProps = {
       header,
+      // 澄清答疑跳转需要询价单头 ID
+      rfxHeaderId: params.rfxId,
       quotationName: this.quotationName,
       dataSource: monitorSupplierLine,
       pagination: monitorSupplierLinePagination,

@@ -141,19 +141,21 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
 
   const columns = [
     { name: 'seqNum', width: 80 },
-    type === 'submit' && {
+    (type === 'submit' || type === 'view') && {
       name: 'isSelected',
       width: 100,
       lock: 'left',
-      editor: (record: any) => (
-        <Select
-          name="isSelected"
-          record={record}
-          onOption={({ record: optionRecord }: any) => ({
-            disabled: isSummaryUnqualified(record) && (String(optionRecord.get('value')) === '1' || optionRecord.get('meaning') === '是'),
-          })}
-        />
-      ),
+      // 提交态(submit)可编辑；查看态(view)只读展示
+      editor: (record: any) =>
+        type === 'submit' && (
+          <Select
+            name="isSelected"
+            record={record}
+            onOption={({ record: optionRecord }: any) => ({
+              disabled: isSummaryUnqualified(record) && (String(optionRecord.get('value')) === '1' || optionRecord.get('meaning') === '是'),
+            })}
+          />
+        ),
     },
     {
       name: 'supplierCompanyNum',
@@ -176,7 +178,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew &&{
       name: 'technologyReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showTech ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showTech || type === 'view') ? (
         <Button funcType={FuncType.link} onClick={() => openTechnicalReviewModal(record, 'unreleasedReadOnly', dataSet)}>
           {text}
         </Button>
@@ -185,7 +187,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew &&{
       name: 'businessReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showBiz ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showBiz || type === 'view') ? (
         <Button funcType={FuncType.link} onClick={() => openBusinessReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>
@@ -194,7 +196,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
     !isNew && {
       name: 'financeReviewResult',
       width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && showFin ? (
+      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showFin || type === 'view') ? (
         <Button funcType={FuncType.link} onClick={() => openFinanceReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
           {text}
         </Button>

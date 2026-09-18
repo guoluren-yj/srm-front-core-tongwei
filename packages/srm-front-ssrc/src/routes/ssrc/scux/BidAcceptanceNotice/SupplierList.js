@@ -15,6 +15,7 @@ import notification from 'utils/notification';
 import { getResponse } from 'utils/utils';
 import formatterCollections from 'utils/intl/formatterCollections';
 
+import { numberSeparatorRender } from '@/utils/renderer';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 import {
   generateBidNoticeAttachment,
@@ -27,24 +28,19 @@ import { bidSupplierListDS, BID_NOTICE_ATTACHMENT_ACCEPT } from './storeDS';
 const modelName = 'ssrc.scux.bidAcceptanceNotice.';
 
 const SupplierList = (props) => {
-  const { rfxHeaderId, supplierList = [], onRefresh, onNoticeSent, apiRef = useRef() } = props;
+  const {
+    rfxHeaderId,
+    supplierList = [],
+    onRefresh,
+    onBeforeSendNotice,
+    apiRef = useRef(),
+  } = props;
 
   const supplierListDs = useDataSet(() => bidSupplierListDS(), []);
 
   useEffect(() => {
     supplierListDs.loadData(supplierList || []);
   }, [supplierList, supplierListDs]);
-
-  // 只要有一行「通知已发送」，头部的【电子签章经办人】【中标通知模板】就置灰
-  useEffect(() => {
-    if (!isFunction(onNoticeSent)) {
-      return;
-    }
-    const noticeSent = (supplierList || []).some(
-      (item) => Number(item.noticeFlag) === 1 || item.noticeFlag === true
-    );
-    onNoticeSent(noticeSent);
-  }, [supplierList, onNoticeSent]);
 
   // 暴露给父页面：头部【保存】取变更行（附件列上传/删除）一起提交，【发布】取勾选行
   useImperativeHandle(apiRef, () => ({
@@ -56,25 +52,29 @@ const SupplierList = (props) => {
   }));
 
   /**
-   * 统一的供应商行操作，返回接口结果（失败返回 null）
+   * 统一的供应商行操作
+   * @returns {Boolean} false 表示调用失败（失败提示已由 getResponse 弹出）
    */
   const requestAction = async (record, requestFun) => {
     if (!rfxHeaderId) {
-      return null;
+      return false;
     }
     supplierListDs.status = 'loading';
+    let res;
     try {
-      const res = await requestFun({
+      res = await requestFun({
         rfxHeaderId,
         supplierCompanyId: record.get('supplierCompanyId'),
       });
-      const result = getResponse(res);
+    } finally {
       supplierListDs.status = 'ready';
-      return result;
-    } catch (error) {
-      supplierListDs.status = 'ready';
-      throw error;
     }
+    if (res && res.failed === true) {
+      getResponse(res);
+      return false;
+    }
+    // 电签等接口成功时没有返回体，只要没有失败标识即视为调用成功
+    return true;
   };
 
   // 重新拉取详情刷新列表；有未保存的变更时不刷新，避免把本地改动冲掉
@@ -103,6 +103,18 @@ const SupplierList = (props) => {
     return Number(suggestFlag) === 1 || suggestFlag === true;
   };
 
+  /**
+   * 附件列的渲染：
+   * 非中标行展示 '-'；中标行保持 c7n-pro 附件字段的默认输出（只读的「查看附件」），
+   * 上传/删除仍由列上的 editor 提供
+   */
+  const attachmentRender = (name) => ({ record }) =>
+    isWinSupplier(record) ? (
+      <Attachment readOnly record={record} name={name} viewMode="popup" funcType="link" />
+    ) : (
+      '-'
+    );
+
   // 电签：强校验中标附件
   const handleElectronicSign = async (record) => {
     if (!record.get('uuid')) {
@@ -120,8 +132,12 @@ const SupplierList = (props) => {
     }
   };
 
-  // 发送通知：中标行强校验签章附件
+  // 发送通知：先校验头部「基础信息」必填，再对中标行强校验签章附件
   const handleSendNotice = async (record) => {
+    // 通知一旦发出，头部的【电子签章经办人】【中标模板】就置灰不能再改，所以先校验必填
+    if (isFunction(onBeforeSendNotice) && !(await onBeforeSendNotice())) {
+      return;
+    }
     if (isWinSupplier(record) && !record.get('signUuid')) {
       notification.error({
         message: intl
@@ -151,6 +167,9 @@ const SupplierList = (props) => {
       {
         name: 'totalSuggestAmount',
         width: 140,
+        // 非中标行不展示金额
+        renderer: ({ value, record }) =>
+          isWinSupplier(record) ? numberSeparatorRender(value, 2) : '-',
       },
       {
         header: intl.get(`${modelName}button.generateAttachment`).d('生成附件'),
@@ -174,22 +193,27 @@ const SupplierList = (props) => {
       },
       {
         name: 'uuid',
-        editor: (record) => (
-          <Attachment
-            record={record}
-            name="uuid"
-            accept={BID_NOTICE_ATTACHMENT_ACCEPT}
-            viewMode="popup"
-            funcType="link"
-          />
-        ),
+        renderer: attachmentRender('uuid'),
+        // 只有中标行提供上传/删除
+        editor: (record) =>
+          isWinSupplier(record) ? (
+            <Attachment
+              record={record}
+              name="uuid"
+              accept={BID_NOTICE_ATTACHMENT_ACCEPT}
+              viewMode="popup"
+              funcType="link"
+            />
+          ) : (
+            undefined
+          ),
       },
       {
         header: intl.get(`${modelName}button.edit`).d('编辑'),
         width: 100,
         renderer: ({ record }) => {
-          // 是否可编辑由行上的 editFlag 控制
-          if (String(record.get('editFlag')) !== '1') {
+          // 是否可编辑由行上的 editFlag 控制，非中标行不展示
+          if (!isWinSupplier(record) || String(record.get('editFlag')) !== '1') {
             return '-';
           }
           return (
@@ -206,28 +230,41 @@ const SupplierList = (props) => {
       {
         header: intl.get(`${modelName}button.electronicSignature`).d('电签'),
         width: 90,
-        renderer: ({ record }) => (
-          <Button funcType="link" wait={1200} onClick={() => handleElectronicSign(record)}>
-            {intl.get(`${modelName}button.electronicSignature`).d('电签')}
-          </Button>
-        ),
+        renderer: ({ record }) => {
+          // 非中标行不展示电签
+          if (!isWinSupplier(record)) {
+            return '-';
+          }
+          return (
+            <Button funcType="link" wait={1200} onClick={() => handleElectronicSign(record)}>
+              {intl.get(`${modelName}button.electronicSignature`).d('电签')}
+            </Button>
+          );
+        },
       },
       {
         name: 'esignStatus',
         width: 120,
+        // 非中标行不展示电签状态
+        renderer: ({ text, record }) => (isWinSupplier(record) ? text : '-'),
       },
       {
         name: 'signUuid',
         width: 150,
-        editor: (record) => (
-          <Attachment
-            record={record}
-            name="signUuid"
-            accept={BID_NOTICE_ATTACHMENT_ACCEPT}
-            viewMode="popup"
-            funcType="link"
-          />
-        ),
+        renderer: attachmentRender('signUuid'),
+        // 只有中标行提供上传/删除
+        editor: (record) =>
+          isWinSupplier(record) ? (
+            <Attachment
+              record={record}
+              name="signUuid"
+              accept={BID_NOTICE_ATTACHMENT_ACCEPT}
+              viewMode="popup"
+              funcType="link"
+            />
+          ) : (
+            undefined
+          ),
       },
       {
         name: 'noticeFlag',
