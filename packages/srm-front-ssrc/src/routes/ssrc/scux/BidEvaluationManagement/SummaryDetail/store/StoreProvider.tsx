@@ -2,6 +2,7 @@ import React, { createContext, FunctionComponent, useMemo, ReactNode, useContext
 import { useDataSet, DataSet } from 'choerodon-ui/pro';
 import { useLocalStore } from 'mobx-react-lite';
 import { isNil } from 'lodash';
+import querystring from 'querystring';
 import { set, get, toJS } from 'mobx';
 
 import intl from 'utils/intl';
@@ -29,6 +30,8 @@ interface StoreContextValue {
   setStoreData?: (key: string, value: any) => void;
   getStoreData?: (key?: string) => any;
   pageType: string;
+  /** 通威二开 - 由列表【汇总查看】进入的只读查看态 */
+  summaryViewFlag?: boolean;
   storeData?: Record<string, any>;
   [key: string]: any; // 保留扩展能力
 }
@@ -81,7 +84,9 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const { rfxHeaderId, pageType } = params || {};
 
   // 解析 URL 查询参数
-  // const routerParams = search ? querystring.parse(search.substr(1)) : {};
+  const routerParams = search ? querystring.parse(search.substr(1)) : {};
+  // 通威二开 - 从列表【汇总查看】进入时为只读查看，页面上不显示【确认及汇总】按钮
+  const summaryViewFlag = String(routerParams.summaryView || '') === '1';
 
   // 评标头信息
   const evaluationHeaderDs = useDataSet(() => evaluationHeaderDataSet({ rfxHeaderId }), [rfxHeaderId]);
@@ -165,6 +170,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       setPageLoading,
       initData,
       pageType: pageType || '',
+      summaryViewFlag,
       setStoreData: reactionStoreData.setStoreData,
       getStoreData: reactionStoreData.getStoreData,
       storeData: toJS(reactionStoreData.storeData), // 转为普通对象，避免代理对象导致的语法问题
@@ -182,6 +188,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       setPageLoading,
       initData,
       pageType,
+      summaryViewFlag,
       reactionStoreData.setStoreData,
       reactionStoreData.getStoreData,
       reactionStoreData.storeData,

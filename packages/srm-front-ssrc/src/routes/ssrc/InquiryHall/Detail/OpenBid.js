@@ -32,7 +32,17 @@ export default class OpenBid extends PureComponent {
     this.state = {
       header: {},
       rfxDetailOpenBidList: [],
-      OpenBidCollapseKeys: ['openBidHeader', 'openBidDetail', 'newOpenBidList', 'checkIn', 'cuxPanel'],
+      // 通威二开 - 默认展开：头部信息、开标详情、内部/供应商签到、开标列表、投标状态确认、二开扩展面板
+      OpenBidCollapseKeys: [
+        'openBidHeader',
+        'openBidDetail',
+        'newOpenBidList',
+        'checkIn',
+        'supplierCheckIn',
+        'checkDraw',
+        'cuxBidStatusConfirm',
+        'cuxPanel',
+      ],
       bidOpeningNewFlag: false, // 专家评分开标是否开启新功能
     };
   }

@@ -121,6 +121,16 @@ const Index: React.FC<any> = (props) => {
     });
   };
 
+  // 汇总查看：已汇总的单据进入评标汇总页只读查看（页面上不显示【确认及汇总】）
+  const handleViewSummary = (record) => {
+    const { rfxHeaderId } = record.get(['rfxHeaderId']);
+    if (!rfxHeaderId) return;
+    history.push({
+      pathname: `/scux/ssrc/bid-evaluation-management/summary/update/${rfxHeaderId}`,
+      search: querystring.stringify({ summaryView: 1 }),
+    });
+  };
+
   // 列表按钮
   const getListButtons = ({ record, tabKey }) => {
     const scoreStatus = record.get('scoreStatus');
@@ -173,6 +183,15 @@ const Index: React.FC<any> = (props) => {
       buttons.push(
         <Button {...commonButtonsProps} onClick={() => handleEvaluationSummary({ record, type: 'viewSummary' })}>
           {intl.get('scux.bidEvaluationManagement.view.button.viewEvaluationProcess').d('评标进度查看')}
+        </Button>
+      );
+    };
+
+    // 汇总查看：评分状态为「已汇总」
+    if (scoreStatus === 'SUMMED') {
+      buttons.push(
+        <Button {...commonButtonsProps} onClick={() => handleViewSummary(record)}>
+          {intl.get('scux.bidEvaluationManagement.view.button.viewSummary').d('汇总查看')}
         </Button>
       );
     };
@@ -331,7 +350,7 @@ const Index: React.FC<any> = (props) => {
     return [
       {
         key: 'toBeEvaluated',
-        title: intl.get('scux.bidEvaluationManagement.view.tab.title.toBeEvaluated').d('待评标'),
+        title: intl.get('scux.bidEvaluationManagement.view.tab.title.toBeEvaluated').d('进行中'),
         ds: toBeEvaluatedDs,
         component: getTableComponent({ tabKey: 'toBeEvaluated', tableDs: toBeEvaluatedDs }),
       },

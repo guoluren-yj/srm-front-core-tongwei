@@ -507,6 +507,25 @@ export async function fetchClarificationQuestion(params) {
 }
 
 /**
+ * 澄清函引用问题（通威二开 - marmot 自定义接口，入参/返回同 fetchClarificationQuestion）
+ * @async
+ * @function cuxFetchClarificationQuestion
+ * @param {object} params - 请求参数
+ * @returns {object}
+ */
+export async function cuxFetchClarificationQuestion(params) {
+  const { cuxMarmotApiFlag, ...otherParams } = params;
+  const param = parseParameters(otherParams);
+  return request(
+    `/marmot/v1/${organizationId}/marmot-api/RNSM1ViakicjXcJ14ib3HeMicZPJqibHLHQn2rNqh0s4JFXA1rdWdtWLhrM4IFCibF02iaF`,
+    {
+      method: 'GET',
+      query: param,
+    }
+  );
+}
+
+/**
  * 创建评标问题头查询
  * @async
  * @function fetchNoticeHeader

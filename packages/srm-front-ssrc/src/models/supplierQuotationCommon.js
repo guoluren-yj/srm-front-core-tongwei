@@ -80,6 +80,7 @@ import {
   deleteQuestionRows,
   fetchClarificationDetails,
   fetchClarificationQuestion,
+  cuxFetchClarificationQuestion,
 } from '@/services/supplierBidService';
 
 function dealDataState(data) {
@@ -268,7 +269,11 @@ const getModel = (modelName) => ({
     },
     // 澄清函详情引入问题
     *fetchClarificationQuestion({ payload }, { call, put }) {
-      const result = getResponse(yield call(fetchClarificationQuestion, payload));
+      // 通威二开 - 传了 cuxMarmotApiFlag 的场景（供应商报价澄清答疑详情路由）走 marmot 自定义接口
+      const fetchService = payload?.cuxMarmotApiFlag
+        ? cuxFetchClarificationQuestion
+        : fetchClarificationQuestion;
+      const result = getResponse(yield call(fetchService, payload));
       const clarificationQuestionPagination = createPagination(result);
       yield put({
         type: 'updateState',

@@ -110,6 +110,12 @@ class Details extends Component {
   handleClarificationQuestion(page = {}) {
     const { dispatch, match, location } = this.props;
     const routerParam = queryString.parse(location.search.substr(1));
+    // 通威二开 - 「关联问题」表走 marmot 自定义接口，仅限供应商报价澄清答疑详情这条路由：
+    // 本组件还被 /pub 公开页、供应商回复、供应商投标(BidIndex) 三条路由复用，它们保持原接口
+    const { path: routePath = '' } = match;
+    const cuxMarmotApiFlag =
+      !isPubPage(routePath) &&
+      routePath.indexOf('/supplier-quotation/review-clarification-clarification') > -1;
     dispatch({
       type: 'supplierQuotation/fetchClarificationQuestion',
       payload: {
@@ -119,6 +125,7 @@ class Details extends Component {
         supplierCompanyId: routerParam.supplierCompanyId,
         sourceType: routerParam.sourceFrom,
         customizeUnitCode: getQueClarifyDetailCode(this.bidFlag)?.tableCode,
+        cuxMarmotApiFlag,
       },
     });
   }

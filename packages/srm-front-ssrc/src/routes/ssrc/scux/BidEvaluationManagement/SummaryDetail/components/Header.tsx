@@ -30,6 +30,7 @@ const PageHeader: React.FC<any> = () => {
     pageLoading,
     setPageLoading = () => {},
     pageType = '',
+    summaryViewFlag,
     history,
     prefix,
     rfxHeaderId,
@@ -90,7 +91,8 @@ const PageHeader: React.FC<any> = () => {
 
   const getButtons = () => {
     return [
-      pageType === 'update' ?  (
+      // 通威二开 - 列表【汇总查看】进入的是只读查看，不显示【确认及汇总】
+      pageType === 'update' && !summaryViewFlag ?  (
         <Button icon="check" wait={1000} loading={pageLoading} color={ButtonColor.primary} onClick={handleConfirmAndSummary}>
           {intl.get(`${prefix}.view.button.priceAssistant`).d('确认及汇总')}
         </Button>
