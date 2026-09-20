@@ -75,6 +75,7 @@ import TableSummaryForm from './Page/TableSummaryForm';
 import { formDS, tableSummaryFormDS } from './Stores/formDS';
 import { quotationLineDataSet } from './Stores/quotationLineDataSet';
 import BidSupAttachmentEdit from './Page/BidSupAttachmentEdit';
+import { getElectronicSignAction } from './Page/BidSupAttachmentEdit/utils';
 
 const IntervalTime = 2_000;
 let socketUrl = '';
@@ -625,21 +626,73 @@ const QuotationComponent = (props = {}) => {
   };
 
   // 校验二开的供应商投标附件数据
+  // @returns {Promise<{pass: Boolean, message: String}>} pass 为 false 时，message 是具体到文件名称的提示
   const validateCuxBidSupAttachmentData = async () => {
-    if (!bidFlag) return true;
+    if (!bidFlag) return { pass: true, message: '' };
     const { bidAttachTableDs } = cuxBidSupAttachmentRef?.current || {};
-    if (bidAttachTableDs) {
-      // 校验：requiredFlag 为「1」的行，附件 attributeLongtext1 必填（返回 false 后由提交流程统一提示，避免重复弹窗）
-      const hasMissingSignatureAttachment = bidAttachTableDs.some(
-        (record) => record.get('requiredFlag') === '1' && !record.get('attributeLongtext1')
-      );
-      if (hasMissingSignatureAttachment) {
-        return false;
+    if (!bidAttachTableDs) return { pass: true, message: '' };
+
+    // 两种不通过的情况，命中任意一种即视为该文件没完善，最后按文件名称合并成一条提示：
+    // 1) 未维护：requiredFlag 为「1」的行，签章附件 attributeLongtext1 必填；
+    // 2) 未电签：是否电签（attributeVarchar1）为「是」，且行上仍有【电签】按钮（电签状态为空/失败/作废）
+    const invalidFileNames = [];
+    const invalidRows = []; // 记录每一行不通过的具体原因，便于排查
+    bidAttachTableDs.forEach((record) => {
+      if (!record) {
+        return;
       }
-      const res = await bidAttachTableDs.validate();
-      return res;
+
+      const electronicSignAction = getElectronicSignAction(record);
+      const unSigned = electronicSignAction === 'sign';
+      const attachmentMissing =
+        record.get('requiredFlag') === '1' && !record.get('attributeLongtext1');
+      if (!unSigned && !attachmentMissing) {
+        return;
+      }
+
+      // 文件名称（attributeVarchar19）为空时退化成附件类型，保证提示能定位到具体行
+      const fileName =
+        record.get('attributeVarchar19') ||
+        record.getField('attachmentType')?.getText(record.get('attachmentType')) ||
+        '-';
+      if (!invalidFileNames.includes(fileName)) {
+        invalidFileNames.push(fileName);
+      }
+
+      invalidRows.push({
+        文件名称: fileName,
+        是否电签: record.get('attributeVarchar1'),
+        电签状态: record.get('attributeVarchar5'),
+        操作列按钮: electronicSignAction, // sign:【电签】/ cancel:【作废】/ null:无按钮
+        是否必输: record.get('requiredFlag'),
+        签章附件: record.get('attributeLongtext1'),
+        不通过原因: [unSigned ? '未电签' : '', attachmentMissing ? '附件未维护' : '']
+          .filter(Boolean)
+          .join('、'),
+        行数据: record.toData(),
+      });
+    });
+
+    if (invalidRows.length) {
+      // eslint-disable-next-line no-console
+      console.log(`[供应商投标附件校验] 共 ${invalidRows.length} 行不通过：`, invalidRows);
     }
-    return true;
+
+    if (invalidFileNames.length) {
+      const fileNamesText = invalidFileNames.join('、');
+      // 多语言 key 缺失时 .d() 不会对 {fileNames} 做插值，所以兜底文案直接给出拼好的内容
+      return {
+        pass: false,
+        message: intl
+          .get('ssrc.supplierQuotation.view.message.bidAttachmentIncomplete', {
+            fileNames: fileNamesText,
+          })
+          .d(`以下文件未维护或未电签：${fileNamesText}，请完善后再提交。`),
+      };
+    }
+
+    const res = await bidAttachTableDs.validate();
+    return { pass: res, message: '' };
   };
 
   // 获取二开的供应商投标附件数据
@@ -1547,6 +1600,7 @@ const QuotationComponent = (props = {}) => {
     async (forceInterRuptFlag = 1) => {
       let validationFlag = false;
       let bidAttachValidateFlag = true; // 供应商投标附件校验（电签附件必输）是否通过
+      let bidAttachValidateMessage = ''; // 供应商投标附件校验不通过时的具体提示
       let formData = null;
       let tableData = [];
       let headerUploadValidateFlag = true;
@@ -1613,9 +1667,11 @@ const QuotationComponent = (props = {}) => {
         }
 
         // 校验二开供应商投标附件
-        if (!(await validateCuxBidSupAttachmentData())) {
+        const bidAttachValidateResult = await validateCuxBidSupAttachmentData();
+        if (!bidAttachValidateResult.pass) {
           validationFlag = false;
           bidAttachValidateFlag = false;
+          bidAttachValidateMessage = bidAttachValidateResult.message;
         }
 
         // formError = await basicFormDS.getValidationErrors();
@@ -1645,6 +1701,7 @@ const QuotationComponent = (props = {}) => {
       return {
         validationFlag,
         bidAttachValidateFlag,
+        bidAttachValidateMessage,
         // errorMessage,
         uploadValidateFlag: headerUploadValidateFlag && lineUploadValidateFlag,
         rfxQuotationHeaderCurDTO: formData,
@@ -1929,18 +1986,21 @@ const QuotationComponent = (props = {}) => {
         validationFlag = false,
         uploadValidateFlag = true,
         bidAttachValidateFlag = true,
+        bidAttachValidateMessage = '',
         ...data
       } = (await getCurrentPageSubmitData()) || {};
       if (!validationFlag) {
         if (!uploadValidateFlag) {
           return;
         }
-        // 电签附件必输：弹自定义提示，不走通用校验提示
+        // 电签附件/未电签：弹自定义提示，不走通用校验提示（提示里带上具体文件名称）
         if (!bidAttachValidateFlag) {
           notification.warning({
-            message: intl
-              .get('ssrc.supplierQuotation.view.message.ecSignatureAttachmentRequired')
-              .d('电签附件必输，请先上传电签附件'),
+            message:
+              bidAttachValidateMessage ||
+              intl
+                .get('ssrc.supplierQuotation.view.message.ecSignatureAttachmentRequired')
+                .d('电签附件必输，请先上传电签附件'),
             placement: 'bottomRight',
             duration: 2.0,
           });
@@ -1955,9 +2015,12 @@ const QuotationComponent = (props = {}) => {
         });
         const uploadValidateObj = { errorFlag: false };
         if (sortAllErrorInfos.length > 0) {
-          const errorInfos = sortAllErrorInfos[0].errors;
-          errorInfoStr = errorInfos?.reduce((prev, cur, index) => {
-            const currentPrev = prev || '';
+          const errorInfos = sortAllErrorInfos[0].errors || [];
+          // 通威二开 - 收集校验不通过的字段名（injectionOptions.label），拼成
+          // 「报价信息：报价行信息未填写 xxx，请完善后再提交。」
+          const invalidFieldLabels = [];
+          let lastCurArr = []; // 二开钩子里回传的原始校验信息，与原逻辑保持一致取最后一个带字段名的分组
+          errorInfos.forEach((cur) => {
             const curArr = Array.prototype.slice.call(cur?.errors);
             const attachmentValidateObj =
               curArr?.filter((item) => item.ruleName === 'attachmentError')[0] || {};
@@ -1968,35 +2031,43 @@ const QuotationComponent = (props = {}) => {
               uploadValidateObj.errorFlag = true;
             }
 
-            if (index < errorInfos.length - 1 && curArr[0]?.injectionOptions) {
-              const currentLable = curArr[0]?.injectionOptions?.label || '';
-              return `${currentPrev + currentLable} `;
-            } else if (curArr[0]?.injectionOptions) {
-              const currentLable = curArr[0]?.injectionOptions?.label || '';
-              let currentError = `${currentPrev + currentLable} ${intl
-                .get(`ssrc.offlineResultEntry.view.offlineEntry.validateFailed`)
-                .d('校验不通过')}`;
-              currentError = quotationRemote
-                ? quotationRemote.process(
-                    'SSRC_SUPPLIER_QUOTATION_NEW_PROCESS_SUBMITQUOTATION_VALIDATIONERRORTEXT',
-                    currentError,
-                    {
-                      allList: curArr,
-                      curArrFirst: curArr[0],
-                      pageProps: props,
-                      basicFormDS,
-                      quotationLineDS,
-                    }
-                  )
-                : currentError;
-
-              return currentError;
-            } else {
-              return intl
-                .get(`ssrc.offlineResultEntry.view.offlineEntry.validateFailed`)
-                .d('校验不通过');
+            const currentLabel = curArr[0]?.injectionOptions?.label || '';
+            if (!currentLabel) {
+              return;
             }
-          }, '');
+            lastCurArr = curArr;
+            if (!invalidFieldLabels.includes(currentLabel)) {
+              invalidFieldLabels.push(currentLabel);
+            }
+          });
+
+          if (invalidFieldLabels.length) {
+            const fieldLabelsText = invalidFieldLabels.join('、');
+            let currentError = intl
+              .get('ssrc.supplierQuotation.view.message.quotationLineNotInput', {
+                fieldLabels: fieldLabelsText,
+              })
+              .d(`报价信息：报价行信息未填写 ${fieldLabelsText}，请完善后再提交。`);
+            currentError = quotationRemote
+              ? quotationRemote.process(
+                  'SSRC_SUPPLIER_QUOTATION_NEW_PROCESS_SUBMITQUOTATION_VALIDATIONERRORTEXT',
+                  currentError,
+                  {
+                    allList: lastCurArr,
+                    curArrFirst: lastCurArr[0],
+                    pageProps: props,
+                    basicFormDS,
+                    quotationLineDS,
+                  }
+                )
+              : currentError;
+
+            errorInfoStr = currentError;
+          } else {
+            errorInfoStr = intl
+              .get(`ssrc.offlineResultEntry.view.offlineEntry.validateFailed`)
+              .d('校验不通过');
+          }
         }
 
         if (uploadValidateObj?.errorFlag) {

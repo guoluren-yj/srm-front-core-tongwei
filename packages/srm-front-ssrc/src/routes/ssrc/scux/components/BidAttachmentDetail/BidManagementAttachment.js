@@ -145,7 +145,9 @@ const BidManagementAttachment = (props) => {
               ? intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.sealAttachment').d('签章附件')
               : undefined,
           },
-          { name: 'remark' },
+          {
+            name: 'attributeLongtext10',
+          },
           // {
           //   name: 'attributeVarchar1',
           //   renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),

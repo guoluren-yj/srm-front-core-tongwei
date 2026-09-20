@@ -424,6 +424,15 @@
 .table-summary-form-wrap-amount-wrap-field {
   display: inline-flex;
   align-items: center;
+  // 通威二开 - 保证「字段名：值」不会被拆到两行（空间不足时在字段之间换行）
+  white-space: nowrap;
+}
+
+// 通威二开 - 同一字段内渲染多个展示项时的分隔符（与 .normal-field 的 ::after 保持一致）
+.table-summary-fields-split {
+  margin: 0 8px;
+  font-size: 12px;
+  color: #8f94a2;
 }
 
 .table-summary-form-wrap-amount-wrap {

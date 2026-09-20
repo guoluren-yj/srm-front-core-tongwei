@@ -16,13 +16,7 @@ import { generateAttTemplate } from '@/services/inquiryHallService';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 
 import { attachmentDS } from './storeDS';
-
-// 电签状态 值集 SCUX.TWNF_EC_STATUS
-const EC_STATUS = {
-  SUCC: 'ED_SUCCESS', // 成功
-  FAILED: 'ED_FAIL_TIMEOUT', // 失败
-  VOID: 'ED_FAIL_INVALIDATE', // 作废
-};
+import { getElectronicSignAction } from './utils';
 
 const BidManagementAttachment = (props) => {
   const {
@@ -239,10 +233,9 @@ const BidManagementAttachment = (props) => {
         .get('scux.bidAttachment.model.fileTemplateAttachment.electronicSignature')
         .d('操作'),
       renderer: ({ record }) => {
-        const attributeVarchar1 = Number(record.get('attributeVarchar1'));
-        const electronicSignatureStatus = record.get('attributeVarchar5');
+        const action = getElectronicSignAction(record);
         // 作废：是否电签「是」且电签状态「成功」
-        if (attributeVarchar1 === 1 && electronicSignatureStatus === EC_STATUS.SUCC) {
+        if (action === 'cancel') {
           return (
             <Button
               funcType="link"
@@ -262,12 +255,7 @@ const BidManagementAttachment = (props) => {
           );
         }
         // 电签：是否电签「是」且电签状态「空」「失败」「作废」
-        if (
-          attributeVarchar1 === 1 &&
-          (!electronicSignatureStatus ||
-            electronicSignatureStatus === EC_STATUS.FAILED ||
-            electronicSignatureStatus === EC_STATUS.VOID)
-        ) {
+        if (action === 'sign') {
           return (
             <Button
               funcType="link"

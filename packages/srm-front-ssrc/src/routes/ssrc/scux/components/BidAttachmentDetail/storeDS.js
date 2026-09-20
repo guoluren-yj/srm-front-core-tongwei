@@ -38,12 +38,6 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       bucketDirectory: 'ssrc-template-requirement',
     },
     {
-      name: 'remark',
-      label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
-        .d('模板描述'),
-    },
-    {
       name: 'attachmentUuid',
       label: intl.get(`ssrc.common.model.common.attachment`).d('附件'),
       type: 'attachment',
@@ -61,7 +55,7 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       name: 'attributeLongtext10',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remarkBidPlan')
-        .d('模板描述'),
+        .d('备注'),
     },
     {
       name: 'attributeLongtext1',
@@ -78,7 +72,7 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       name: 'remark',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remark')
-        .d('备注'),
+        .d('模板描述'),
     },
   ],
   transport: {

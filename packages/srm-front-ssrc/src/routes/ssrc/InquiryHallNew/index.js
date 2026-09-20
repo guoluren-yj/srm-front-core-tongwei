@@ -8299,6 +8299,27 @@ class InquiryHall extends React.Component {
   @Bind()
   getSearch(ref) {
     this.SearchComponent = ref;
+    this.setRouteRfxNumToSearch(ref);
+  }
+
+  /**
+   * 通威二开 - 路由带 rfxNum 时（如 /ssrc/new-bid-hall/list?tabStatus=all&rfxNum=xxx），
+   * 把单号带入【请输入单号、标题查询】输入框：该输入框是 SearchBar 的自定义字段（多值，值为数组）
+   */
+  setRouteRfxNumToSearch(ref) {
+    const { location } = this.props;
+    const { rfxNum } = querystring.parse(location?.search?.substr(1)) || {};
+    if (!ref || !ref.customizeDs || !rfxNum) {
+      return;
+    }
+    const value = String(rfxNum)
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (!ref.customizeDs.current) {
+      ref.customizeDs.create();
+    }
+    ref.customizeDs.current.set('multiRfxNumOrTitle', value);
   }
 
   /**
