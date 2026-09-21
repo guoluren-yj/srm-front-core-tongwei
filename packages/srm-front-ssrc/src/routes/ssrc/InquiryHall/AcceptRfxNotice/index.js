@@ -1209,12 +1209,12 @@ class AcceptRfxNotice extends Component {
     }
   }
 
-  // 供应商列表中有任一行「通知是否已发送」为是时返回 true：通知发出后不再允许改经办人/模板
+  // 供应商列表中有中标的供应商「通知是否已发送」为是时返回 true：通知发出后不再允许改经办人/模板
   getNoticeSentFlag() {
     const { modelName = 'inquiryHall' } = this.props;
     const { winBidNoticeInfo = {} } = this.props[modelName] || {};
     return (winBidNoticeInfo.supplierList || []).some(
-      (item) => Number(item.noticeFlag) === 1
+      (item) => Number(item.suggestFlag) === 1 && Number(item.noticeFlag) === 1
     );
   }
 
