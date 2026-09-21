@@ -73,6 +73,12 @@ export const evaluationHeaderDataSet = ({ evaluateScoreId }): DataSetProps => {
         type: FieldType.number,
       },
       {
+        // 通威二开 - 虚字段，仅用于承接「投标详情」的点击跳转，数据由 renderer 渲染
+        name: 'bidDetail',
+        label: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+        type: FieldType.string,
+      },
+      {
         name: 'suggestInvalidFlag',
         label: intl.get(`${prefix}.model.twnf.qualifiedFlag`).d('是否合格'),
         lookupCode: 'SSRC.SCORE.INVALID_FLAG',

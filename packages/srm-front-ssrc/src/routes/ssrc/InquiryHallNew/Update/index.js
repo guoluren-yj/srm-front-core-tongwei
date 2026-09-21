@@ -7581,6 +7581,8 @@ class UpdateComponent extends Component {
                         parentRef={this.nonGeneralVariablesCuxRef}
                         rfxHeaderId={rfxId}
                         editorFlag
+                        // 通威二开 - 仅本页引用时，查询固定带 action=delete
+                        queryAction="delete"
                       />
                     </div>
                   </Content>

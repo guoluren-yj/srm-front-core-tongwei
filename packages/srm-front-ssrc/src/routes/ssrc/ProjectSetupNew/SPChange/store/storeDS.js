@@ -187,8 +187,15 @@ const bidPlanNodeDS = () => {
         name: 'planFinishDate',
         label: intl.get('scux.bidPlanDetail.model.twnf.processNode.planFinishDate').d('计划完成时间'),
         type: "date",
-        required: true,
+        dynamicProps: {
+          // 通威二开 - 已有实际完成时间（finishedDate）的节点，计划完成时间不可编辑，不做必填校验
+          required: ({ record }) => !record.get('finishedDate'),
+        },
         validator: (value, _name, record) => {
+          // 通威二开 - 计划完成时间不可编辑（节点已完成）的行不校验日期
+          if (record.get('finishedDate')) {
+            return true;
+          }
           if (!value) {
             return;
           }

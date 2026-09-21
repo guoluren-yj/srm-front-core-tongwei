@@ -8,11 +8,13 @@ import intl from 'utils/intl';
 import { nonGeneralVariablesDataSet, forceSubmitNonGeneralVariables } from './storeDs';
 
 const Index = (props) => {
-  const { editorFlag = false, parentRef = useRef(), rfxHeaderId } = props;
+  // queryAction：查询入参 action，由引用方按需传入（不传则查询不带该入参）
+  const { editorFlag = false, parentRef = useRef(), rfxHeaderId, queryAction } = props;
 
-  const nonGeneralVariablesDs = useDataSet(() => nonGeneralVariablesDataSet({ editorFlag }), [
-    editorFlag,
-  ]);
+  const nonGeneralVariablesDs = useDataSet(
+    () => nonGeneralVariablesDataSet({ editorFlag, queryAction }),
+    [editorFlag, queryAction]
+  );
 
   // 暴露子组件的api给父组件使用
   useImperativeHandle(parentRef, () => ({

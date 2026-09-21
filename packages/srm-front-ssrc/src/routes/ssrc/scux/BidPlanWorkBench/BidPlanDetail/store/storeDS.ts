@@ -176,7 +176,16 @@ const bidPlanNodeDS = (): DataSetProps => {
         name: 'planFinishDate',
         label: intl.get('scux.bidPlanDetail.model.twnf.processNode.planFinishDate').d('计划完成时间'),
         type: FieldType.date,
-        required: true,
+        dynamicProps: {
+          // 通威二开 - 该行计划完成时间不可编辑时（只读页面，或节点已有实际完成时间）不做必填校验。
+          // 可编辑判断与 BidPlanNode 视图的 editor 保持一致：editorFlag || (changeFlag && !finishedDate)，
+          // 页面级标识由 StoreProvider 同步到 dataSet 的 state 上
+          required: ({ record, dataSet }) => {
+            const editorFlag = dataSet.getState('nodeEditorFlag');
+            const changeFlag = dataSet.getState('nodeChangeFlag');
+            return !!editorFlag || (!!changeFlag && !record.get('finishedDate'));
+          },
+        },
       },
       {
         name: 'adjustFlag',

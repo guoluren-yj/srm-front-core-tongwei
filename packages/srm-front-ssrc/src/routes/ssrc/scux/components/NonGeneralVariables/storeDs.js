@@ -27,7 +27,8 @@ export const forceSubmitNonGeneralVariables = async (nonGeneralVariablesDs) => {
 };
 
 // 非通用变量维护
-export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
+// queryAction：查询入参 action，由引用方按需传入（不传则不带该入参）
+export const nonGeneralVariablesDataSet = ({ editorFlag, queryAction } = {}) => {
   return {
     autoQuery: false,
     forceValidate: true,
@@ -89,6 +90,8 @@ export const nonGeneralVariablesDataSet = ({ editorFlag } = {}) => {
           method: 'GET',
           data: {
             rfxHeaderId,
+            // 通威二开 - 引用方传了 queryAction 才带该入参（只有招标维护页传 delete）
+            ...(queryAction ? { action: queryAction } : {}),
           },
         };
       },

@@ -104,6 +104,13 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
     initData();
   }, []);
 
+  // 通威二开 - 招标节点「计划完成时间」的必填校验需要知道该行是否可编辑，
+  // 这里把页面级标识同步到 dataSet 的 state 上（动态校验在 validate 时读取）
+  useEffect(() => {
+    bidPlanNodeDs.setState('nodeEditorFlag', editorFlag);
+    bidPlanNodeDs.setState('nodeChangeFlag', changeFlag);
+  }, [bidPlanNodeDs, editorFlag, changeFlag]);
+
   // 初始化数据
   const initData = () => {
     setPageLoading(true);

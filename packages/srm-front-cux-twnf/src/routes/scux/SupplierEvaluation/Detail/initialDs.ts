@@ -18,7 +18,7 @@ export const basicInfoDS = (nominationHeaderId, type): DataSetProps => ({
     { name: 'sourceProjectNum', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectNum`).d('招标计划单号') },
     { name: 'sourceProjectName', type: FieldType.string, label: intl.get(`${prefix}.field.sourceProjectName`).d('招标名称') },
     { name: 'positionLov', type: FieldType.object, lovCode: 'SCUX_TWNF_LOV_POSITION', label: '岗位', ignore: FieldIgnore.always },
-    // { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('入围负责人') },
+    { name: 'bidDirectorName', type: FieldType.string, label: intl.get(`${prefix}.field.bidDirectorName`).d('入围负责人') },
     { name: 'technicalPersonName', type: FieldType.string, lovCode: 'SCUX.HPFM.TW..EMPLOYEE', textField: 'name', label: intl.get(`${prefix}.field.technicalPerson`).d('技术人员') },
     { name: 'technologyUserFlag', type: FieldType.string },
     { name: 'businessUserFlag', type: FieldType.string },
