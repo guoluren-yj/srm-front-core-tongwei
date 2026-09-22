@@ -35,8 +35,8 @@ const PageHeader: React.FC = observer(() => {
     });
   };
 
-  // 校验供应商列表：启用最终价同步时须逐条全量校验，ds.validate() 只校验有改动（非 sync）的记录，
-  // 覆盖不到「最终价有值、附件为空且用户没动过这行」的情况，附件必填就形同虚设
+  // 校验供应商列表：启用最终价同步时逐条全量校验（附件必填只针对最终价被改过的行，
+  // 这些行本来就是 dirty、ds.validate() 也能覆盖，这里逐条校验只是全量兜底）
   const validateSupplierList = () => {
     if (!supplierListDs) return Promise.resolve(false);
     if (!finalPriceSync) return supplierListDs.validate();

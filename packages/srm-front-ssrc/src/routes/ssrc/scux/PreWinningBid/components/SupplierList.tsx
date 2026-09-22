@@ -311,6 +311,7 @@ const SupplierList: React.FC = observer(() => {
       name: 'attributeLongtext2',
       lock: ColumnLock.right, // 备注列冻结右侧
       minWidth: 150,
+      editor: true, // 备注可编辑，保存/提交时随 sectionList 一起下发
     },
   ], [directorQuotationDetail]);
 

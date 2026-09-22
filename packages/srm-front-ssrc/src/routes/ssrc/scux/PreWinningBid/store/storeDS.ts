@@ -222,7 +222,7 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'attributeVarchar9', // 1-推荐，其余为不推荐（与标段列表同名字段，保存/提交时随 supplierList 一起下发）
-      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐'),
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',
@@ -281,14 +281,9 @@ function getCommonSupplierListFields() {
     //   falseValue: '0',
     // },
     {
-      name: 'attributeLongtext22', // 备注（后端字段由 attributeLongtext2 变更为 attributeLongtext22）
+      name: 'attributeLongtext22', // 备注（后端字段由 attributeLongtext2 变更为 attributeLongtext22），非必填
       label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
       type: FieldType.string,
-      dynamicProps: {
-        // 勾选了「推荐中标」（attributeVarchar9 = '1'，对应原来的 attributeVarchar2 拟定标）的行，
-        // 备注必填；沿用原「拟定标 + 推荐意见」的必填逻辑
-        required: ({ record }: { record: any }) => String(record.get('attributeVarchar9')) === '1',
-      },
     },
   ];
 }
