@@ -338,7 +338,7 @@ function getSectionListFields() {
       padDecimalZeros: true,
     },
     {
-      name: 'attributeLongtext2',
+      name: 'attributeLongtext22',
       label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
       type: FieldType.string,
     },

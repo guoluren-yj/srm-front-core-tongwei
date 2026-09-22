@@ -191,7 +191,7 @@ const SupplierList: React.FC = observer(() => {
         renderer: ({ record }) => !isNil(record?.get('allScoreSum')) ? <EvaluationDetailModal record={record} btnName={record?.get('allScoreSum')} /> : null,
       },
       // {
-      //   name: 'attributeLongtext2',
+      //   name: 'attributeLongtext22',
       //   lock: ColumnLock.right, // 备注列冻结右侧
       //   minWidth: 150,
       //   editor: true,
@@ -308,7 +308,7 @@ const SupplierList: React.FC = observer(() => {
       width: 130,
     },
     {
-      name: 'attributeLongtext2',
+      name: 'attributeLongtext22',
       lock: ColumnLock.right, // 备注列冻结右侧
       minWidth: 150,
       editor: true, // 备注可编辑，保存/提交时随 sectionList 一起下发
