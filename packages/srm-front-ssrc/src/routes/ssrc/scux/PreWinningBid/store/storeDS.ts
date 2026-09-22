@@ -8,6 +8,11 @@ import { PRIVATE_BUCKET } from 'srm-front-boot/lib/utils/config';
 
 const preWinningBidModel = 'scux.preWinningBid.model.';
 
+// 通威二开 - 是否启用评标：templateScoreType 为 SCORE_NEW / WEIGHT 即启用了评标。
+// 未启用评标时，「供应商列表」tab 启用最终价同步 + 附件上传（getFinalPriceSyncFields）
+export const isRatingEnabled = (templateScoreType?: string) =>
+  templateScoreType === 'SCORE_NEW' || templateScoreType === 'WEIGHT';
+
 function getAttributeHeaderFields() {
   return [
     {
@@ -169,7 +174,8 @@ function getComprehensiveScoreFields() {
   ];
 }
 
-// 最终价同步 + 附件上传，是否启用由 supplierListDs 的 finalPriceSync 状态决定（仅"供应商列表" tab 启用）
+// 最终价同步 + 附件上传。是否启用由 supplierListDs 的 finalPriceSync 状态决定，
+// 该状态 = 未启用评标（见 StoreProvider 的 initData），仅此时「供应商列表」tab 才可编辑最终价、上传附件
 function getFinalPriceSyncFields() {
   return [
     {
@@ -181,14 +187,22 @@ function getFinalPriceSyncFields() {
       padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
     },
     {
-      name: 'attributeLongtext9', // 最终价附件，attributeDecimal2（最终价）有值时必填
+      name: 'attributeLongtext9', // 最终价附件，最终价被改动过的行必填
       label: intl.get(`${preWinningBidModel}attributeLongtext9`).d('附件'),
       type: FieldType.attachment,
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',
       dynamicProps: {
-        // 仅"供应商列表"（finalPriceSync）场景需附件必填；评分方式表格与只读查看不启用
-        required: ({ dataSet, record }) => !!dataSet?.getState('finalPriceSync') && !isNil(record.get('attributeDecimal2')),
+        // 仅"供应商列表"（finalPriceSync）场景需附件必填；评分方式表格与只读查看不启用。
+        // 且只在本行最终价被改过时必填：接口返回的行行都有最终价（attributeDecimal2 等于 qtnTotalAmount），
+        // 按「有值」判断会把所有行都判成必填，故与行上的原始值 getPristineValue 比对
+        required: ({ dataSet, record }) => {
+          if (!dataSet?.getState('finalPriceSync')) return false;
+          const current = record.get('qtnTotalAmount');
+          if (isNil(current)) return false; // 最终价为空，无需附件
+          const pristine = record.getPristineValue('qtnTotalAmount');
+          return isNil(pristine) || Number(current) !== Number(pristine);
+        },
       },
     },
   ];
@@ -201,11 +215,18 @@ function getCommonSupplierListFields() {
       label: intl.get(`${preWinningBidModel}supplierCompanyName`).d('供应商名称'),
       type: FieldType.string,
     },
-    // {
-    //   name: 'bidDetail',
-    //   label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
-    //   type: FieldType.string,
-    // },
+    {
+      name: 'bidDetail', // 虚拟字段，仅用于承接投标详情列的点击跳转，数据由 renderer 渲染
+      label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
+      type: FieldType.string,
+    },
+    {
+      name: 'attributeVarchar9', // 1-推荐，其余为不推荐（与标段列表同名字段，保存/提交时随 supplierList 一起下发）
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
+      type: FieldType.boolean,
+      trueValue: '1',
+      falseValue: '0',
+    },
     {
       name: 'sectionName',
       label: intl.get(`${preWinningBidModel}sectionName`).d('标段名称'),
@@ -227,6 +248,14 @@ function getCommonSupplierListFields() {
     //   numberGrouping: true,
     //   padDecimalZeros: true,
     // },
+    {
+      name: 'awardAmount',
+      label: intl.get(`${preWinningBidModel}awardAmount`).d('中标金额'),
+      type: FieldType.number,
+      precision: 2, // 金额保留两位小数，提交时同样截断到两位
+      numberGrouping: true, // 千分位分组显示
+      padDecimalZeros: true, // 不足两位补零，如 1,234.5 → 1,234.50
+    },
     {
       name: 'bidQtnTotalAmount',
       label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标价（元）'),
@@ -251,14 +280,16 @@ function getCommonSupplierListFields() {
     //   trueValue: '1',
     //   falseValue: '0',
     // },
-    // {
-    //   name: 'attributeLongtext2',
-    //   label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
-    //   type: FieldType.string,
-    //   dynamicProps: {
-    //     // required: ({ record }: { record: any }) => String(record.get('attributeVarchar2')) === '1',
-    //   },
-    // },
+    {
+      name: 'attributeLongtext22', // 备注（后端字段由 attributeLongtext2 变更为 attributeLongtext22）
+      label: intl.get(`${preWinningBidModel}recommendation`).d('备注'),
+      type: FieldType.string,
+      dynamicProps: {
+        // 勾选了「推荐中标」（attributeVarchar9 = '1'，对应原来的 attributeVarchar2 拟定标）的行，
+        // 备注必填；沿用原「拟定标 + 推荐意见」的必填逻辑
+        required: ({ record }: { record: any }) => String(record.get('attributeVarchar9')) === '1',
+      },
+    },
   ];
 }
 
@@ -272,7 +303,7 @@ function getSectionListFields() {
     },
     {
       name: 'attributeVarchar9', // 1-推荐，其余为不推荐
-      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐'),
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',

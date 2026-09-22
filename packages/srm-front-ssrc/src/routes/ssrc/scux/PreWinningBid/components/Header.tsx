@@ -11,6 +11,7 @@ import { Header } from 'hzero-front/lib/components/Page';
 
 import BidPriceComparison from '@/routes/ssrc/components/PriceComparison/BidIndex';
 
+import { isRatingEnabled } from '../store/storeDS';
 import { useStore } from '../store/StoreProvider';
 import { operatePreWinningBid } from '../api';
 
@@ -21,22 +22,24 @@ const PageHeader: React.FC = observer(() => {
   const { pageLoading, setPageLoading = noop, history, getStoreData, initData = noop, rfxHeaderId, commonDs } = useStore();
   const { headerDs, supplierListDs, sectionListDs } = commonDs || {};
 
-  const { biddingTarget, diyLadderQuotationFlag, scoreWay } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag', 'scoreWay']) || {});
-  // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
-  const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
+  const { biddingTarget, diyLadderQuotationFlag, templateScoreType } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag', 'templateScoreType']) || {});
 
-  // 同步最终价：仅"供应商列表"场景将 qtnTotalAmount 赋值给 attributeDecimal2，保证两字段值一致（同时让 attributeDecimal2 有值的行触发附件必填校验）
+  // 通威二开 - 未启用评标时才启用「最终价同步 + 附件必填」，与「供应商列表」tab 的最终价编辑、附件列同一开关
+  const finalPriceSync = !isRatingEnabled(templateScoreType);
+
+  // 同步最终价：保存/提交前把 qtnTotalAmount 赋值给 attributeDecimal2，保证两字段值一致
   const syncFinalPrice = () => {
-    if (!isPlainSupplierList || !supplierListDs) return;
+    if (!finalPriceSync || !supplierListDs) return;
     supplierListDs.forEach((record) => {
       record.set('attributeDecimal2', record.get('qtnTotalAmount'));
     });
   };
 
-  // 校验供应商列表：仅"供应商列表"需全量校验所有记录（含未改动的 sync 记录）以触发附件必填；其余沿用原 ds.validate
+  // 校验供应商列表：启用最终价同步时须逐条全量校验，ds.validate() 只校验有改动（非 sync）的记录，
+  // 覆盖不到「最终价有值、附件为空且用户没动过这行」的情况，附件必填就形同虚设
   const validateSupplierList = () => {
     if (!supplierListDs) return Promise.resolve(false);
-    if (!isPlainSupplierList) return supplierListDs.validate();
+    if (!finalPriceSync) return supplierListDs.validate();
     const promises: Promise<boolean>[] = [];
     supplierListDs.forEach((record) => {
       promises.push(record.validate(true));
@@ -102,8 +105,12 @@ const PageHeader: React.FC = observer(() => {
         operationType: 'SAVE',
       });
       if (getResponse(res)) {
-        initData();
         notification.success({});
+        // 保存后必须 await 重新拉取完成才能结束：initData 里包含 header/supplierList/sectionList
+        // 的重新加载以及附件表格的刷新，任何一环没等到就放行按钮（finally 的 setPageLoading(false)），
+        // 第二次保存都会提交带着旧 objectVersionNumber 的记录 → 后端乐观锁报「数据已过时」；
+        // 且刷新过程抛错会变成 unhandled rejection 被静默吞掉，表格停在旧数据。
+        await initData();
       }
     } catch (error) {
       throw error;

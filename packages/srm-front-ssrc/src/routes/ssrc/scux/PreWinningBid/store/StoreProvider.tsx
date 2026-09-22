@@ -7,7 +7,7 @@ import { set, get, toJS } from 'mobx';
 import intl from 'utils/intl';
 import { getResponse } from 'utils/utils';
 
-import { headerDataSet, supplierListDataSet, sectionListDataSet } from './storeDS';
+import { headerDataSet, supplierListDataSet, sectionListDataSet, isRatingEnabled } from './storeDS';
 import { queryPreWinningBid } from '../api';
 
 const prefix = 'scux.preWinningBid';
@@ -98,10 +98,16 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
 
   // 查询附件列表
   const fetchAttachmentList = async () => {
-    const { lineDS } = reactionStoreData.getStoreData('attachmentTableRef') || {};
+    // 通威二开 - 这里原来读的是 'attachmentTableRef'，但整个页面写入的 key 是
+    // 'fileTemplateAttachmentRef'（见 SupplierList 的 onRef），读的 key 从未被写过，
+    // 导致 getStoreData 恒为 undefined、这个函数是空转的死代码：附件表格从首次加载后就再没刷新过。
+    // 后果是保存后 header/supplierList/sectionList 都换了新版本号，唯独 attachmentLineList
+    // 还停在旧版本，第二次保存被后端乐观锁拒掉，报「数据已过时」。
+    const { lineDS } = reactionStoreData.getStoreData('fileTemplateAttachmentRef') || {};
     if (lineDS) {
-      const { currentPage } = lineDS || {};
-      lineDS.query(currentPage || 1);
+      // 必须 await 到查询结束：否则保存流程已结束、按钮已解锁，附件行却还是保存前的旧版本号，
+      // 第二次保存照样会被乐观锁拒掉。commons 等查询参数在首次 initPage 时已设好且不变，直接查即可。
+      await lineDS.query(lineDS.currentPage || 1);
     }
   };
 
@@ -112,13 +118,14 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       if (getResponse(res)) {
         const { rfxHeader = {}, supplierList = [], sectionList = [] } = res;
         headerDs.loadData([rfxHeader]);
-        // 无评分方式时 tabTitle 为「供应商列表」，才启用最终价编辑/同步与附件上传逻辑
-        supplierListDs.setState('finalPriceSync', !['10', '20', '30', '40'].includes(rfxHeader?.scoreWay));
+        // 通威二开 - 未启用评标时才启用「最终价同步 + 附件上传」（见 getFinalPriceSyncFields）：
+        // 「供应商列表」tab 的最终价可编辑，附件列出现，且最终价有值时附件必填
+        supplierListDs.setState('finalPriceSync', !isRatingEnabled(rfxHeader?.templateScoreType));
         supplierListDs.loadData(supplierList);
         supplierListDs.setState('headerDs', headerDs);
         sectionListDs.loadData(sectionList);
       };
-      fetchAttachmentList();
+      await fetchAttachmentList();
       setPageLoading(false);
     } catch (error) {
       setPageLoading(false);

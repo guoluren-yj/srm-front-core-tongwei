@@ -19,6 +19,7 @@ import SummaryDetailStoreProvider from '../../BidEvaluationManagement/SummaryDet
 import {
   SupplierList as ScoreDetailSupplierList,
 } from '../../BidEvaluationManagement/SummaryDetail/components';
+import { isRatingEnabled } from '../store/storeDS';
 import { useStore } from '../store/StoreProvider';
 
 const { openIPDetailModal } = useIPDetailModal();
@@ -41,10 +42,7 @@ const SupplierList: React.FC = observer(() => {
 
   // 通威二开 - 是否启用评标：templateScoreType 为 SCORE_NEW / WEIGHT 即启用了评标，
   // 此时才新增「评标明细」tab（内容同评标管理-评标明细供应商表）
-  const ratingEnabled = useObserver(() => {
-    const { templateScoreType } = headerDs?.current?.get(['templateScoreType']) || {};
-    return templateScoreType === 'SCORE_NEW' || templateScoreType === 'WEIGHT';
-  });
+  const ratingEnabled = useObserver(() => isRatingEnabled(headerDs?.current?.get('templateScoreType')));
 
   /**
    * 标段描述行跳转到报价详情
@@ -73,9 +71,10 @@ const SupplierList: React.FC = observer(() => {
     }, undefined);
   };
 
+  // 无评分方式时 tabTitle 为「供应商列表」，仅该场景启用最终价编辑/同步与附件上传
+  const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
+
   const columns: ColumnProps[] = useMemo(() => {
-    // 无评分方式时 tabTitle 为「供应商列表」，仅该场景启用最终价编辑/同步与附件上传
-    const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
     return [
       // {
       //   name: 'attributeVarchar2',
@@ -200,6 +199,74 @@ const SupplierList: React.FC = observer(() => {
     ];
   }, [scoreWay]);
 
+  // 通威二开 - 新「供应商列表」tab 的列，字段与标段列表对齐：
+  // 推荐、供应商名称、投标详情、中标金额、投标价、最终价、备注，其中推荐（开关）/最终价/备注可编辑
+  const supplierListColumns: ColumnProps[] = useMemo(() => [
+    {
+      name: 'attributeVarchar9', // 1-推荐，其余为不推荐
+      width: 120,
+      editor: () => <Switch />,
+    },
+    {
+      name: 'supplierCompanyName',
+      width: 150,
+    },
+    {
+      name: 'bidDetail', // 虚列，仅用于承接投标详情跳转，逻辑与标段列表一致
+      width: 120,
+      renderer: ({ record }) => (
+        <Button
+          funcType={FuncType.link}
+          wait={1200}
+          onClick={() => directorQuotationDetail(record)}
+        >
+          {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
+        </Button>
+      ),
+    },
+    {
+      name: 'awardAmount',
+      width: 130,
+    },
+    {
+      name: 'bidQtnTotalAmount',
+      width: 130,
+    },
+    {
+      name: 'qtnTotalAmount',
+      width: 130,
+      // 最终价与下一列附件同属 getFinalPriceSyncFields 逻辑：未启用评标（ratingEnabled 为 false）时才启用，
+      // 两者同进同退；启用评标时最终价只读，改由评标结果决定。
+      // 此外仅行 barginFlag = '1'（议价中）时保持只读。
+      // 数字输入框，最大14位、最小0，金额保留两位小数（与字段 precision 一致），
+      // 千分位/补零由字段的 numberGrouping、padDecimalZeros 继承
+      editor: (record) =>
+        !ratingEnabled && record.get('barginFlag') !== '1' ? (
+          <NumberField name="qtnTotalAmount" record={record} min={0} max={99999999999999} precision={2} />
+        ) : false,
+    },
+    {
+      name: 'attributeLongtext9', // 最终价附件，与最终价同组：未启用评标时才出现；
+      // 最终价被改动过的行必填，见 storeDS 的 required
+      width: 130,
+      hidden: ratingEnabled,
+      editor: (record) => (
+        <Attachment
+          record={record}
+          name="attributeLongtext9"
+          viewMode="popup"
+          funcType={FuncType.link}
+        />
+      ),
+    },
+    {
+      name: 'attributeLongtext22', // 备注（后端字段由 attributeLongtext2 变更为 attributeLongtext22）
+      lock: ColumnLock.right, // 备注列冻结右侧
+      minWidth: 150,
+      editor: true,
+    },
+  ], [directorQuotationDetail, ratingEnabled]);
+
   // 通威二开 - 标段列表 tab 的列，数据取自接口的 sectionList
   const sectionColumns: ColumnProps[] = useMemo(() => [
     {
@@ -322,9 +389,10 @@ const SupplierList: React.FC = observer(() => {
     >
       <Table
         dataSet={supplierListDs}
-        columns={columns}
+        columns={supplierListColumns}
         border={false}
-        customizedCode='SCUX_TONGWEI_PRE_WINNING_BID_SUPPLIER_LIST'
+        // 与评分方式表列不同，单独一份列设置，避免两表共用 customizedCode 互相影响
+        customizedCode='SCUX_TONGWEI_PRE_WINNING_BID_SUPPLIER_LIST_NEW'
       />
     </TabPane>,
     <TabPane forceRender tab={intl.get(`ssrc.common.view.attachmentTable`).d('附件表格')} key="attachmentTable">
