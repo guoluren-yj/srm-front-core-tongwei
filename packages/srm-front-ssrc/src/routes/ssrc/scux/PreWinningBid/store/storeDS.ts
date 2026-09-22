@@ -222,7 +222,7 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'attributeVarchar9', // 1-推荐，其余为不推荐（与标段列表同名字段，保存/提交时随 supplierList 一起下发）
-      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐'),
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',
@@ -303,7 +303,7 @@ function getSectionListFields() {
     },
     {
       name: 'attributeVarchar9', // 1-推荐，其余为不推荐
-      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐'),
+      label: intl.get(`${preWinningBidModel}recommendWinBid`).d('推荐中标'),
       type: FieldType.boolean,
       trueValue: '1',
       falseValue: '0',
