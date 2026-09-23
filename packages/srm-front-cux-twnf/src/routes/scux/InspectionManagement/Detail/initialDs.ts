@@ -183,7 +183,7 @@ export const lineDsConfig = (inspHeaderId?: string | number | null): DataSetProp
       name: 'inspResult',
       type: FieldType.string,
       lookupCode: 'SPUC.QUALIFIED.FLAG',
-      label: intl.get(`${prefix}.field.inspectionResult`).d('点检结果'),
+      label: intl.get(`${prefix}.field.inspectionResult`).d('异常情况'),
       dynamicProps: {
         required: ({ record }) => record.get('attributeVarchar18') === 'ZC',
       },

@@ -378,9 +378,11 @@ const handleBusinessStandard = useCallback(() => {
           },
           {
             name: 'save',
-            hidden: !!readOnly,
+            // 列表「提交」跳转进来时 type=submit，此时「是否入围」列可编辑，需要能先保存再提交
+            hidden: !!readOnly && type !== 'submit',
             child: intl.get('hzero.common.btn.save').d('保存'),
-            btnProps: { icon: 'save', funcType: 'flat', onClick: handleSave },
+            // 不传 funcType，走与「操作记录」一致的默认凸起样式（有边框）
+            btnProps: { icon: 'save', onClick: handleSave },
           },
           {
             name: 'operation',

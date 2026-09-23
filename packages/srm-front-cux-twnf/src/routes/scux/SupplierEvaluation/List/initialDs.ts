@@ -51,7 +51,11 @@ export const getTabValue = (key: TabKeyType, target?: string) => {
   return target ? found?.[target] : found;
 };
 
-export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
+/**
+ * @param tabKey 页签
+ * @param statusVisible 「状态」列/筛选项是否可见，由角色是否命中值集 SCUX_TWNF_SUP_STATUS_VIEW 决定
+ */
+export const tableDs = (tabKey: TabKeyType, statusVisible = true): DataSetProps => ({
   selection: tabKey === 'ALL' ? DataSetSelection.multiple : undefined,
   autoQuery: false,
   cacheSelection: true,
@@ -77,7 +81,8 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
       display: true,
       label: intl.get(`${prefix}.field.tenderName`).d('招标名称'),
     },
-    {
+    // 「状态」筛选项与列表「状态」列同进同出：当前角色不在值集 SCUX_TWNF_SUP_STATUS_VIEW 内时都不展示
+    statusVisible && {
       name: 'nominationStatus',
       type: FieldType.string,
       display: true,
@@ -132,7 +137,7 @@ export const tableDs = (tabKey: TabKeyType): DataSetProps => ({
     { name: 'creationDate', type: FieldType.dateTime, label: intl.get(`${prefix}.field.createDate`).d('创建时间') },
     { name: 'createdByName', type: FieldType.string, label: intl.get(`${prefix}.field.createdByName`).d('创建人') },
     { name: 'fbcNumber', type: FieldType.string, label: intl.get(`${prefix}.field.fbcNumber`).d('FBC单据') },
-    { name: 'fbcUrl', type: FieldType.string, label: intl.get(`${prefix}.field.fbcUrl`).d('审批URL') },
+    // { name: 'fbcUrl', type: FieldType.string, label: intl.get(`${prefix}.field.fbcUrl`).d('审批URL') },
     { name: 'fbcResult', type: FieldType.string, label: intl.get(`${prefix}.field.fbcResult`).d('审批结果字段') },
   ],
   transport: {

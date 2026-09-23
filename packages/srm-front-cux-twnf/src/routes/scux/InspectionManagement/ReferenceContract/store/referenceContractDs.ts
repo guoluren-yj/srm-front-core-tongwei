@@ -40,6 +40,13 @@ export const referenceContractDs = (): DataSetProps => ({
       display: true,
       label: intl.get(`${prefix}.field.attributeVarchar4`).d('点检创建状态'),
     },
+    {
+      name: 'cuxCompanyId',
+      type: FieldType.string,
+      lookupCode: 'SPCM.USER_AUTH.COMPANY',
+      display: true,
+      label: intl.get(`${prefix}.field.cuxCompanyId`).d('公司'),
+    },
   ] as any[],
   fields: [
     { name: 'pcHeaderId', type: FieldType.number, label: intl.get(`${prefix}.field.contractNum`).d('合同编码') },

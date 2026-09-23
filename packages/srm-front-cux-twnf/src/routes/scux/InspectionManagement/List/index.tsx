@@ -40,7 +40,7 @@ const InspectionManagementList = ({ history }: any) => {
     },
     [history]
   );
-  
+
   const handleToContract = useCallback(
     (record: any) => {
       history.push({
@@ -121,6 +121,8 @@ const InspectionManagementList = ({ history }: any) => {
       { name: 'supplierCompanyName' },
       { name: 'taxIncludeAmount' },
       { name: 'attributeVarchar18Meaning' },
+      // 异常情况紧跟业务类别：这里只是「默认顺序」，用户在列设置里拖过列的话以个人的排序为准
+      { name: 'inspResult' },
       { name: 'attributeVarchar10' },
       { name: 'pcCreatedName' },
       { name: 'attributeVarchar5Meaning' },

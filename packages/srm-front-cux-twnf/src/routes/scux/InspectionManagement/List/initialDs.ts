@@ -93,7 +93,7 @@ export const tableDs = (tabKey: 'ALL' | 'DETAIL'): DataSetProps => ({
           display: true,
           range: true,
           defaultValue: [moment().subtract(1, 'year'), moment()],
-          transformRequest: (value) => Array.isArray(value) ? [value[0]?.format('YYYY-MM-DD 00:00:00'), value[1]?.format('YYYY-MM-DD 23:59:59')].join() : value 
+          transformRequest: (value) => Array.isArray(value) ? [value[0]?.format('YYYY-MM-DD 00:00:00'), value[1]?.format('YYYY-MM-DD 23:59:59')].join() : value
         },
       ] as any[]
       : [
@@ -131,13 +131,20 @@ export const tableDs = (tabKey: 'ALL' | 'DETAIL'): DataSetProps => ({
           label: intl.get(`${prefix}.field.businessCategory`).d('业务类别'),
         },
         {
+          name: 'inspResult',
+          type: FieldType.string,
+          display: true,
+          lookupCode: 'SPUC.QUALIFIED.FLAG',
+          label: intl.get(`${prefix}.field.inspResult`).d('异常情况'),
+        },
+        {
           name: 'creationDate',
           type: FieldType.date,
           label: intl.get(`${prefix}.field.creationDate`).d('创建时间'),
           display: true,
           range: true,
           defaultValue: [moment().subtract(1, 'year'), moment()],
-          transformRequest: (value) => Array.isArray(value) ? [value[0]?.format('YYYY-MM-DD 00:00:00'), value[1]?.format('YYYY-MM-DD 23:59:59')].join() : value 
+          transformRequest: (value) => Array.isArray(value) ? [value[0]?.format('YYYY-MM-DD 00:00:00'), value[1]?.format('YYYY-MM-DD 23:59:59')].join() : value
         },
       ] as any[],
   fields: [
@@ -161,6 +168,12 @@ export const tableDs = (tabKey: 'ALL' | 'DETAIL'): DataSetProps => ({
     { name: 'pcStatusCodeMeaning', type: FieldType.string, label: intl.get(`${prefix}.field.pcStatusCodeMeaning`).d('合同状态') },
     { name: 'pcCreatedName', type: FieldType.string, label: intl.get(`${prefix}.field.contractCreatedBy`).d('合同创建人') },
     { name: 'attributeVarchar18Meaning', type: FieldType.string, label: intl.get(`${prefix}.field.attributeVarchar18Meaning`).d('业务类别') },
+    {
+      name: 'inspResult',
+      type: FieldType.string,
+      lookupCode: 'SPUC.QUALIFIED.FLAG',
+      label: intl.get(`${prefix}.field.inspResult`).d('异常情况'),
+    },
     { name: 'attributeVarchar10', lookupCode: 'CGLB', type: FieldType.string, label: intl.get(`${prefix}.field.attributeVarchar10`).d('合同类型') },
     { name: 'attributeVarchar4Meaning', type: FieldType.string, label: intl.get(`${prefix}.field.attributeVarchar4Meaning`).d('点检创建状态') },
     { name: 'attributeVarchar5Meaning', type: FieldType.string, label: intl.get(`${prefix}.field.attributeVarchar5Meaning`).d('合同验收结果') },

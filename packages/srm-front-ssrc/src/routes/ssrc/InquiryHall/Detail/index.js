@@ -4163,6 +4163,8 @@ class Detail extends PureComponent {
     const OpenBidProps = {
       ...CommonHeaderProps,
       bidFlag: this.bidFlag,
+      // 开标列表「商务谈判」要跳转，CheckDraw 需要 history
+      history,
     };
 
     // 专家评分中进度条props

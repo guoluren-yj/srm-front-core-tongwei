@@ -502,7 +502,7 @@ export default class OpenBid extends PureComponent {
   }
 
   renderCheckDrawList = () => {
-    const { customizeTable = () => { }, rfx = {}, header = {}, that } = this.props;
+    const { customizeTable = () => { }, rfx = {}, header = {}, that, history } = this.props;
     const { OpenBidCollapseKeys = [] } = this.state;
     const { unitCodeSymbol } = rfx;
     const { bidOpeningNewFlag } = this.state;
@@ -513,6 +513,8 @@ export default class OpenBid extends PureComponent {
       customizeTable,
       customizeTableCode,
       sourceKey: unitCodeSymbol,
+      // 「商务谈判」跳转需要 history（CheckDraw 里做 history.push），这里必须显式下发
+      history,
       onRef: (node) => {
         that.checkSupplierRef = node;
       },

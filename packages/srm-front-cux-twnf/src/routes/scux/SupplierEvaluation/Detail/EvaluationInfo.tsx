@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { DataSet } from 'choerodon-ui/pro';
 import FormPro from '../../../../components/FormPro';
 import { useComputed, observer } from 'mobx-react-lite';
+import useStatusVisible from '../useStatusVisible';
 
 interface EvaluationInfoProps {
   dataSet: DataSet;
@@ -20,11 +21,13 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
   }, [dataSet, type]);
   const readOnly = type !== 'edit';
   const allReadOnly = ['view', 'readOnly', 'pendingReview', 'change'].includes(type);
+  // 「状态」与列表页同一套规则：当前角色不在值集 SCUX_TWNF_SUP_STATUS_VIEW 里就不展示
+  const statusVisible = useStatusVisible();
 
   const fields = useMemo(() => {
     const baseFields = [
       { name: 'nominationNum', _type: 'TextField', disabled: true },
-      { name: 'nominationStatusMeaning', _type: 'TextField', disabled: true },
+      statusVisible && { name: 'nominationStatusMeaning', _type: 'TextField', disabled: true },
       { name: 'creationDate', _type: 'DateTimePicker', disabled: true },
       { name: 'createdByName', _type: 'TextField', disabled: true },
       { name: 'positionLov', _type: 'Lov', disabled: readOnly },
@@ -47,7 +50,7 @@ const EvaluationInfo: React.FC<EvaluationInfoProps> = ({ dataSet, type }) => {
       { name: 'nominationAttachmentUuid', newLine: true, disabled: readOnly, _type: 'Attachment', colSpan: 3 },
     ].filter(Boolean);
     return baseFields;
-  }, [readOnly, showApprovalNote, isView, type]);
+  }, [readOnly, showApprovalNote, isView, type, statusVisible]);
 
   return (
     <FormPro

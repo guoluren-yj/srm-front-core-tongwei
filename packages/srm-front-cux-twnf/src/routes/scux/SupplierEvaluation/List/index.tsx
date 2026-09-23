@@ -12,6 +12,7 @@ import { downloadFileByAxios } from 'hzero-front/lib/services/api';
 import { filterNullValueObject, getCurrentUserId, getResponse } from 'hzero-front/lib/utils/utils';
 
 import { tableDs, prefix, getTabValue } from './initialDs';
+import useStatusVisible from '../useStatusVisible';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { supplierEvaluationPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
@@ -77,12 +78,22 @@ const handleToSubmit = (history: any, record: any) => {
 const SupplierEvaluationList = ({ history, location }: any) => {
   // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
   const { sourceProjectNum } = parse((location?.search || '').replace(/^\?/, ''));
-  const tableDS = useMemo(() => new DataSet(tableDs('ALL')), []);
+
+  // 「状态」列与筛选项是否对当前角色可见，null 表示值集还没查回来（此时先不建 DataSet，见下）
+  const statusVisible = useStatusVisible();
+
+  // 筛选区的字段取自 DataSet 的构造配置（FilterBar 读的是 dataSet[0].props.queryFields），
+  // 建好之后再改字段已经来不及，所以等值集结果回来再建 DataSet
+  const tableDS = useMemo(
+    () => (statusVisible === null ? null : new DataSet(tableDs('ALL', statusVisible))),
+    [statusVisible]
+  );
 
   useEffect(() => {
-    setTimeout(()=>{
+    if (!tableDS) return undefined;
+    const timer = setTimeout(() => {
       // 跳转时 URL 携带 sourceProjectNum，预置到查询条件进行过滤
-      if (tableDS && sourceProjectNum) {
+      if (sourceProjectNum) {
         // 同步写入 queryDataSet.current（无记录时先 create），便于搜索框回显与导出
         const qds = tableDS.queryDataSet;
         if (qds && !qds.current) {
@@ -90,9 +101,10 @@ const SupplierEvaluationList = ({ history, location }: any) => {
         }
         qds?.current?.set('sourceProjectNum', sourceProjectNum);
       }
-      tableDS?.query();
-    }, 500)
-  }, []);
+      tableDS.query();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [tableDS, sourceProjectNum]);
 
   const columns = useMemo(() => {
     const renderSourceProjectNum = ({ value, record }: any) => {
@@ -205,7 +217,8 @@ const SupplierEvaluationList = ({ history, location }: any) => {
     };
 
     return [
-      { name: 'nominationStatusMeaning', width: 80 },
+      // 当前角色不在值集 SCUX_TWNF_SUP_STATUS_VIEW 里时，整列不渲染
+      statusVisible && { name: 'nominationStatusMeaning', width: 80 },
       {
         name: 'action',
         title: intl.get(`${prefix}.field.action`).d('操作'),
@@ -221,15 +234,15 @@ const SupplierEvaluationList = ({ history, location }: any) => {
       { name: 'bidDirectorName', width: 120 },
       { name: 'createdByName', width: 120 },
       { name: 'fbcNumber', width: 150, renderer: renderFbcNumber },
-      { name: 'fbcUrl', width: 200 },
+      // { name: 'fbcUrl', width: 200 },
       { name: 'fbcResult', width: 150 },
       { name: 'financePersonName', width: 120 },
       { name: 'technicalPersonName', width: 120 },
       { name: 'supManagerPersonName', width: 120 },
       { name: 'reviewType', width: 120 },
       { name: 'creationDate', width: 150 },
-    ];
-  }, [history, intl, prefix]);
+    ].filter(Boolean);
+  }, [history, intl, prefix, statusVisible]);
 
   const getQueryData = useCallback(() => {
     const queryData = tableDS?.queryDataSet?.current?.toData() || {};
@@ -239,10 +252,11 @@ const SupplierEvaluationList = ({ history, location }: any) => {
   const getSelectedKeys = useCallback(() => {
     const key = getTabValue('ALL', 'primaryKey');
     if (!key) return {};
-    return { [`${key}s`]: tableDS.selected.map((r: any) => r.get(key)) };
+    return { [`${key}s`]: (tableDS?.selected || []).map((r: any) => r.get(key)) };
   }, [tableDS]);
 
   const handleExport = useCallback(() => {
+    if (!tableDS) return;
     let data = {};
     if (tableDS.selected.length > 0) {
       data = getSelectedKeys();
@@ -292,19 +306,22 @@ const SupplierEvaluationList = ({ history, location }: any) => {
       </Header>
       <Content>
         <div style={{ height: 'calc(100vh - 242px)' }}>
-          <FilterBarTable
-            virtual
-            virtualCell
-            columns={columns as any}
-            dataSet={tableDS as any}
-            style={{ maxHeight: 'calc(100% - 22px)' }}
-            customizable
-            customizedCode={getTabValue('ALL', 'customizedCode')}
-            searchCode={getTabValue('ALL', 'searchCode')}
-            filterBarConfig={{
-              autoQuery: false,
-            }}
-          />
+          {/* 值集查回来之前 tableDS 为 null，此时不渲染表格（FilterBar 会直接读 dataSet[0].props） */}
+          {tableDS && (
+            <FilterBarTable
+              virtual
+              virtualCell
+              columns={columns as any}
+              dataSet={tableDS as any}
+              style={{ maxHeight: 'calc(100% - 22px)' }}
+              customizable
+              customizedCode={getTabValue('ALL', 'customizedCode')}
+              searchCode={getTabValue('ALL', 'searchCode')}
+              filterBarConfig={{
+                autoQuery: false,
+              }}
+            />
+          )}
         </div>
       </Content>
     </>
