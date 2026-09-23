@@ -203,7 +203,7 @@ const SupplierList: React.FC = observer(() => {
   // 推荐、供应商名称、投标详情、中标金额、投标价、最终价、备注，其中推荐（开关）/最终价/备注可编辑
   const supplierListColumns: ColumnProps[] = useMemo(() => [
     {
-      name: 'attributeVarchar9', // 1-推荐，其余为不推荐
+      name: 'attributeVarchar2', // 1-推荐，其余为不推荐
       width: 120,
       editor: () => <Switch />,
     },
