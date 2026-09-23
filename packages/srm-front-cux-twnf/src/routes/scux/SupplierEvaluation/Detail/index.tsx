@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useCallback, useState } from 'react';
+import React, { useMemo, useEffect, useCallback, useState, useRef } from 'react';
 import { DataSet, Modal, Table, Output } from 'choerodon-ui/pro';
 import { TableButtonType } from 'choerodon-ui/pro/lib/table/enum';
 import { Collapse } from 'choerodon-ui';
@@ -95,7 +95,30 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
     return { nominationHeader, supplierLineList };
   };
 
+  // 保存后要重新拉取，objectVersionNumber 会变；刷新还在飞的时候点提交/再保存，
+  // 带过去的还是保存前的版本号，后端乐观锁会报「数据已过时」。
+  // 所以这里把「刷新中的 Promise」记下来，保存后 await 它，提交/发布前也先等它结束。
+  const refreshingRef = useRef<Promise<any> | null>(null);
+
+  const refreshAfterSave = useCallback(() => {
+    const promise = Promise.all([basicInfoDs.query(), supplierListDs.query()]);
+    // 刷新失败由 request 层提示，这里不让它中断保存流程（所以存下来的是不会 reject 的那个）
+    const settled = promise.catch(() => undefined);
+    refreshingRef.current = settled;
+    settled.then(() => {
+      if (refreshingRef.current === settled) {
+        refreshingRef.current = null;
+      }
+    });
+    return settled;
+  }, [basicInfoDs, supplierListDs]);
+
+  // 等上一次保存触发的刷新结束，保证取到的是最新版本号
+  const waitRefreshDone = useCallback(() => refreshingRef.current || Promise.resolve(), []);
+
   const handleSave = useCallback(async () => {
+    // 连点两次保存时，第二次要等第一次触发的刷新结束，否则带过去的还是旧版本号
+    await waitRefreshDone();
     const ok = await validateAll();
     if (!ok) {
       return;
@@ -103,12 +126,13 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
     const res = await supplierEvaluationPostApi(getSavePayload(), 'SAVE_NOMINATION');
     if (getResponse(res)) {
       notification.success({});
-      basicInfoDs.query();
-      supplierListDs.query();
+      await refreshAfterSave();
     }
-  }, []);
+  }, [refreshAfterSave, waitRefreshDone]);
 
   const handlePublish = useCallback(async () => {
+    // 先等上一次保存触发的刷新结束：校验、下面的 prevSupplierIds 比对、最终提交的版本号都基于刷新后的数据
+    await waitRefreshDone();
     const ok = await validateAll();
     if (!ok) {
       return;
@@ -172,7 +196,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
         }
       },
     });
-  }, [basicInfoDs, supplierListDs, nominationHeaderId, type, backList]);
+  }, [basicInfoDs, supplierListDs, nominationHeaderId, type, backList, waitRefreshDone]);
 
 const handleBusinessStandard = useCallback(() => {
     const businessStandardDs = new DataSet(businessStandardDS(nominationHeaderId, basicInfoDs));
@@ -319,6 +343,8 @@ const handleBusinessStandard = useCallback(() => {
   }, [basicInfoDs]);
 
   const handleSubmit = useCallback(async () => {
+    // 保存后马上点提交时，刷新可能还在飞，先等它结束，否则带过去的是保存前的 objectVersionNumber
+    await waitRefreshDone();
     const ok = await Promise.all([
       basicInfoDs?.current?.validate(true),
       supplierListDs.validate(),
@@ -337,10 +363,11 @@ const handleBusinessStandard = useCallback(() => {
         }
       },
     });
-  }, [backList]);
+  }, [backList, waitRefreshDone]);
 
 
   const handleSubmitReview = useCallback(async () => {
+    await waitRefreshDone();
     Modal.confirm({
       title: intl.get('hzero.common.message.confirm').d('提示'),
       children: intl.get(`${prefix}.message.submitConfirm`).d('是否确定提交？'),
@@ -352,7 +379,7 @@ const handleBusinessStandard = useCallback(() => {
         }
       },
     });
-  }, [backList]);
+  }, [backList, waitRefreshDone]);
 
   const HeaderButtons = useMemo(
     () =>

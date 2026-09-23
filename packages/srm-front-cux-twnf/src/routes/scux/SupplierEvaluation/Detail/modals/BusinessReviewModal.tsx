@@ -20,6 +20,11 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
   const nominationHeaderId = dataSet.getState('nominationHeaderId');
   const nominationSupLineId = record.get('nominationSupLineId');
   let modal;
+  // 「保存 / 提交 / 关闭」共用一个 loading：任一动作进行中，三个按钮一起转圈、一起点不动。
+  // 顺便兜住「保存后马上点提交」——保存后的刷新不带回新的 objectVersionNumber 就提交，后端乐观锁会报「数据已过时」。
+  let actionLoading = false;
+  // 提交成功后弹框会被关掉，之后不能再 modal.update，否则是往已销毁的实例上塞 props
+  let modalClosed = false;
   const reviewInfoDs = new DataSet(businessReviewDS(nominationHeaderId, nominationSupLineId, record));
   await reviewInfoDs.query();
 
@@ -59,26 +64,65 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
     { name: 'businessReviewResult', _type: 'Select' },
   ];
 
-  const handleSaveOrSubmit = async (submitFlag?:boolean) => {
-    if (submitFlag) {
-      // 无当前记录时 validate() 会因空数据集直接返回 true，先 create 再校验
-      if (!reviewInfoDs.current) {
-        reviewInfoDs.create({});
-      }
-      const valid = await reviewInfoDs.validate();
-      if (!valid) {
-        return false;
-      }
+  const renderFooter = () => (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      {!isReadOnly && (
+        <Button loading={actionLoading} color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
+          {intl.get('hzero.common.button.save').d('保存')}
+        </Button>
+      )}
+      {!isReadOnly && (
+        <Button loading={actionLoading} color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
+          {intl.get('hzero.common.button.submit').d('提交')}
+        </Button>
+      )}
+      <Button loading={actionLoading} onClick={() => modal.close()}>
+        {intl.get('hzero.common.button.close').d('关闭')}
+      </Button>
+    </div>
+  );
+
+  const setActionLoading = (loading: boolean) => {
+    actionLoading = loading;
+    if (!modalClosed && modal) {
+      // footer 是普通函数不是组件，靠重渲染才能把 loading 传到按钮上；
+      // 每次都传新的函数引用，避免 Modal 内部按引用/深比较判定 props 没变而跳过更新
+      modal.update({ footer: () => renderFooter() });
     }
-    const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
-    if (getResponse(res)) {
-      notification.success({});
-      if(!submitFlag) {
-        reviewInfoDs.query();
-      } else if(modal) {
-        dataSet.query();
-        modal.close();
+  };
+
+  const handleSaveOrSubmit = async (submitFlag?:boolean) => {
+    // 上一次动作还没结束（多半是保存触发的刷新还在飞）：直接忽略，避免带着旧 objectVersionNumber 提交
+    if (actionLoading) {
+      return false;
+    }
+    setActionLoading(true);
+    try {
+      if (submitFlag) {
+        // 无当前记录时 validate() 会因空数据集直接返回 true，先 create 再校验
+        if (!reviewInfoDs.current) {
+          reviewInfoDs.create({});
+        }
+        const valid = await reviewInfoDs.validate();
+        if (!valid) {
+          return false;
+        }
       }
+      const res = await supplierEvaluationDetailPostApi({ businessReviewInfo: { nominationHeaderId, nominationSupLineId, ...reviewInfoDs.current?.toJSONData() } }, submitFlag ? 'BUS_REVIEW_SUBMIT' : 'BUS_REVIEW_SAVE');
+      if (getResponse(res)) {
+        notification.success({});
+        if(!submitFlag) {
+          // 必须 await：刷新回来前 loading 一直压着，且刷新会带回新的 objectVersionNumber 供下次提交使用
+          await reviewInfoDs.query();
+        } else if(modal) {
+          await dataSet.query();
+          modalClosed = true;
+          modal.close();
+        }
+      }
+      return true;
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -110,23 +154,7 @@ export const openBusinessReviewModal = async (record: any, type?: string, dataSe
       </Collapse>
       </div>
     ),
-    footer: () => (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {!isReadOnly && (
-          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
-            {intl.get('hzero.common.button.save').d('保存')}
-          </Button>
-        )}
-        {!isReadOnly && (
-          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
-            {intl.get('hzero.common.button.submit').d('提交')}
-          </Button>
-        )}
-        <Button onClick={() => modal.close()}>
-          {intl.get('hzero.common.button.close').d('关闭')}
-        </Button>
-      </div>
-    ),
+    footer: renderFooter,
     destroyOnClose: true,
   });
 };

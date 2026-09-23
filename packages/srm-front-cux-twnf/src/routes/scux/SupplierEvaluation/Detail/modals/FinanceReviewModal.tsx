@@ -67,6 +67,11 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
 
   const { hasLastNomination } = resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
   let modal;
+  // 「保存 / 提交 / 关闭」共用一个 loading：任一动作进行中，三个按钮一起转圈、一起点不动。
+  // 顺便兜住「保存后马上点提交」——保存后的刷新不带回新的 objectVersionNumber 就提交，后端乐观锁会报「数据已过时」。
+  let actionLoading = false;
+  // 提交成功后弹框会被关掉，之后不能再 modal.update，否则是往已销毁的实例上塞 props
+  let modalClosed = false;
 
   const nominationStatus = basicInfoDs.current?.get('nominationStatus');
   const isReadOnly = type === 'unreleasedReadOnly' || (nominationStatus !== 'PENDING_REVIEW' && nominationStatus !== 'TO_BE_RELEASED');
@@ -151,69 +156,107 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
     // { name: 'financeSubmitDate', _type: 'DateTimePicker', disabled: true },
   ];
 
-  const handleSaveOrSubmit = async (submitFlag?:boolean) => {
-    if (submitFlag) {
-      const valid = await Promise.all([
-        infoDs.validate(),
-        resultDs.validate(),
-      ]);
-      if (!valid.every(Boolean)) {
-        return false;
-      }
-      if (infoDs.length === 0) {
-        notification.warning({
-          message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
-        });
-        return false;
-      }
+  const renderFooter = () => (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      {!isReadOnly && (
+        <Button loading={actionLoading} color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
+          {intl.get('hzero.common.button.save').d('保存')}
+        </Button>
+      )}
+      {!isReadOnly && (
+        <Button loading={actionLoading} color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
+          {intl.get('hzero.common.button.submit').d('提交')}
+        </Button>
+      )}
+      <Button loading={actionLoading} onClick={() => modal.close()}>
+        {intl.get('hzero.common.button.close').d('关闭')}
+      </Button>
+    </div>
+  );
+
+  const setActionLoading = (loading: boolean) => {
+    actionLoading = loading;
+    if (!modalClosed && modal) {
+      // footer 是普通函数不是组件，靠重渲染才能把 loading 传到按钮上；
+      // 每次都传新的函数引用，避免 Modal 内部按引用/深比较判定 props 没变而跳过更新
+      modal.update({ footer: () => renderFooter() });
     }
-    // 存在上次提名时，明细行由上次提名带入：去掉 financeReviewLineId，
-    // 并将每行的 nominationHeaderId/nominationSupLineId 统一为财务入围评审结果所属的 id
-    // 全新数据时 FINANCE_REVIEW 查询结果不带 nomination id，保存/提交用当前提名 id 兜底
-    const resultNominationHeaderId =
-      resultDs?.current?.get('nominationHeaderId') || nominationHeaderId;
-    const resultNominationSupLineId =
-      resultDs?.current?.get('nominationSupLineId') || nominationSupLineId;
-    console.log(resultNominationHeaderId, resultNominationSupLineId);
-    const financeReviewLineList = hasLastNomination
-      ? infoDs.toData().map((line: any) => {
-          const { financeReviewLineId, ...rest } = line;
-          // 行本身没有 nominationHeaderId/nominationSupLineId 视为新建数据，不需要替换，保持为空
-          if (!(line?.nominationHeaderId && line?.nominationSupLineId)) {
-            return rest;
-          }
-          // 由上次提名带入的行，替换为财务入围评审结果所属的 id
-          return {
-            ...rest,
-            ...(resultNominationHeaderId ? { nominationHeaderId: resultNominationHeaderId } : {}),
-            ...(resultNominationSupLineId
-              ? { nominationSupLineId: resultNominationSupLineId }
-              : {}),
-          };
-        })
-      : infoDs.toData();
-    const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { ...resultDs.current?.toJSONData(), nominationHeaderId: resultNominationHeaderId, nominationSupLineId: resultNominationSupLineId, financeReviewLineList, children: null } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
-    if (getResponse(res)) {
-      notification.success({});
-      if(!submitFlag) {
-        // 保存成功后，使用接口返回的 nominationHeaderId/nominationSupLineId 重新查询评审信息行
-        // 优先使用接口返回的新 nomination id；拿不到时退回当前结果中的 id
-        const savedNominationHeaderId = res?.nominationHeaderId || resultNominationHeaderId;
-        const savedNominationSupLineId = res?.nominationSupLineId || resultNominationSupLineId;
-        setTimeout(() => {
+  };
+
+  const handleSaveOrSubmit = async (submitFlag?:boolean) => {
+    // 上一次动作还没结束（多半是保存触发的刷新还在飞）：直接忽略，避免带着旧 objectVersionNumber 提交
+    if (actionLoading) {
+      return false;
+    }
+    setActionLoading(true);
+    try {
+      if (submitFlag) {
+        const valid = await Promise.all([
+          infoDs.validate(),
+          resultDs.validate(),
+        ]);
+        if (!valid.every(Boolean)) {
+          return false;
+        }
+        if (infoDs.length === 0) {
+          notification.warning({
+            message: intl.get(`${prefix}.message.financeReviewInfoRequired`).d('财务评审行不能为空'),
+          });
+          return false;
+        }
+      }
+      // 存在上次提名时，明细行由上次提名带入：去掉 financeReviewLineId，
+      // 并将每行的 nominationHeaderId/nominationSupLineId 统一为财务入围评审结果所属的 id
+      // 全新数据时 FINANCE_REVIEW 查询结果不带 nomination id，保存/提交用当前提名 id 兜底
+      const resultNominationHeaderId =
+        resultDs?.current?.get('nominationHeaderId') || nominationHeaderId;
+      const resultNominationSupLineId =
+        resultDs?.current?.get('nominationSupLineId') || nominationSupLineId;
+      console.log(resultNominationHeaderId, resultNominationSupLineId);
+      const financeReviewLineList = hasLastNomination
+        ? infoDs.toData().map((line: any) => {
+            const { financeReviewLineId, ...rest } = line;
+            // 行本身没有 nominationHeaderId/nominationSupLineId 视为新建数据，不需要替换，保持为空
+            if (!(line?.nominationHeaderId && line?.nominationSupLineId)) {
+              return rest;
+            }
+            // 由上次提名带入的行，替换为财务入围评审结果所属的 id
+            return {
+              ...rest,
+              ...(resultNominationHeaderId ? { nominationHeaderId: resultNominationHeaderId } : {}),
+              ...(resultNominationSupLineId
+                ? { nominationSupLineId: resultNominationSupLineId }
+                : {}),
+            };
+          })
+        : infoDs.toData();
+      const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { ...resultDs.current?.toJSONData(), nominationHeaderId: resultNominationHeaderId, nominationSupLineId: resultNominationSupLineId, financeReviewLineList, children: null } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
+      if (getResponse(res)) {
+        notification.success({});
+        if(!submitFlag) {
+          // 保存成功后，使用接口返回的 nominationHeaderId/nominationSupLineId 重新查询评审信息行
+          // 优先使用接口返回的新 nomination id；拿不到时退回当前结果中的 id
+          const savedNominationHeaderId = res?.nominationHeaderId || resultNominationHeaderId;
+          const savedNominationSupLineId = res?.nominationSupLineId || resultNominationSupLineId;
+          // 原来是 setTimeout 后不等待，改成等这一段跑完再放 loading：刷新回来前按钮一直是 loading，
+          // 刷新会带回新的 objectVersionNumber 供下一次提交使用
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           if (savedNominationHeaderId) {
             infoDs.setQueryParameter('nominationHeaderId', savedNominationHeaderId);
           }
           if (savedNominationSupLineId) {
             infoDs.setQueryParameter('nominationSupLineId', savedNominationSupLineId);
           }
-          infoDs.query();
-          resultDs.query();
-        }, 1000);
-      } else if(modal) {
-        dataSet.query();
-        modal.close();
+          await Promise.all([infoDs.query(), resultDs.query()]);
+        } else if(modal) {
+          await dataSet.query();
+          modalClosed = true;
+          modal.close();
+        }
       }
+      return true;
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -251,23 +294,7 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
         </Collapse>
       </div>
     ),
-    footer: () => (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {!isReadOnly && (
-          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit()}>
-            {intl.get('hzero.common.button.save').d('保存')}
-          </Button>
-        )}
-        {!isReadOnly && (
-          <Button color={ButtonColor.primary} style={{ marginRight: 8 }} onClick={() => handleSaveOrSubmit(true)}>
-            {intl.get('hzero.common.button.submit').d('提交')}
-          </Button>
-        )}
-        <Button onClick={() => modal.close()}>
-          {intl.get('hzero.common.button.close').d('关闭')}
-        </Button>
-      </div>
-    ),
+    footer: renderFooter,
     destroyOnClose: true,
   });
 };
