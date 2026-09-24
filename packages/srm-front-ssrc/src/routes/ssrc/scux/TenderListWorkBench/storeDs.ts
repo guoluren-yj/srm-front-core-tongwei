@@ -36,7 +36,7 @@ function getQueryFields({ queryType = '' } = {}): any[] {
     {
       name: 'catalogStatus',
       label: intl.get('scux.bidPlanWorkBench.model.twnf.sourceProjectStatus').d('状态'),
-      lookupCode: ' SCUX_TWNF_LIST_STATUS',
+      lookupCode: 'SCUX_TWNF_LIST_STATUS',
     },
     queryType !== 'NEW' && {
       name: 'catelogNum',

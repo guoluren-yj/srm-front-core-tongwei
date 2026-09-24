@@ -1,18 +1,16 @@
-import React, { useMemo, useImperativeHandle, useEffect, useRef } from 'react';
+import React, { useMemo, useImperativeHandle, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { isEmpty } from 'lodash';
 import { Table, Button, Attachment, Modal, useDataSet } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
-import { PRIVATE_BUCKET } from '_utils/config';
 import notification from 'utils/notification';
 import formatterCollections from 'utils/intl/formatterCollections';
 import request from 'utils/request';
 import { yesOrNoRender } from 'utils/renderer';
-import { queryFileList } from 'services/api';
 
-import { generateAttTemplate } from '@/services/inquiryHallService';
+import { generateAttTemplate, cuxSaveBidAttachment } from '@/services/inquiryHallService';
 import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEditorOnline';
 
 import { attachmentDS } from './storeDS';
@@ -24,9 +22,11 @@ const BidManagementAttachment = (props) => {
     quotationHeaderCurrentId = '',
     rfxHeaderId,
     getRfxQuotationHeaderCurDTO,
+    quotationHeaderId,
   } = props;
 
   const bidAttachTableDs = useDataSet(() => attachmentDS(), []);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     bidAttachTableDs.setQueryParameter('quotationHeaderCurrentId', quotationHeaderCurrentId);
@@ -96,8 +96,8 @@ const BidManagementAttachment = (props) => {
 
   // 生成附件（参考：new-bid-hall/bid-update 招标文件及附件的附件模板 生成附件）
   const handleGenerateAttachment = (record) => {
-    const { fileManageId, attachmentUuid } =
-      record.get(['fileManageId', 'attachmentUuid', 'editableFlag']) || {};
+    const { fileManageId, attachmentUuid, attachmentLineId } =
+      record.get(['fileManageId', 'attachmentUuid', 'editableFlag', 'attachmentLineId']) || {};
 
     if (!rfxHeaderId || !fileManageId) return;
 
@@ -106,36 +106,18 @@ const BidManagementAttachment = (props) => {
       sourceCategory: 'RFX',
       sourceId: rfxHeaderId,
       attachmentUuid,
+      attachmentLineId,
       // ...(editableFlag === 1 ? {} : { attachmentUuid }), // editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
     };
 
     return generateAttTemplate(params).then((res) => {
-      const result = getResponse(res);
-      if (!result) {
+      if (!getResponse(res)) {
         return;
       }
-      const { attachmentUuid: newUuid } = result || {};
-
       notification.success();
-      if (!attachmentUuid) {
-        record.set('attachmentUuid', newUuid);
-      } else {
-        record.set('attachmentUuid', null);
-        record.set('attachmentUuid', newUuid);
-        queryFileList({
-          organizationId: getCurrentOrganizationId(),
-          bucketName: PRIVATE_BUCKET,
-          bucketDirectory: 'ssrc-template-requirement',
-          attachmentUUID: newUuid,
-        }).then((fileList) => {
-          if (getResponse(fileList)) {
-            const field = record.getField('attachmentUuid');
-            if (field) {
-              field.setAttachmentCount(fileList?.length || 0);
-            }
-          }
-        });
-      }
+      // 生成附件是后端写库，会连带刷新行上的 attachmentUuid / attachmentLineId / objectVersionNumber 等；
+      // 只在前端 record 上 set 的话，后面保存或提交带上去的还是旧数据，会被乐观锁判成「数据已过时」
+      handleQuery();
     });
   };
 
@@ -246,7 +228,7 @@ const BidManagementAttachment = (props) => {
                   children: intl
                     .get('scux.bidAttachment.view.message.confirmVoidAttachment')
                     .d('确认作废该附件？'),
-                  onOk: () => handleElectronicSign(record, 'cancel'),
+                  onOk: () => handleElectronicSign(record, 'invalid'),
                 })
               }
             >
@@ -254,7 +236,7 @@ const BidManagementAttachment = (props) => {
             </Button>
           );
         }
-        // 电签：是否电签「是」且电签状态「空」「失败」「作废」
+        // 电签：是否电签「是」，且电签状态不是「成功」「已发出待签署」「待填写」
         if (action === 'sign') {
           return (
             <Button
@@ -284,7 +266,7 @@ const BidManagementAttachment = (props) => {
       name: 'requiredFlag',
       renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
     },
-    { name: 'remark' },
+    // { name: 'remark' },
     {
       name: 'attributeVarchar5',
     },
@@ -293,6 +275,8 @@ const BidManagementAttachment = (props) => {
     },
     {
       name: 'attributeLongtext17',
+      // cuxSupplierCreateFlag 为 1（供应商新建/上传的行）才允许编辑文件名称
+      editor: (record) => String(record.get('cuxSupplierCreateFlag')) === '1',
     },
   ];
 
@@ -320,7 +304,47 @@ const BidManagementAttachment = (props) => {
 
   // 新增
   const handleAdd = () => {
-    bidAttachTableDs.create({}, 0);
+    bidAttachTableDs.create({cuxSupplierCreateFlag: "1"}, 0);
+  };
+
+  // 判断新增行是否为空行（用户没填任何内容的不提交）
+  const hasAttachLineContent = (record) =>
+    Boolean(
+      record?.get('attachmentUuid') ||
+        record?.get('attachmentType') ||
+        record?.get('fileManageId') ||
+        record?.get('attributeVarchar19') ||
+        record?.get('attributeLongtext1') ||
+        record?.get('remark')
+    );
+
+  // 保存附件：仅提交变更行，成功后刷新当前附件列表
+  const handleSaveAttachment = async () => {
+    if (!rfxHeaderId) return;
+    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
+    const changedRecords = [
+      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
+      ...updated,
+    ];
+    if (!changedRecords.length) {
+      notification.info({
+        message: intl
+          .get('scux.bidAttachment.view.message.twnf.noSaveChange')
+          .d('当前没有需要保存的附件变更！'),
+      });
+      return;
+    }
+    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
+    setSaving(true);
+    try {
+      const res = await cuxSaveBidAttachment({ rfxHeaderId, quotationHeaderCurrentId: quotationHeaderId, attachmentLineList });
+      if (getResponse(res)) {
+        notification.success();
+        handleQuery();
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   // 批量删除按钮、复制禁用逻辑
@@ -353,8 +377,19 @@ const BidManagementAttachment = (props) => {
       >
         {intl.get(`hzero.common.button.batchDelete`).d('批量删除')}
       </Button>,
+      <Button
+        icon="save"
+        name="save"
+        color="primary"
+        funcType="flat"
+        loading={saving}
+        disabled={!rfxHeaderId || rfxHeaderId === 'null'}
+        onClick={handleSaveAttachment}
+      >
+        {intl.get('hzero.common.button.save').d('保存')}
+      </Button>,
     ],
-    [batchDisabledFlag]
+    [batchDisabledFlag, saving, rfxHeaderId]
   );
 
   return (

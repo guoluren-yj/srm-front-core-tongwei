@@ -5,6 +5,8 @@ import { PRIVATE_BUCKET } from '_utils/config';
 
 import { ChunkUploadProps } from '@/utils/SsrcRegx';
 
+import { isAttachmentRequired } from './utils';
+
 // 采购方\供应商附件
 const attachmentDS = () => ({
   autoQuery: false,
@@ -33,12 +35,12 @@ const attachmentDS = () => ({
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.templateAttachment`)
         .d('附件模板'),
     },
-    {
-      name: 'remark',
-      label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
-        .d('模板描述'),
-    },
+    // {
+    //   name: 'remark',
+    //   label: intl
+    //     .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
+    //     .d('模板描述'),
+    // },
     {
       name: 'attachmentUuid',
       label: intl.get(`ssrc.common.model.common.attachment`).d('附件'),
@@ -81,9 +83,9 @@ const attachmentDS = () => ({
       ...(ChunkUploadProps || {}),
       dynamicProps: {
         // 是否电签为「是」：由电签流程生成，只读
-        // requiredFlag 为「1」：附件必输
         readOnly: ({ record }) => Number(record.get('attributeVarchar1')) === 1,
-        required: ({ record }) => record.get('requiredFlag') === '1',
+        // 【附件是否必输】为「是」时必填，与提交校验同一套判断
+        required: ({ record }) => isAttachmentRequired(record),
       },
     },
     {

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Table, Button, Switch, NumberField, Attachment } from 'choerodon-ui/pro';
 import { Tabs } from 'choerodon-ui';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
@@ -71,8 +71,17 @@ const SupplierList: React.FC = observer(() => {
     }, undefined);
   };
 
+  // 是否有评分方式（10/20/30/40 之一），决定旧 tab 组里「评分方式」表是否存在
+  const hasScoreWay = ['10', '20', '30', '40'].includes(scoreWay);
   // 无评分方式时 tabTitle 为「供应商列表」，仅该场景启用最终价编辑/同步与附件上传
-  const isPlainSupplierList = !['10', '20', '30', '40'].includes(scoreWay);
+  const isPlainSupplierList = !hasScoreWay;
+
+  // 旧 tab 组默认停在「评分方式」表（supplierListByScoreWay）。
+  // scoreWay 是 headerDs 查回来的，首屏还没有值、这个 pane 也不渲染，所以用受控 activeKey：
+  // 等它到位后自动切过去；无评分方式时该 pane 不存在，必须退回「评标明细」，
+  // 否则 activeKey 指向不存在的 key，tab 内容区会是空白
+  const [oldTabActiveKey, setOldTabActiveKey] = useState('supplierListByScoreWay');
+  const activeOldTabKey = hasScoreWay ? oldTabActiveKey : 'evaluationDetail';
 
   const columns: ColumnProps[] = useMemo(() => {
     return [
@@ -403,7 +412,7 @@ const SupplierList: React.FC = observer(() => {
 
   const oldTabPanes: React.ReactElement[] = [];
   // 旧 tab 保留：有评分方式时才展示（「供应商列表」场景已由上面的新 tab 承接）
-  if (['10', '20', '30', '40'].includes(scoreWay)) {
+  if (hasScoreWay) {
     oldTabPanes.push(
       <TabPane tab={tabTitle} key="supplierListByScoreWay">
         <Table
@@ -416,7 +425,7 @@ const SupplierList: React.FC = observer(() => {
     );
   }
   // 通威二开 - 启用了评标才展示「评标明细」tab，复用评标管理-评标明细供应商表
-  // if (ratingEnabled) {
+  if (ratingEnabled) {
     oldTabPanes.push(
       <TabPane
         tab={intl.get('scux.preWinningBid.view.title.evaluationDetail').d('评标明细')}
@@ -430,14 +439,18 @@ const SupplierList: React.FC = observer(() => {
         </SummaryDetailStoreProvider>
       </TabPane>
     );
-  // }
+  }
 
   return (
     <>
       <Tabs style={{ marginBottom: '48px' }}>
         {newTabPanes}
       </Tabs>
-      <Tabs tabBarExtraContent={tabBarExtraContent}>
+      <Tabs
+        activeKey={activeOldTabKey}
+        onChange={setOldTabActiveKey}
+        tabBarExtraContent={tabBarExtraContent}
+      >
         {oldTabPanes}
       </Tabs>
     </>

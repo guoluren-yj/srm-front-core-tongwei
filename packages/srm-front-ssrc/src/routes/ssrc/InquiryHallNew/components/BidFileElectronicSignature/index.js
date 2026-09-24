@@ -87,30 +87,18 @@ const BidManagementAttachment = (props) => {
   const columns = useMemo(
     () => [
       {
+        name: 'attributeVarchar19',
+      },
+      {
         name: 'attachmentTypeMeaning',
       },
       {
-        name: 'tempAttachmentUuid',
-        renderer: ({ record }) => {
-          const tempAttachmentUuid = record.get('tempAttachmentUuid');
-          if (!tempAttachmentUuid) return null;
-          return (
-            <Attachment
-              record={record}
-              name="tempAttachmentUuid"
-              viewMode="popup"
-              bucketName={PRIVATE_BUCKET}
-              bucketDirectory="ssrc-template-requirement"
-              labelLayout="float"
-              readOnly
-              previewTarget
-            >
-              {intl.get('hzero.common.upload.view').d('查看附件')}
-            </Attachment>
-          );
-        },
+        name: 'attachmentUuid',
+        editor: (record) => (
+          <Attachment record={record} name="attachmentUuid" beforeUpload={beforeUpload} />
+        ),
       },
-      { name: 'remark' },
+      // { name: 'remark' },
       {
         name: 'cuxElectronicSignature',
         header: intl
@@ -120,7 +108,7 @@ const BidManagementAttachment = (props) => {
           const attributeVarchar1 = record.get('attributeVarchar1');
           const attributeLongtext1AttachmentCount =
             record.getField('attributeLongtext1')?.getAttachmentCount() || 0;
-          return Number(attributeVarchar1) === 1 ? (
+          return Number(attributeVarchar1) === 1 && !['ING_SENT_DILIVER', 'ED_SUCCESS', 'ING_SENT_WAIT_FILLOUT'].includes(record.get('attributeLongtext2')) ? (
             <Button
               funcType="link"
               wait={1200}
@@ -135,15 +123,33 @@ const BidManagementAttachment = (props) => {
         },
       },
       {
-        name: 'attachmentUuid',
-        editor: (record) => (
-          <Attachment record={record} name="attachmentUuid" beforeUpload={beforeUpload} />
-        ),
+        name: 'attributeLongtext2',
       },
       {
         name: 'attributeLongtext1',
         editor: (record) => record.get('attributeVarchar1') === '0',
       },
+      // {
+      //   name: 'tempAttachmentUuid',
+      //   renderer: ({ record }) => {
+      //     const tempAttachmentUuid = record.get('tempAttachmentUuid');
+      //     if (!tempAttachmentUuid) return null;
+      //     return (
+      //       <Attachment
+      //         record={record}
+      //         name="tempAttachmentUuid"
+      //         viewMode="popup"
+      //         bucketName={PRIVATE_BUCKET}
+      //         bucketDirectory="ssrc-template-requirement"
+      //         labelLayout="float"
+      //         readOnly
+      //         previewTarget
+      //       >
+      //         {intl.get('hzero.common.upload.view').d('查看附件')}
+      //       </Attachment>
+      //     );
+      //   },
+      // },
     ],
     []
   );

@@ -297,10 +297,12 @@ export default class RfxDemandForm extends Component {
       rfxId,
       organizationId = null,
       currentMode = null,
+      custKey,
     } = this.props;
     const header = this.getBaseInfoHeader();
 
     const ExpertProps = {
+      custKey,
       organizationId,
       custLoading,
       rfxId,

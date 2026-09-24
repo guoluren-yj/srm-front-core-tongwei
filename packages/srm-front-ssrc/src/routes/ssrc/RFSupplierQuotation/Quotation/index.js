@@ -75,7 +75,7 @@ import TableSummaryForm from './Page/TableSummaryForm';
 import { formDS, tableSummaryFormDS } from './Stores/formDS';
 import { quotationLineDataSet } from './Stores/quotationLineDataSet';
 import BidSupAttachmentEdit from './Page/BidSupAttachmentEdit';
-import { getElectronicSignAction } from './Page/BidSupAttachmentEdit/utils';
+import { isAttachmentRequired } from './Page/BidSupAttachmentEdit/utils';
 
 const IntervalTime = 2_000;
 let socketUrl = '';
@@ -632,21 +632,22 @@ const QuotationComponent = (props = {}) => {
     const { bidAttachTableDs } = cuxBidSupAttachmentRef?.current || {};
     if (!bidAttachTableDs) return { pass: true, message: '' };
 
-    // 两种不通过的情况，命中任意一种即视为该文件没完善，最后按文件名称合并成一条提示：
-    // 1) 未维护：requiredFlag 为「1」的行，签章附件 attributeLongtext1 必填；
-    // 2) 未电签：是否电签（attributeVarchar1）为「是」，且行上仍有【电签】按钮（电签状态为空/失败/作废）
-    const invalidFileNames = [];
+    // 【附件是否必输】为「否」的行不校验；为「是」的行校验签章附件 attributeLongtext1 是否存在。
+    // 缺失的行按文件名称汇总成提示
+    const missingSignatureFileNames = [];
     const invalidRows = []; // 记录每一行不通过的具体原因，便于排查
     bidAttachTableDs.forEach((record) => {
       if (!record) {
         return;
       }
 
-      const electronicSignAction = getElectronicSignAction(record);
-      const unSigned = electronicSignAction === 'sign';
-      const attachmentMissing =
-        record.get('requiredFlag') === '1' && !record.get('attributeLongtext1');
-      if (!unSigned && !attachmentMissing) {
+      // 【附件是否必输】为「否」，整行不校验
+      if (!isAttachmentRequired(record)) {
+        return;
+      }
+
+      // 必输的行必须有签章附件
+      if (record.get('attributeLongtext1')) {
         return;
       }
 
@@ -655,20 +656,16 @@ const QuotationComponent = (props = {}) => {
         record.get('attributeVarchar19') ||
         record.getField('attachmentType')?.getText(record.get('attachmentType')) ||
         '-';
-      if (!invalidFileNames.includes(fileName)) {
-        invalidFileNames.push(fileName);
+      if (!missingSignatureFileNames.includes(fileName)) {
+        missingSignatureFileNames.push(fileName);
       }
 
       invalidRows.push({
         文件名称: fileName,
+        是否必输: record.get('requiredFlag'),
         是否电签: record.get('attributeVarchar1'),
         电签状态: record.get('attributeVarchar5'),
-        操作列按钮: electronicSignAction, // sign:【电签】/ cancel:【作废】/ null:无按钮
-        是否必输: record.get('requiredFlag'),
         签章附件: record.get('attributeLongtext1'),
-        不通过原因: [unSigned ? '未电签' : '', attachmentMissing ? '附件未维护' : '']
-          .filter(Boolean)
-          .join('、'),
         行数据: record.toData(),
       });
     });
@@ -678,16 +675,16 @@ const QuotationComponent = (props = {}) => {
       console.log(`[供应商投标附件校验] 共 ${invalidRows.length} 行不通过：`, invalidRows);
     }
 
-    if (invalidFileNames.length) {
-      const fileNamesText = invalidFileNames.join('、');
+    if (missingSignatureFileNames.length) {
+      const fileNamesText = missingSignatureFileNames.join('、');
       // 多语言 key 缺失时 .d() 不会对 {fileNames} 做插值，所以兜底文案直接给出拼好的内容
       return {
         pass: false,
         message: intl
-          .get('ssrc.supplierQuotation.view.message.bidAttachmentIncomplete', {
+          .get('ssrc.supplierQuotation.view.message.bidSignatureAttachmentMissing', {
             fileNames: fileNamesText,
           })
-          .d(`以下文件未维护或未电签：${fileNamesText}，请完善后再提交。`),
+          .d(`以下文件未维护签章附件：${fileNamesText}，请完善后再提交。`),
       };
     }
 
@@ -1599,7 +1596,7 @@ const QuotationComponent = (props = {}) => {
   const getCurrentPageSubmitData = useCallback(
     async (forceInterRuptFlag = 1) => {
       let validationFlag = false;
-      let bidAttachValidateFlag = true; // 供应商投标附件校验（电签附件必输）是否通过
+      let bidAttachValidateFlag = true; // 供应商投标附件校验（签章附件必输）是否通过
       let bidAttachValidateMessage = ''; // 供应商投标附件校验不通过时的具体提示
       let formData = null;
       let tableData = [];
@@ -1993,14 +1990,14 @@ const QuotationComponent = (props = {}) => {
         if (!uploadValidateFlag) {
           return;
         }
-        // 电签附件/未电签：弹自定义提示，不走通用校验提示（提示里带上具体文件名称）
+        // 签章附件/未电签：弹自定义提示，不走通用校验提示（提示里带上具体文件名称）
         if (!bidAttachValidateFlag) {
           notification.warning({
             message:
               bidAttachValidateMessage ||
               intl
                 .get('ssrc.supplierQuotation.view.message.ecSignatureAttachmentRequired')
-                .d('电签附件必输，请先上传电签附件'),
+                .d('签章附件必输，请先上传签章附件'),
             placement: 'bottomRight',
             duration: 2.0,
           });
@@ -3378,6 +3375,7 @@ const QuotationComponent = (props = {}) => {
                         parentRef={cuxBidSupAttachmentRef}
                         quotationHeaderCurrentId={quotationHeaderCurrentId}
                         rfxHeaderId={rfxHeaderId}
+                        quotationHeaderId={quotationHeaderId}
                         getRfxQuotationHeaderCurDTO={() => basicFormDS?.current?.toData()}
                       />
                     </Card>

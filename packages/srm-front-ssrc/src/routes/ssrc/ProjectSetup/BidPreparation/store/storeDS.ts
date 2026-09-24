@@ -21,7 +21,7 @@ export const tenderHeaderDS = (): DataSetProps => {
         name: 'catalogStatus',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.tenderListSourceProjectStatus').d('招标清单状态'),
         type: FieldType.string,
-        lookupCode: 'SCUX_TWNF_NOMINATION_STATUS',
+        lookupCode: 'SCUX_TWNF_LIST_STATUS',
       },
     ],
   };

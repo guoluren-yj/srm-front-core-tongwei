@@ -13,24 +13,12 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
   selection: false,
   fields: [
     {
+      name: 'attributeVarchar19',
+      label: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachName`).d('文件名称'),
+    },
+    {
       name: 'attachmentTypeMeaning',
       label: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachType`).d('附件类型'),
-    },
-    {
-      name: 'tempAttachmentUuid',
-      label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplate`)
-        .d('模板附件'),
-      readOnly: true,
-      type: 'attachment',
-      bucketName: PRIVATE_BUCKET,
-      bucketDirectory: 'ssrc-template-requirement',
-    },
-    {
-      name: 'remark',
-      label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
-        .d('模板描述'),
     },
     {
       name: 'attachmentUuid',
@@ -44,8 +32,20 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
         .get('scux.bidAttachment.view.tips.uploadTipOne')
         .d('仅支持上传.docx 文件格式，且仅支持上传一份文档；'),
     },
+    // {
+    //   name: 'remark',
+    //   label: intl
+    //     .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeTemplate`)
+    //     .d('模板描述'),
+    // },
     {
       name: 'sourceNode',
+    },
+    {
+      name: 'attributeLongtext2',
+      label: intl.get('scux.bidAttachment.model.fileTemplateAttachment.attributeLongtext2').d('电签状态'),
+      type: 'string',
+      lovCode: 'SCUX.TWNF_EC_STATUS',
     },
     {
       name: 'attributeLongtext1',
@@ -60,6 +60,16 @@ const attachmentDS = ({ customizeUnitCode = '' } = {}) => ({
         readOnly: ({ record }) => record.get('attributeVarchar1') === '1',
       },
     },
+    // {
+    //   name: 'tempAttachmentUuid',
+    //   label: intl
+    //     .get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachmentTemplate`)
+    //     .d('模板附件'),
+    //   readOnly: true,
+    //   type: 'attachment',
+    //   bucketName: PRIVATE_BUCKET,
+    //   bucketDirectory: 'ssrc-template-requirement',
+    // },
   ].filter(Boolean),
   transport: {
     read: ({ dataSet }) => {
