@@ -22,7 +22,6 @@ const BidManagementAttachment = (props) => {
     quotationHeaderCurrentId = '',
     rfxHeaderId,
     getRfxQuotationHeaderCurDTO,
-    quotationHeaderId,
   } = props;
 
   const bidAttachTableDs = useDataSet(() => attachmentDS(), []);
@@ -337,7 +336,7 @@ const BidManagementAttachment = (props) => {
     const attachmentLineList = changedRecords.map((record) => record.toJSONData());
     setSaving(true);
     try {
-      const res = await cuxSaveBidAttachment({ rfxHeaderId, quotationHeaderCurrentId: quotationHeaderId, attachmentLineList });
+      const res = await cuxSaveBidAttachment({ rfxHeaderId, quotationHeaderCurrentId, attachmentLineList });
       if (getResponse(res)) {
         notification.success();
         handleQuery();
