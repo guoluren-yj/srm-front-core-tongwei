@@ -191,10 +191,10 @@ const BidManagementAttachment = (props) => {
       name: 'attributeVarchar1',
       renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
     },
-    {
-      name: 'remark',
-      // editor: true,
-    },
+    // {
+    //   name: 'remark',
+    //   // editor: true,
+    // },
   ];
 
   // batch delete
@@ -237,8 +237,9 @@ const BidManagementAttachment = (props) => {
         record?.get('fileManageId') ||
         record?.get('tempAttachmentUuid') ||
         record?.get('attributeVarchar19') ||
-        record?.get('attributeLongtext10') ||
-        record?.get('remark')
+        record?.get('attributeLongtext10')
+        //  ||
+        // record?.get('remark')
     );
 
   // 保存附件----通威二开：仅提交变更行，成功后刷新当前附件列表（复用页面已有的读取接口）

@@ -764,7 +764,7 @@ const SupplierQueryNew = (props = {}) => {
                   attachType="PUR"
                   queryParams={{
                     rfxHeaderId,
-                    quotationHeaderRecordId,
+                    // quotationHeaderRecordId,
                   }}
                 />
               </Card>

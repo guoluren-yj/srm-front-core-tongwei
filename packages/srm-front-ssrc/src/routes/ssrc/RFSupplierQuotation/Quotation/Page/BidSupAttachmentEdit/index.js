@@ -16,6 +16,39 @@ import OnlyOfficeEditorOnline from '@/routes/ssrc/scux/components/OnlyOfficeEdit
 import { attachmentDS } from './storeDS';
 import { getElectronicSignAction } from './utils';
 
+// 字段当前的只读（查看）状态，取自 storeDS 里的 dynamicProps.readOnly，避免两处判断条件不一致
+const isFieldReadOnly = (record, name) =>
+  !!record?.dataSet?.getField(name)?.get('readOnly', record);
+
+// 附件单元格：附件列 attachmentUuid、签章附件列 attributeLongtext1
+// 只读（查看）状态下字段有 uuid 不代表真有文件，数量为 0 时展示置灰不可点的「查看附件」占位；
+// 确有附件、以及可编辑状态，都保持原有 Attachment 逻辑。
+// 附件数量由 Attachment 自身获取（内部调 field.fetchAttachmentCount，数量缓存在 record 上），
+// 拿到数量后这里会自动重渲染
+const AttachmentCell = observer(({ record, name, edit, ...rest }) => {
+  const readOnly = isFieldReadOnly(record, name);
+  const count = readOnly ? record?.dataSet?.getField(name)?.getAttachmentCount(record) : undefined;
+  if(String(record.get('cuxSupplierCreateFlag')) === '1' && String(edit) === '1'){
+    return "-";
+  }
+  if (readOnly && (!record?.get(name) || count === 0)) {
+    return (
+      <Button funcType="link" icon="attach_file" disabled>
+        {intl.get('hzero.common.upload.view').d('查看附件')}
+      </Button>
+    );
+  }
+  return (
+    <Attachment
+      record={record}
+      name={name}
+      viewMode="popup"
+      funcType="link"
+      {...rest}
+    />
+  );
+});
+
 const BidManagementAttachment = (props) => {
   const {
     parentRef = useRef(),
@@ -51,7 +84,7 @@ const BidManagementAttachment = (props) => {
     bidAttachTableDs.query();
   };
 
-  // 电签(sign) / 作废(cancel)，针对某一附件行
+  // 电签(sign) / 作废(invalid) / 撤回(revoken)，针对某一附件行
   const handleElectronicSign = (record, action) => {
     if (!rfxHeaderId) return;
     // 电签前校验：附件为空不允许发起电签
@@ -75,7 +108,7 @@ const BidManagementAttachment = (props) => {
         body: {
           rfxQuotationHeaderCurDTO,
           attachmentLine,
-          action, // sign 电签 / cancel 作废
+          action, // sign 电签 / invalid 作废 / revoken 撤回
         },
       }
     )
@@ -178,14 +211,8 @@ const BidManagementAttachment = (props) => {
     },
     {
       name: 'attachmentUuid',
-      editor: (record) => (
-        <Attachment
-          record={record}
-          name="attachmentUuid"
-          viewMode="popup"
-          funcType="link"
-          beforeUpload={beforeUpload}
-        />
+      renderer: ({ record }) => (
+        <AttachmentCell record={record} name="attachmentUuid" edit={1} beforeUpload={beforeUpload} />
       ),
     },
     {
@@ -215,24 +242,41 @@ const BidManagementAttachment = (props) => {
         .d('操作'),
       renderer: ({ record }) => {
         const action = getElectronicSignAction(record);
-        // 作废：是否电签「是」且电签状态「成功」
-        if (action === 'cancel') {
+        // 作废、撤回：是否电签「是」且电签状态「成功」（两个按钮同一显示条件）
+        if (true) {
           return (
-            <Button
-              funcType="link"
-              wait={1200}
-              onClick={() =>
-                Modal.confirm({
-                  title: intl.get('hzero.common.message.confirm.title').d('提示'),
-                  children: intl
-                    .get('scux.bidAttachment.view.message.confirmVoidAttachment')
-                    .d('确认作废该附件？'),
-                  onOk: () => handleElectronicSign(record, 'invalid'),
-                })
-              }
-            >
-              {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.void').d('作废')}
-            </Button>
+            <>
+              <Button
+                funcType="link"
+                wait={1200}
+                onClick={() =>
+                  Modal.confirm({
+                    title: intl.get('hzero.common.message.confirm.title').d('提示'),
+                    children: intl
+                      .get('scux.bidAttachment.view.message.confirmVoidAttachment')
+                      .d('确认作废该附件？'),
+                    onOk: () => handleElectronicSign(record, 'invalid'),
+                  })
+                }
+              >
+                {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.void').d('作废')}
+              </Button>
+              <Button
+                funcType="link"
+                wait={1200}
+                onClick={() =>
+                  Modal.confirm({
+                    title: intl.get('hzero.common.message.confirm.title').d('提示'),
+                    children: intl
+                      .get('scux.bidAttachment.view.message.confirmRevokeAttachment')
+                      .d('撤回后当前文件作废，需重新编辑提交，以最新签章文件为准。确认撤回？'),
+                    onOk: () => handleElectronicSign(record, 'revoken'),
+                  })
+                }
+              >
+                {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.revoke').d('撤回')}
+              </Button>
+            </>
           );
         }
         // 电签：是否电签「是」，且电签状态不是「成功」「已发出待签署」「待填写」
@@ -252,14 +296,7 @@ const BidManagementAttachment = (props) => {
     },
     {
       name: 'attributeLongtext1',
-      editor: (record) => (
-        <Attachment
-          record={record}
-          name="attributeLongtext1"
-          viewMode="popup"
-          funcType="link"
-        />
-      ),
+      renderer: ({ record }) => <AttachmentCell record={record} name="attributeLongtext1" />,
     },
     {
       name: 'requiredFlag',

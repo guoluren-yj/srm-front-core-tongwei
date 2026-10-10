@@ -274,6 +274,28 @@ const detailMaintenanceDS = ({ baseInfoDs, bidCatalogSectionHistoryId = '', bidV
               selectable: (record) => record.get('isCheck') !== false,
             },
           },
+          events: {
+            // 物料类别为树形值集：用户输入了查询条件搜索时才自动展开树，首次打开、重置时保持收起
+            load: ({ dataSet }) => {
+              const queryRecord = dataSet?.queryDataSet?.current;
+              const queryData = queryRecord?.toData() || {};
+              // 查询表单里存在有效条件
+              const hasCondition = Object.keys(queryData).some((key) => {
+                const value = queryData[key];
+                if (value === undefined || value === null || value === '') {
+                  return false;
+                }
+                return !(Array.isArray(value) && value.length === 0);
+              });
+              // dirty 表示查询表单被用户改动过（值集自带的默认查询条件不算），
+              // choerodon-ui 内部也是用 queryDataSet.current.dirty 判断查询条件是否被修改
+              const searched = !!queryRecord?.dirty && hasCondition;
+              const records = dataSet?.records || [];
+              for (let i = 0; i < records.length; i += 1) {
+                records[i].isExpanded = searched;
+              }
+            },
+          },
         },
       },
       {

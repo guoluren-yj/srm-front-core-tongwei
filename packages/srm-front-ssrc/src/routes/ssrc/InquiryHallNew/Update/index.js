@@ -128,6 +128,8 @@ import RfxDemandForm from './RfxDemandForm';
 import AnchorSsrc from './AnchorSsrc';
 import SectionInfo from './SectionInfo';
 import AttachmentCard from './AttachmentCard';
+// 需求信息（复制自 scux/TenderListWorkBench/Detail，本页自己一份）
+import DemandInfoTable from './DemandInfoTable';
 import SupplierBatchAddExpiredModal from './SupplierBatchAddExpiredModal';
 import { calculateLatterFieldTime } from './utils/utils';
 // 引用资格预审下的组件
@@ -7472,6 +7474,13 @@ class UpdateComponent extends Component {
       rfx: this.rfx,
     };
 
+    // 需求信息Props（仅招标单展示，且需关联立项才有数据）
+    const DemandInfoProps = {
+      bidFlag: this.bidFlag,
+      sourceProjectId: this.RfxInfoDS?.current?.get('sourceProjectId'),
+      configSheet,
+    };
+
     return (
       <ModalProvider>
         <Header backPath={this.getBackPath()} title={this.showPageHeader()}>
@@ -7514,16 +7523,26 @@ class UpdateComponent extends Component {
                 ) : (
                   <Content className={styles['custom-page-content']}>
                     <h3 id="rfxItemLines" className={styles['rfx-card-item-title']}>
-                      {intl
-                        .get('ssrc.inquiryHall.view.inquiryHall.rfxItemLinesRFX', {
-                          omitName: this.omitName,
-                        })
-                        .d(`{omitName}标的物`)}
+                      {this.bidFlag ? intl
+                        .get('ssrc.inquiryHall.view.inquiryHall.bidding')
+                        .d(`招标清单`) : intl
+                          .get('ssrc.inquiryHall.view.inquiryHall.rfxItemLinesRFX', {
+                            omitName: this.omitName,
+                          })
+                          .d(`{omitName}标的物`)}
                       {this.showValidateSymbol(itemLineValidate)}
                     </h3>
                     {this.renderItemLineTable(itemLineTableProps)}
                   </Content>
                 )}
+                {DemandInfoProps.bidFlag && DemandInfoProps.sourceProjectId ? (
+                  <Content className={styles['custom-page-content']}>
+                    <h3 id="demandInfo" className={styles['rfx-card-item-title']}>
+                      {intl.get('scux.bidPlanDetail.view.tab.bidPlanContent').d('需求信息')}
+                    </h3>
+                    <DemandInfoTable {...DemandInfoProps} />
+                  </Content>
+                ) : null}
                 <Content className={styles['custom-page-content']}>
                   <h3 id="supplierWithRequest" className={styles['rfx-card-item-title']}>
                     {intl

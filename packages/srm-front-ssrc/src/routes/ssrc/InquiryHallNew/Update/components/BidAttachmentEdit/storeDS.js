@@ -97,12 +97,12 @@ const attachmentDS = ({
         .get(`ssrc.inquiryHall.model.fileTemplateAttachment.describeRemark`)
         .d('备注'),
     },
-    {
-      name: 'remark',
-      label: intl
-        .get(`ssrc.inquiryHall.model.fileTemplateAttachment.remark`)
-        .d('模板描述'),
-    },
+    // {
+    //   name: 'remark',
+    //   label: intl
+    //     .get(`ssrc.inquiryHall.model.fileTemplateAttachment.remark`)
+    //     .d('模板描述'),
+    // },
     {
       name: 'attachmentUuid',
       label: intl.get(`ssrc.common.model.common.attachment`).d('电签附件'),
