@@ -243,7 +243,7 @@ const BidManagementAttachment = (props) => {
       renderer: ({ record }) => {
         const action = getElectronicSignAction(record);
         // 作废、撤回：是否电签「是」且电签状态「成功」（两个按钮同一显示条件）
-        if (true) {
+        if (action === 'cancel') {
           return (
             <>
               <Button
