@@ -99,6 +99,10 @@ const tableDataSet = ({ queryType }): DataSetProps => {
         label: intl.get('scux.bidPlanWorkBench.model.twnf.biddingManager').d('招标经理'),
       },
       {
+        name: 'catalogListUserName',
+        label: intl.get('scux.tenderListWorkBench.model.twnf.catalogListUserName').d('清单负责人'),
+      },
+      {
         name: 'createdByName',
         label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('创建人'),
       },

@@ -273,16 +273,19 @@ class QuotationController extends Component {
       documentTypeName: this.getDocumentTypeName,
     };
 
+    // 通威二开 - 招标菜单页描述由「招标过程控制」改为「过程控制」
+    const processControlTitle = this.bidFlag
+      ? intl.get(`${promptCode}.view.message.title.commonProcessControl`).d('过程控制')
+      : intl
+          .get(`${promptCode}.view.message.title.commonRFxProcessControl`, {
+            sourceCategoryName: getSourceName(this.bidFlag),
+          })
+          .d('{sourceCategoryName}过程控制');
+
     return (
       <React.Fragment>
         <Spin spinning={this.state.allLoading}>
-          <Header
-            title={intl
-              .get(`${promptCode}.view.message.title.commonRFxProcessControl`, {
-                sourceCategoryName: getSourceName(this.bidFlag),
-              })
-              .d('{sourceCategoryName}过程控制')}
-          />
+          <Header title={processControlTitle} />
           <Content>
             <div className="table-list-search">
               <FilterForm {...formProps} />

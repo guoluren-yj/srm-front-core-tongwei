@@ -2823,6 +2823,11 @@ class Detail extends PureComponent {
 
     const IsPublicUrl = pathname && pathname.includes('/pub'); // 工作流审批标识
     const IsClosingOfferVisible = this.isClosingOfferVisible(header);
+    // 通威二开 - 招标（路由含 bid）详情页头部描述由「询报价控制」改为「过程控制」
+    const controlTitle =
+      pathname && pathname.includes('bid')
+        ? intl.get(`${promptCode}.view.message.panel.commonProcessControl`).d('过程控制')
+        : intl.get(`${promptCode}.view.message.panel.RFxControl`).d('询报价控制');
 
     const renderHeaderButtons = () => {
       const addSupplierDisabledFlag =
@@ -3040,14 +3045,11 @@ class Detail extends PureComponent {
     return (
       <ModalProvider>
         {!IsPublicUrl ? (
-          <Header
-            backPath={this.getBackPath()}
-            title={intl.get(`${promptCode}.view.message.panel.RFxControl`).d('询报价控制')}
-          >
+          <Header backPath={this.getBackPath()} title={controlTitle}>
             {renderHeaderButtons()}
           </Header>
         ) : (
-          <Header title={intl.get(`${promptCode}.view.message.panel.RFxControl`).d('询报价控制')} />
+          <Header title={controlTitle} />
         )}
 
         <Content>

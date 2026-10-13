@@ -1154,6 +1154,8 @@ class InquiryHall extends React.Component {
     if (newBiddingFlag) return null;
     // 通威二开 - 招标大厅列表状态为【未开始】时，不显示 招标监控台 按钮
     if (this.bidFlag && record?.get('rfxStatus') === 'NOT_START') return null;
+    // 通威二开 - 招标大厅单据来源非【立项转寻源】时，不显示 招标监控台 按钮
+    if (this.bidFlag && record?.get('sourceFrom') !== 'PROJECT') return null;
     const node = customPermissionButton({
       display: intl
         .get(`ssrc.inquiryHall.model.inquiryHall.CommonMonitoringPlatform`, {
@@ -1176,12 +1178,16 @@ class InquiryHall extends React.Component {
   // 寻源过程控制Node
   controllerNode = (record) => {
     const { remote } = this.props;
+    // 通威二开 - 招标大厅按钮描述由「招标过程控制」改为「过程控制」
+    const displayName = this.bidFlag
+      ? intl.get(`ssrc.inquiryHall.view.message.button.commonProcessControl`).d('过程控制')
+      : intl
+          .get(`ssrc.inquiryHall.model.inquiryHall.commonSourcingProcessControl`, {
+            sourceName: this.sourceName,
+          })
+          .d('{sourceName}过程控制');
     const node = customPermissionButton({
-      display: intl
-        .get(`ssrc.inquiryHall.model.inquiryHall.commonSourcingProcessControl`, {
-          sourceName: this.sourceName,
-        })
-        .d('{sourceName}过程控制'),
+      display: displayName,
       onClick: () => this.directControllerDetail(record.toData()),
       ...this.CheckPermissionObject?.control,
     });
@@ -1307,6 +1313,8 @@ class InquiryHall extends React.Component {
   questionAnswerNode = (record, list = []) => {
     const { remote } = this.props;
     const { tabStatus } = this.state;
+    // 通威二开 - 招标大厅单据来源非【立项转寻源】时，不显示 澄清答疑 按钮
+    if (this.bidFlag && record.get('sourceFrom') !== 'PROJECT') return null;
     const isTabAllFlag = tabStatus === 'all' || tabStatus === 'finished';
     const offsetFlag = isTabAllFlag ? list?.length < 2 : list?.length < 1;
     const node = (
@@ -1566,13 +1574,25 @@ class InquiryHall extends React.Component {
     </div>
   );
 
+  /**
+   * 通威二开：招标单据是否走「中标确认」
+   * 状态为「待定标」且（来源为「手工」/「申请转寻源」或二级状态为「定标审批通过」）
+   * @param {Object} payload 含 rfxStatus / sourceFrom / attributeVarchar20 的数据
+   */
+  isBidConfirmation = ({ rfxStatus, sourceFrom, attributeVarchar20 } = {}) =>
+    rfxStatus === 'CHECK_PENDING' &&
+    (['MANUAL', 'DEMAND_POOL'].includes(sourceFrom) || attributeVarchar20 === 'RESAPPROVED');
+
   // 进入核价
   checkPriceNode = (record) => {
     const { remote } = this.props;
     const hiddenFlag = record.get('rfxStatus') === 'ROUND_QUOTATION' && !this.bidFlag; // 询价工作台 - 多伦报价不展示核价按钮
-    // 招标：二级状态未到定标审批通过时展示「定标」，否则展示「中标确认」；询价保持原「核价」
+    // 招标：走「中标确认」时展示「中标确认」，否则展示「定标」；询价保持原「核价」
+    const bidConfirmationFlag = this.isBidConfirmation(
+      record.get(['rfxStatus', 'sourceFrom', 'attributeVarchar20'])
+    );
     const displayName =
-      this.bidFlag && record.get('attributeVarchar20') !== 'RESAPPROVED'
+      this.bidFlag && !bidConfirmationFlag
         ? intl.get('ssrc.common.view.message.target').d('定标')
         : this.checkPriceName;
     const checkPriceButton = hiddenFlag ? false : (
@@ -2322,6 +2342,7 @@ class InquiryHall extends React.Component {
       cuxElectronicSignFlag,
       cuxElectronicSignAttachFlag,
       offlineWholeFlag,
+      sourceFrom,
     } =
       record.get([
         'rfxStatus',
@@ -2331,6 +2352,7 @@ class InquiryHall extends React.Component {
         'cuxElectronicSignFlag',
         'cuxElectronicSignAttachFlag',
         'offlineWholeFlag',
+        'sourceFrom',
       ]) || {};
     /**
      * ①电签=Y&状态=「未开始 & 二级状态为空时；
@@ -2368,7 +2390,8 @@ class InquiryHall extends React.Component {
         ['all', 'finished'].includes(tabStatus) &&
         rfxStatus === 'FINISHED' &&
         // !attributeVarchar33 &&
-        attributeVarchar12 === '30' && (
+        attributeVarchar12 === '30' &&
+        sourceFrom === 'PROJECT' && (
           <div>
             <a onClick={this.handleClearTender}>
               {intl.get('scux.ssrc.view.button.inquiryHall.twnf.clearTender').d('清标')}
@@ -4961,10 +4984,12 @@ class InquiryHall extends React.Component {
   inquiryCheckPrice(record) {
     const { history, remote } = this.props;
 
-    const { rfxStatus, attributeVarchar20, rfxHeaderId } = record || {};
+    const { rfxStatus, rfxHeaderId } = record || {};
+    // 通威二开：按钮为「中标确认」时跳核价页面；为「定标」时跳拟中标页面
+    const bidConfirmationFlag = this.isBidConfirmation(record);
 
-    // 状态为待定标 & 二级状态不为定标审批通过，则跳到拟中标页面
-    if (this.bidFlag && rfxStatus === 'CHECK_PENDING' && attributeVarchar20 !== 'RESAPPROVED') {
+    // 状态为待定标 & 非「中标确认」，则跳到拟中标页面
+    if (this.bidFlag && rfxStatus === 'CHECK_PENDING' && !bidConfirmationFlag) {
       this.props.history.push({
         pathname: `/ssrc/new-bid-hall/scux-pre-winning-bid/${rfxHeaderId}`,
       });

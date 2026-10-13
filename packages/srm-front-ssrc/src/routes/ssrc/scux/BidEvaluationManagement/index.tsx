@@ -50,23 +50,35 @@ const Index: React.FC<any> = (props) => {
   } = querystring.parse(search?.substr(1));
 
   const [activeKey, setActiveKey] = useState('toBeEvaluated');
-  const searchRef = useRef<SearchRefType>(null);
+
+  // 通威二开 - 用 ref 保存最新的路由参数，保证 FilterBar 挂载回调里取到的不是过期闭包
+  const routeParamsRef = useRef({ positionTab, sourceNum });
+  routeParamsRef.current = { positionTab, sourceNum };
+
+  /**
+   * 通威二开 - 路由带 sourceNum 时，把单号带入【招标编号，项目名称】查询框
+   * 按页签写入：三个页签各有一个 FilterBar，共用一个 ref 会写到非目标页签上
+   */
+  const handleFilterBarRef = (tabKey: string, ref: SearchRefType | null) => {
+    const { positionTab: targetTab, sourceNum: targetNum } = routeParamsRef.current;
+    const { customizeDs } = ref || {};
+    if (!targetNum || !customizeDs || tabKey !== (targetTab || 'toBeEvaluated')) return;
+    const value = String(targetNum)
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+    const record = customizeDs.current || customizeDs.create({});
+    // numOrTitle 是多值字段（值为数组），字段的 transformRequest 会执行 value.join(',')，
+    // 传入字符串会导致取数报错、查询中断，必须统一转成数组
+    record.set('numOrTitle', value);
+  };
 
   useEffect(() => {
     if (positionTab) {
       // @ts-ignore
       setActiveKey(positionTab);
     };
-    if (sourceNum && searchRef && searchRef.current && searchRef.current.customizeDs) {
-      if (!searchRef.current.customizeDs?.current) {
-        searchRef.current.customizeDs.create({});
-        // @ts-ignore
-        searchRef.current.customizeDs.current.init({ numOrTitle: [sourceNum] })
-      } else {
-        searchRef.current.customizeDs.current.set('numOrTitle', sourceNum);
-      };
-    }
-  }, [positionTab, sourceNum, searchRef?.current?.customizeDs]);
+  }, [positionTab]);
 
   // 评标
   const handleEvaluate = (record) => {
@@ -305,11 +317,7 @@ const Index: React.FC<any> = (props) => {
           border={false}
           cacheState
           style={{ maxHeight: 'calc(100% - 22px)' }}
-          filterBarRef={(ref) => {
-            if (ref) {
-              (searchRef as React.MutableRefObject<SearchRefType | null>).current = ref;
-            }
-          }}
+          filterBarRef={(ref) => handleFilterBarRef(tabKey, ref)}
           filterBarConfig={{
             cacheKey: `cux_${tabKey}_bidEvaluationManagement_list`,
             autoQuery: true,
@@ -317,11 +325,12 @@ const Index: React.FC<any> = (props) => {
               render: (ds) => {
                 if (ds && (!ds.getField('numOrTitle') || !ds.getField('numOrTitle')?.get('transformRequest'))) {
                   ds.addField('numOrTitle', {
+                    // 兼容非数组值：直接调用 value.join 会抛错并中断查询
                     transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
+                      if (!value) {
+                        return '';
                       }
-                      return '';
+                      return Array.isArray(value) ? value.join(',') : String(value);
                     },
                   });
                 };

@@ -29,7 +29,7 @@ const BaseInfo: React.FC<any> = () => {
       <Output name="sourceProjectNum" />
       <Output name="bidDirectorName" renderer={({ record }) => record?.get('createdByName') || '-'} />
       <Output name="catelogNum" />
-      <Output name="createdByName" />
+      <Output name="catalogListUserName" />
       <Output name="creationDate" />
       <Output name="catalogStatusMeaning" />
       {/* {editorFlag ? (

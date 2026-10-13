@@ -194,8 +194,7 @@ const Index: React.FC<any> = (props) => {
         name: 'bidDirectorName',
       },
       {
-        name: 'createdByName',
-        header: '清单负责人',
+        name: 'catalogListUserName',
       },
       {
         name: 'createdByName',

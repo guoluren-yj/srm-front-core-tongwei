@@ -1583,9 +1583,16 @@ class DetailComponent extends Component {
       ? intl.get('ssrc.common.title.BID').d('招投标')
       : intl.get('ssrc.common.title.RFX').d('询报价');
 
-    const sourceHeaderTitle = `${intl
-      .get('ssrc.quoController.view.message.panel.commonRFxControl', { controllerTitle })
-      .d('{controllerTitle}控制')}-${header?.rfxHeaderBaseInfoAdjustDTO?.rfxNum || ''}`;
+    // 通威二开 - 招标详情页头部描述由「招投标控制」改为「过程控制」
+    const processControlTitle = this.bidFlag
+      ? intl.get('ssrc.quoController.view.message.panel.commonProcessControl').d('过程控制')
+      : intl
+          .get('ssrc.quoController.view.message.panel.commonRFxControl', { controllerTitle })
+          .d('{controllerTitle}控制');
+
+    const sourceHeaderTitle = `${processControlTitle}-${
+      header?.rfxHeaderBaseInfoAdjustDTO?.rfxNum || ''
+    }`;
 
     const headerTitle = remote
       ? remote.process('SSRC_QUOTATION_CONTROLLER_UPDATE_PROCESS_HEADER_TITLE', sourceHeaderTitle, {

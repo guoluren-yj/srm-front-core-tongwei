@@ -39,8 +39,8 @@ const baseInfoDS = ({ bidCatalogId }): DataSetProps => {
         label: intl.get(`scux.tenderListWorkbench.model.twnf.detail.tenderListNum`).d('招标清单编码'),
       },
       {
-        name: 'createdByName',
-        label: intl.get('scux.bidPlanWorkBench.model.twnf.createdByName').d('清单负责人'),
+        name: 'catalogListUserName',
+        label: intl.get('scux.bidPlanWorkBench.model.twnf.catalogListUserName').d('清单负责人'),
       },
       {
         name: 'creationDate',

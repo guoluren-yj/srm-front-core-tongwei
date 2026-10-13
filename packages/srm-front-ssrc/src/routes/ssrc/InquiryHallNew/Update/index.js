@@ -7525,7 +7525,7 @@ class UpdateComponent extends Component {
                     <h3 id="rfxItemLines" className={styles['rfx-card-item-title']}>
                       {this.bidFlag ? intl
                         .get('ssrc.inquiryHall.view.inquiryHall.bidding')
-                        .d(`招标清单`) : intl
+                        .d(`清单`) : intl
                           .get('ssrc.inquiryHall.view.inquiryHall.rfxItemLinesRFX', {
                             omitName: this.omitName,
                           })
@@ -7568,7 +7568,7 @@ class UpdateComponent extends Component {
                   </h3>
                   {this.renderRfxDemand(RfxDemandProps)}
                 </Content>
-                {this.bidFlag && rfxId && rfxId !== 'null' ? (
+                {this.bidFlag && rfxId && rfxId !== 'null' && this.RfxInfoDS?.current?.get('sourceFrom') === 'PROJECT' ? (
                   <Content className={styles['custom-page-content']}>
                     {/* 通威二开：非通用变量维护默认折叠，标题样式与其它区块保持一致；
                         折叠时仅隐藏列表展示，表格保持挂载、DS 已查询，不影响保存/发布读取该列表数据 */}
