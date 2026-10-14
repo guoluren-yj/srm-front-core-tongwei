@@ -552,7 +552,9 @@ const Index = ({
 
   const handleAdd = async () => {
     const currentDs = getCurrentDs(tabActiveKey);
-    const isSplitFlag = currentDs.selected?.some(record => +record?.get('attributeVarchar9') === 1 && !record?.get('attributeLongtext17')); // 被拆分行，不可操作
+    const isSplitFlag = currentDs.selected?.some(
+      (record) => +record?.get('attributeVarchar9') === 1 && !record?.get('attributeLongtext17')
+    ); // 被拆分行，不可操作
     if (isSplitFlag) {
       notification.warning({
         message: '需求已拆分，不能进行其他操作！',
@@ -1068,7 +1070,7 @@ const Index = ({
   };
 
   const getCurrentDs = (tabActive) => {
-    console.log(tabActive)
+    console.log(tabActive);
     let currentDs = approvedDs;
     if (tabActive) {
       switch (tabActive) {
@@ -1390,11 +1392,11 @@ const Index = ({
               ),
               title: intl.get('hzero.common.message.confirm.title').d('提示'),
               onOk: () => {
-                handleQuoteAppovalModal(prLineIdList, prLineNumList);
+                handleQuoteAppovalModal(prLineIdList, prLineNumList, { selectedList: data });
               },
             });
           } else {
-            handleQuoteAppovalModal(prLineIdList, prLineNumList);
+            handleQuoteAppovalModal(prLineIdList, prLineNumList, { selectedList: data });
           }
         }
       })
@@ -1404,8 +1406,9 @@ const Index = ({
   };
 
   // 新建RFX
-  const handleQuoteAppovalModal = async (prLineIdList, prLineNumList) => {
-    const ds = new DataSet(templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' }));
+  const handleQuoteAppovalModal = async (prLineIdList, prLineNumList, { selectedList } = {}) => {
+    const firstCategory = selectedList[0].attributeVarchar28;
+    const ds = new DataSet(templateModalDs({ config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' }, { firstCategory }));
     if (remote) {
       await remote.event.fireEvent('beforeCreateTemplate', { templateDs: ds, tabkey: 'allLine' });
     }
@@ -2031,7 +2034,9 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
       );
     }
 
-    const isSplitFlag = currentDs.selected?.some(record => +record?.get('attributeVarchar9') === 1 && !record?.get('attributeLongtext17')); // 被拆分行，不可操作
+    const isSplitFlag = currentDs.selected?.some(
+      (record) => +record?.get('attributeVarchar9') === 1 && !record?.get('attributeLongtext17')
+    ); // 被拆分行，不可操作
 
     if (['approved', 'assigned', 'suspend', 'all'].includes(tabActiveKey)) {
       let selectFlag = 0;
@@ -2397,7 +2402,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
             loading: loadings?.createOrderLoading,
             disabled:
               !currentDs.selected.length ||
-              currentDs.selected.some((ele) => !ele.get('prTransferredOrderFlag')) || isSplitFlag,
+              currentDs.selected.some((ele) => !ele.get('prTransferredOrderFlag')) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2425,7 +2431,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
               !currentDs.selected.length ||
               !selectedTypeCodeList.every(
                 (ele) => ele.includes('TRANSFERABLE_RFX') || ele.includes('TRANSFERABLE_SOURCE')
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2454,7 +2461,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
               !selectedTypeCodeList.every(
                 (ele) =>
                   ele.includes('TRANSFERABLE_SOURCE_PROJECT') || ele.includes('TRANSFERABLE_SOURCE')
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2482,7 +2490,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
               !currentDs.selected.length ||
               !selectedTypeCodeList.every(
                 (ele) => ele.includes('TRANSFERABLE_BID') || ele.includes('TRANSFERABLE_SOURCE')
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2513,7 +2522,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
                   ele.includes('TRANSFERABLE_CONTRACT_FRAMEWORK')
                 ) ||
                 selectedTypeCodeList.every((ele) => ele.includes('TRANSFERABLE_CONTRACT_SIMPLE'))
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2533,7 +2543,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
             onClick: () => handleCreateSiecPro(),
             disabled:
               !currentDs.selected.length ||
-              !selectedTypeCodeList.every((ele) => ele.includes('TRANSFERABLE_PROJECT')) || isSplitFlag,
+              !selectedTypeCodeList.every((ele) => ele.includes('TRANSFERABLE_PROJECT')) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2563,7 +2574,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
               !currentDs.selected.length ||
               !selectedTypeCodeList.every(
                 (ele) => ele.includes('TRANSFERABLE_BID_NEW') || ele.includes('TRANSFERABLE_SOURCE')
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             style: {
               display: 'block',
               border: 'none',
@@ -2631,7 +2643,8 @@ https://gateway.dev.isrm.going-link.com/ssrc/v1/30/share/application/project/exp
                   ele.get('occupiedQuantity') ||
                   ele.get('orderOccupiedQuantity') ||
                   ele.get('sourceOccupiedQuantity')
-              ) || isSplitFlag,
+              ) ||
+              isSplitFlag,
             // permissionList: [
             //   {
             //     code: `hzero.srm.requirement.prm.pr-execution.ps.returntoassign`,
