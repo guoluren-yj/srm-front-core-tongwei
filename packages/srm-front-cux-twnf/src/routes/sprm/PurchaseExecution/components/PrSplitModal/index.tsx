@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from 'react';
-import { Button, DataSet, Table } from 'choerodon-ui/pro';
+import { Button, DataSet, Table, Modal } from 'choerodon-ui/pro';
 import formatterCollections from 'hzero-front/lib/utils/intl/formatterCollections';
 import notification from 'hzero-front/lib/utils/notification';
 import { getResponse } from 'hzero-front/lib/utils/utils';
@@ -8,7 +8,9 @@ import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { math } from 'choerodon-ui/dataset';
 
-import { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi } from './initialDs';
+import { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi, deleteSplitApi } from './initialDs';
+
+const EditableStatus = ['UNASSIGNED', 'ASSIGNED']; // 待分配、已分配
 
 const PrSplitModal = props => {
   const { modal, pageData } = props;
@@ -22,11 +24,28 @@ const PrSplitModal = props => {
 
   const initData = async () => {
     const data = await fetchDataApi({ prLineId: outerRecord.get('prLineId') })
-    if (getResponse(data)) {
-      tableDs.loadData([{ ...outerRecord.toData(), ...data }])
+    const res = getResponse(data);
+    if (res) {
+      const { splitPrLineList = [], ...rest } = res || {};
+      // 首行为勾选的主行，splitPrLineList 为历史拆分行
+      tableDs.loadData([
+        { ...outerRecord.toData(), ...rest, isMainLine: true },
+        ...(splitPrLineList || []),
+      ])
     } else {
       modal.close();
     }
+  };
+
+  // 主行：只读，仅提供「拆分」操作
+  const isMainLine = record => !!record.get('isMainLine');
+
+  // 拆分行：待分配/已分配允许编辑和删除；新增未保存行始终可操作
+  const canOperate = record => {
+    if (isMainLine(record)) return false;
+    const status = record.get('executionStatusCode');
+    if (status) return EditableStatus.includes(status);
+    return !record.get('prLineId');
   };
 
   const updateModal = () => {
@@ -84,7 +103,23 @@ const PrSplitModal = props => {
   };
 
   const handleDelete = record => {
-    tableDs.delete([record]);
+    Modal.confirm({
+      title: intl.get('hzero.common.message.confirm').d('提示'),
+      children: intl.get(`${intlPrompt}.message.deleteConfirm`).d('确认删除该行？'),
+      onOk: async () => {
+        // 新增未保存的拆分行，直接本地移除
+        if (!record.get('prLineId')) {
+          tableDs.remove([record], true);
+          return;
+        }
+        const response = await deleteSplitApi({ ...(record.toJSONData() || {}) });
+        if (getResponse(response)) {
+          notification.success({});
+          // 删除成功后物理移除该行，不重新查询，避免重置未保存的修改
+          tableDs.remove([record], true);
+        }
+      },
+    });
   };
 
   const columns = useMemo(
@@ -95,12 +130,12 @@ const PrSplitModal = props => {
           renderer: ({ record }) => {
             return (
               <>
-                {!!record.get('prLineId') && (
+                {isMainLine(record) && (
                   <Button funcType={FuncType.link} onClick={() => handleSplit(record)}>
                     {intl.get(`${intlPrompt}.view.split`).d('拆分')}
                   </Button>
                 )}
-                {!record.get('prLineId') && (
+                {canOperate(record) && (
                   <Button funcType={FuncType.link} onClick={() => handleDelete(record)}>
                     {intl.get(`${intlPrompt}.view.delete`).d('删除')}
                   </Button>
@@ -111,20 +146,21 @@ const PrSplitModal = props => {
         },
         { name: 'attributeLongtext16', renderer: ({ record, value }) => <span>{!record.get('prLineId') ? value : record.get('lineNum')}</span> },
         { name: 'attributeVarchar9' },
+        { name: 'executionStatusMeaning', renderer: ({ record, value }) => (isMainLine(record) ? value : null) },
         // { name: 'prLineStatusCodeMeaning' },
-        { name: 'itemCodeLov', editor: (record) => !record.get('prLineId') },
+        { name: 'itemCodeLov', editor: (record) => canOperate(record) },
         { name: 'itemName' },
-        { name: 'categoryLov', editor: (record) => !record.get('prLineId') },
-        { name: 'uomNameLov', editor: (record) => !record.get('prLineId') },
-        { name: 'attributeVarchar17Lov', editor: (record) => !record.get('prLineId') },
-        { name: 'quantity', editor: (record) => !record.get('prLineId') },
-        { name: 'taxIncludedUnitPrice', editor: (record) => !record.get('prLineId') },
+        { name: 'categoryLov', editor: (record) => canOperate(record) },
+        { name: 'uomNameLov', editor: (record) => canOperate(record) },
+        { name: 'attributeVarchar17Lov', editor: (record) => canOperate(record) },
+        { name: 'quantity', editor: (record) => canOperate(record) },
+        { name: 'taxIncludedUnitPrice', editor: (record) => canOperate(record) },
         { name: 'taxIncludedLineAmount' },
         // { name: 'localCurrencyTaxUnit' },
         // { name: 'localCurrencyTaxSum' },
         // { name: 'localCurrencyNoTaxUnit' },
         // { name: 'localCurrencyNoTaxSum' },
-        { name: 'taxRateLov', editor: (record) => !record.get('prLineId') },
+        { name: 'taxRateLov', editor: (record) => canOperate(record) },
         // { name: 'attributeVarchar4' },
         { name: 'maxAmount' },
         { name: 'attributeVarchar20' },
@@ -133,8 +169,8 @@ const PrSplitModal = props => {
         { name: 'attributeVarchar14' },
         { name: 'attributeVarchar18' },
         { name: 'attributeVarchar28' },
-        { name: 'itemModel', editor: (record) => !record.get('prLineId') },
-        { name: 'itemSpecs', editor: (record) => !record.get('prLineId') },
+        { name: 'itemModel', editor: (record) => canOperate(record) },
+        { name: 'itemSpecs', editor: (record) => canOperate(record) },
         { name: 'attributeVarchar15' },
         { name: 'attributeVarchar16' },
         // { name: 'attributeVarchar30' },

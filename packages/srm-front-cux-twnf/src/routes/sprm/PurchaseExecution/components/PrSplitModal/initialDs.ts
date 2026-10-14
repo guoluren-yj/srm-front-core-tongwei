@@ -32,6 +32,21 @@ const tableDataSet = (): DataSetProps => {
         lookupCode: 'HPFM.FLAG.NEW',
       },
       {
+        name: 'executionStatusCode',
+        type: FieldType.string,
+      },
+      {
+        name: 'executionStatusMeaning',
+        type: FieldType.string,
+        label: intl.get(`${intlPrompt}.item.executionStatusMeaning`).d('执行状态'),
+      },
+      {
+        // 前端标记：当前行是否为勾选的主需求行，不参与提交
+        name: 'isMainLine',
+        type: FieldType.boolean,
+        ignore: FieldIgnore.always,
+      },
+      {
         name: 'prLineStatusCodeMeaning',
         type: FieldType.string,
         label: intl.get(`${intlPrompt}.item.prLineStatusCodeMeaning`).d('行状态'),
@@ -479,4 +494,15 @@ function fetchDataApi(query) {
   );
 }
 
-export { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi };
+// 删除已保存的拆分行
+function deleteSplitApi(body) {
+  return request(
+    `${SRM_MARMOT}/v1/${organizationId}/marmot-api/gbjgDDZMoBOJBu5gnllCjeyap4zvTsLGsQQrIpRib5z4`,
+    {
+      method: 'POST',
+      body,
+    }
+  );
+}
+
+export { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi, deleteSplitApi };
