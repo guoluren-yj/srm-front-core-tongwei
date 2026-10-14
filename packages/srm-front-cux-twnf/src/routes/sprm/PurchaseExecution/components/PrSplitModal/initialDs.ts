@@ -2,6 +2,7 @@ import intl from 'hzero-front/lib/utils/intl';
 import { getCurrentOrganizationId } from 'hzero-front/lib/utils/utils';
 import { SRM_MARMOT } from 'srm-front-boot/lib/utils/config';
 import { DataSetProps } from 'choerodon-ui/pro/lib/data-set/DataSet';
+import Record from 'choerodon-ui/pro/lib/data-set/Record';
 import { FieldType, DataToJSON, FieldIgnore } from 'choerodon-ui/pro/lib/data-set/enum';
 import request from 'hzero-front/lib/utils/request';
 import { math } from 'choerodon-ui/dataset';
@@ -172,6 +173,26 @@ const tableDataSet = (): DataSetProps => {
         name: 'taxIncludedLineAmount',
         type: FieldType.number,
         label: intl.get(`${intlPrompt}.item.taxIncludedLineAmount`).d('含税金额'),
+        validator: (value, _name, record) => {
+          // 主行只读、且承载的是总金额，不参与校验，避免出现无法修正的报错
+          if (!record || (record as Record).get('isMainLine')) {
+            return true;
+          }
+          const curRecord = record as Record;
+          const quantity = curRecord.get('quantity');
+          const unitPrice = curRecord.get('taxIncludedUnitPrice');
+          // 数量或单价未填时不校验，交由各自的必填规则提示
+          if (quantity === null || quantity === undefined || unitPrice === null || unitPrice === undefined) {
+            return true;
+          }
+          const expectAmount = math.toFixed(math.multipliedBy(quantity, unitPrice), 2);
+          if (math.eq(value || 0, expectAmount)) {
+            return true;
+          }
+          return intl
+            .get(`${intlPrompt}.validation.amountNotMatch`)
+            .d('含税金额必须等于需求数量 × 含税单价');
+        },
       },
       {
         name: 'localCurrencyTaxUnit',

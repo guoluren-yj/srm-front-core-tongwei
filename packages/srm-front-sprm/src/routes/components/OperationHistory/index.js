@@ -56,9 +56,16 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
             } else if (['APPROVED', 'REJECTED'].includes(ele.processTypeCode)) {
               batchNoArray.push(ele.actionId);
             } else if (
-              ['ASSIGNED', 'CANCELING', 'CANCEL', 'CLOSEING', 'CLOSEDING', 'CLOSED'].includes(
-                ele.processTypeCode
-              )
+              [
+                'ASSIGNED',
+                'CANCELING',
+                'CANCEL',
+                'CLOSEING',
+                'CLOSEDING',
+                'CLOSED',
+                // 拆分记录 batchNo 为空，用操作时间归并：同一时刻的拆分合并成一条主行，明细作为子行展开
+                'SPLIT',
+              ].includes(ele.processTypeCode)
             ) {
               batchNoArray.push(ele.creationDate);
             } else {
@@ -134,6 +141,7 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
                 'NC_BACK',
                 'ERP_CLOSED_REVOKE',
                 'CLOSEDING',
+                'SPLIT',
               ].includes(ele[0].processTypeCode)
             ) {
               const { processTypeCode, processTypeCodeMeaning } = ele[0];
@@ -220,9 +228,16 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
             } else if (['APPROVED', 'REJECTED'].includes(ele.processTypeCode)) {
               batchNoArray.push(ele.actionId);
             } else if (
-              ['ASSIGNED', 'CANCELING', 'CANCEL', 'CLOSEING', 'CLOSEDING', 'CLOSED'].includes(
-                ele.processTypeCode
-              )
+              [
+                'ASSIGNED',
+                'CANCELING',
+                'CANCEL',
+                'CLOSEING',
+                'CLOSEDING',
+                'CLOSED',
+                // 拆分记录 batchNo 为空，用操作时间归并：同一时刻的拆分合并成一条主行，明细作为子行展开
+                'SPLIT',
+              ].includes(ele.processTypeCode)
             ) {
               batchNoArray.push(ele.creationDate);
             } else {
@@ -298,6 +313,7 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
                 'NC_BACK',
                 'ERP_CLOSED_REVOKE',
                 'CLOSEDING',
+                'SPLIT',
               ].includes(ele[0].processTypeCode)
             ) {
               const { processTypeCode, processTypeCodeMeaning } = ele[0];
@@ -507,6 +523,12 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
           icon: 'auto_complete',
         };
         break;
+      case ['SPLIT'].includes(type):
+        currentProcessData = {
+          processTypeCodeMeaning: intl.get('sprm.common.actions.split').d('拆分了'),
+          icon: 'call_split',
+        };
+        break;
       default:
         currentProcessData = {
           icon: 'person_pin_circle',
@@ -576,6 +598,8 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
       }
     }, 0);
   });
+
+  console.log("1111111111111111")
 
   const renderOperateHistory = () => {
     return (
@@ -780,6 +804,21 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
                                     .d(`分配给${ele.multiExecutorName}`)}
                                 </span>
                               )}
+                            </div>
+                          );
+                        } else if (ele.processTypeCode === 'SPLIT') {
+                          // 拆分明细：姓名 行【行号】拆分了 含税金额
+                          return (
+                            <div className="date">
+                              <span className="status gray">
+                                {ele.processUserName || externalProcessUserName}
+                              </span>
+                              <span className="gray">
+                                {`${intl.get('sprm.common.view.line').d('行')}【${
+                                  ele.displayLineNum
+                                }】${intl.get('sprm.common.actions.split').d('拆分了')}`}
+                              </span>
+                              <span className="status gray">{ele.newValue}</span>
                             </div>
                           );
                         } else if (typeof handleRenderCuxOperation === 'function') {

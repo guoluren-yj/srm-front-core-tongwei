@@ -61,6 +61,17 @@ const PrSplitModal = props => {
   const handleSave = async () => {
     const flag = await tableDs.validate();
     if (!flag) {
+      // 表格内已有红字提示，这里再汇总弹一条，避免用户漏看
+      const errorMessages = tableDs
+        .getValidationErrors()
+        .flatMap(({ errors: fieldErrors }) =>
+          fieldErrors.flatMap(({ errors }) => errors.map(error => error.validationMessage))
+        )
+        .filter(Boolean);
+      const message = Array.from(new Set(errorMessages)).join('；');
+      notification.error({
+        message: message || intl.get(`${intlPrompt}.message.validateFailed`).d('数据校验未通过，请检查后重试'),
+      });
       return false;
     }
     const formData = tableDs.toData();
@@ -98,6 +109,9 @@ const PrSplitModal = props => {
       attributeVarchar4: displayLineNum,
       lineNum: srmLineNum,
       displayLineNum: srmLineNum,
+      // 新增拆分行含税金额默认 = 主行含税金额 - 所有拆分行含税金额（即剩余可拆金额），
+      // 覆盖 toJSONData 从主行带出的原值；后续修改数量/单价时仍会按 数量 × 单价 重算
+      taxIncludedLineAmount: Number(remainAmount),
     };
     tableDs.create(data, tableDs.length);
   };
@@ -130,7 +144,7 @@ const PrSplitModal = props => {
           renderer: ({ record }) => {
             return (
               <>
-                {isMainLine(record) && (
+                {isMainLine(record) && EditableStatus.includes(record.get('executionStatusCode')) && (
                   <Button funcType={FuncType.link} onClick={() => handleSplit(record)}>
                     {intl.get(`${intlPrompt}.view.split`).d('拆分')}
                   </Button>

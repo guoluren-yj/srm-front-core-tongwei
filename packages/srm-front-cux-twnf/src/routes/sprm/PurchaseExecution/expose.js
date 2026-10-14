@@ -151,6 +151,7 @@ const handlePrSplit = (currentDs) => async () => {
 
 const getCuxHeaderButtons = (props) => {
   const { currentDs, tabActiveKey } = props || {};
+  console.log("Cux Header Buttons:", tabActiveKey, !['approved', 'assigned', 'all'].includes(tabActiveKey));
   const cuxCorrectionBtn = {
     name: 'cuxCorrection',
     child: '纠偏',
