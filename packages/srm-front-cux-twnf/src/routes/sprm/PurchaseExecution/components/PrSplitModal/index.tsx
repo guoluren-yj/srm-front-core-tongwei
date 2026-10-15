@@ -160,7 +160,7 @@ const PrSplitModal = props => {
         },
         { name: 'attributeLongtext16', renderer: ({ record, value }) => <span>{!record.get('prLineId') ? value : record.get('lineNum')}</span> },
         { name: 'attributeVarchar9' },
-        { name: 'executionStatusMeaning', renderer: ({ record, value }) => (isMainLine(record) ? value : null) },
+        { name: 'executionStatusMeaning'},
         // { name: 'prLineStatusCodeMeaning' },
         { name: 'itemCodeLov', editor: (record) => canOperate(record) },
         { name: 'itemName' },
