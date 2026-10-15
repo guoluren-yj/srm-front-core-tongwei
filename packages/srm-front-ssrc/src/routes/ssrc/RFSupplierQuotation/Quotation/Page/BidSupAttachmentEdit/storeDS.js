@@ -106,7 +106,10 @@ const attachmentDS = () => ({
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.voidAttachment')
         .d('作废附件'),
-      lookupCode: 'SCUX.TWNF_EC_STATUS',
+      type: 'attachment',
+      dynamicProps: {
+        readOnly: true,
+      },
     },
     {
       name: 'attributeLongtext17',
