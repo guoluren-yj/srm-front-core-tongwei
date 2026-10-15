@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, Modal, DataSet, useDataSet } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
@@ -116,6 +116,20 @@ const Index: React.FC<any> = (props) => {
       },
     });
   };
+
+  // URL 上带 cuxModalVisble=1 时，进入页面默认打开「引用单据创建」弹框
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    // 供应商端没有新建入口，不自动弹出
+    if (autoOpenedRef.current || supplierFlag) return;
+    const { cuxModalVisble } = querystring.parse((location.search || '').replace(/^\?/, ''));
+    if (cuxModalVisble !== '1') return;
+    // 用 ref 兜底，避免 StrictMode 下 effect 重复执行弹出两个弹框
+    autoOpenedRef.current = true;
+    handleAddClearTender();
+    // 只在进入页面时判断一次，后续 location 变化不再触发
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const columns: ColumnProps[] = useMemo(() => {
     return [

@@ -63,11 +63,12 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
                 'CLOSEING',
                 'CLOSEDING',
                 'CLOSED',
-                // 拆分记录 batchNo 为空，用操作时间归并：同一时刻的拆分合并成一条主行，明细作为子行展开
+                // 拆分记录 batchNo 为空，用「操作类型 + 操作时间」归并：
+                // 同一时刻的拆分合并成一条主行，明细作为子行展开；带上类型是为了避免和同秒的其他操作并到一起
                 'SPLIT',
               ].includes(ele.processTypeCode)
             ) {
-              batchNoArray.push(ele.creationDate);
+              batchNoArray.push(`${ele.processTypeCode}_${ele.creationDate}`);
             } else {
               batchNoArray.push(ele.actionId);
             }
@@ -78,7 +79,10 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
           batchNoArray.forEach(item => {
             currentItem.push(
               res.filter(
-                ele => ele.actionId === item || ele.batchNo === item || ele.creationDate === item
+                ele =>
+                  ele.actionId === item ||
+                  ele.batchNo === item ||
+                  `${ele.processTypeCode}_${ele.creationDate}` === item
               )
             );
           });
@@ -235,11 +239,12 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
                 'CLOSEING',
                 'CLOSEDING',
                 'CLOSED',
-                // 拆分记录 batchNo 为空，用操作时间归并：同一时刻的拆分合并成一条主行，明细作为子行展开
+                // 拆分记录 batchNo 为空，用「操作类型 + 操作时间」归并：
+                // 同一时刻的拆分合并成一条主行，明细作为子行展开；带上类型是为了避免和同秒的其他操作并到一起
                 'SPLIT',
               ].includes(ele.processTypeCode)
             ) {
-              batchNoArray.push(ele.creationDate);
+              batchNoArray.push(`${ele.processTypeCode}_${ele.creationDate}`);
             } else {
               batchNoArray.push(ele.actionId);
             }
@@ -250,7 +255,10 @@ const Index = ({ prHeaderId, handleCuxOperation, handleRenderCuxOperation, modal
           batchNoArray.forEach(item => {
             currentItem.push(
               res.filter(
-                ele => ele.actionId === item || ele.batchNo === item || ele.creationDate === item
+                ele =>
+                  ele.actionId === item ||
+                  ele.batchNo === item ||
+                  `${ele.processTypeCode}_${ele.creationDate}` === item
               )
             );
           });
