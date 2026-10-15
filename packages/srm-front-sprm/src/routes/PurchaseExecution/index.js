@@ -1792,7 +1792,8 @@ const Index = ({
   const handleCreateNewBidApproval = async (prLineIdList, prNumList) => {
     const ds = new DataSet(
       templateModalDs(
-        { config: 'RFX', sourceFrom: 'DEMAND_POOL' },
+        // lovCode 与「新招标」专页签保持一致，否则会落到默认值集，和「新建寻源立项单」查出来的模板完全一样、区分不开
+        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' },
         { secondarySourceCategory: 'NEW_BID' }
       )
     );

@@ -107,6 +107,9 @@ const attachmentDS = () => ({
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.voidAttachment')
         .d('作废附件'),
       type: 'attachment',
+      bucketName: PRIVATE_BUCKET,
+      bucketDirectory: 'ssrc-template-requirement',
+      ...(ChunkUploadProps || {}),
       dynamicProps: {
         readOnly: true,
       },
