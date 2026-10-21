@@ -16,6 +16,8 @@ import MultipleTextSplitInput from 'srm-front-boot/lib/components/MultipleTextSp
 import querystring from 'querystring';
 import { downloadFileByAxios } from 'srm-front-boot/lib/services/MarmotDownloadButtonServices';
 
+import { getTableFixSelfAdaptStyle } from '@/utils/utils';
+
 import { tableDataSet } from './storeDs';
 import { timeFilerProcess, handleDealQueryData } from '../utils/fun';
 
@@ -27,6 +29,11 @@ const Index: React.FC<any> = (props) => {
     history,
     location = {},
   } = props;
+
+  // 从详情页返回时 location.key 变化，表格 key 随之变化强制重新挂载，
+  // 解决 cacheState 下 autoHeight 不重算导致表格高度异常的问题（同招标清单工作台）
+  const tableKey = location?.key || 'bidOpeningAnomalyManagement';
+
   // 供应商标志
   const tableDs = useDataSet(() => tableDataSet(), []);
 
@@ -38,7 +45,7 @@ const Index: React.FC<any> = (props) => {
       wait: 500,
     }
     return [
-      ['NEW'].includes(abnormalStatus) && (
+      ['NEW', 'REFUSE'].includes(abnormalStatus) && (
         <Button {...commonButtonsProps} onClick={() => handleJumpAbnormal({ record, type: 'UPDATE' })}>
           {intl.get('hzero.common.button.edit').d('编辑')}
         </Button>
@@ -163,42 +170,46 @@ const Index: React.FC<any> = (props) => {
         </Button> */}
       </Header>
       <Content>
-        <FilterBarTable
-          columns={columns}
-          dataSet={tableDs}
-          border={false}
-          cacheState
-          filterBarConfig={{
-            cacheKey: 'bidOpeningAnomalyManagementList',
-            autoQuery: true,
-            left: {
-              render: (ds) => {
-                if (ds && (!ds.getField('multiNumOrTitle') || !ds.getField('multiNumOrTitle')?.get('transformRequest'))) {
-                  ds.addField('multiNumOrTitle', {
-                    transformRequest: (value) => {
-                      if (value) {
-                        return value.join(',');
-                      }
-                      return '';
-                    },
-                  });
-                };
-                return (
-                  <MultipleTextSplitInput
-                    name="multiNumOrTitle"
-                    dataSet={ds}
-                    placeholder={intl
-                      .get(`${prefix}.view.placeholder.bidNumAndNameAndSupplierName`)
-                      .d('招标单号，招标标题，异常处理号')}
-                    style={{ width: '3rem' }}
-                  />
-                );
+        <div style={getTableFixSelfAdaptStyle(true)?.wrapperCalcHeight}>
+          <FilterBarTable
+            key={tableKey}
+            columns={columns}
+            dataSet={tableDs}
+            border={false}
+            cacheState
+            filterBarConfig={{
+              cacheKey: 'bidOpeningAnomalyManagementList',
+              autoQuery: true,
+              left: {
+                render: (ds) => {
+                  if (ds && (!ds.getField('multiNumOrTitle') || !ds.getField('multiNumOrTitle')?.get('transformRequest'))) {
+                    ds.addField('multiNumOrTitle', {
+                      transformRequest: (value) => {
+                        if (value) {
+                          return value.join(',');
+                        }
+                        return '';
+                      },
+                    });
+                  };
+                  return (
+                    <MultipleTextSplitInput
+                      name="multiNumOrTitle"
+                      dataSet={ds}
+                      placeholder={intl
+                        .get(`${prefix}.view.placeholder.bidNumAndNameAndSupplierName`)
+                        .d('招标单号，招标标题，异常处理号')}
+                      style={{ width: '3rem' }}
+                    />
+                  );
+                },
               },
-            },
-          }}
-          customizable
-          customizedCode="SCUX_TWNF_BID_OPENING_ANOMALY_MANAGEMENT_WORK_BENCH_LIST"
-        />
+            }}
+            customizable
+            customizedCode="SCUX_TWNF_BID_OPENING_ANOMALY_MANAGEMENT_WORK_BENCH_LIST"
+            style={getTableFixSelfAdaptStyle(true)?.searchBarTableMaxHeight}
+          />
+        </div>
       </Content>
     </>
   );

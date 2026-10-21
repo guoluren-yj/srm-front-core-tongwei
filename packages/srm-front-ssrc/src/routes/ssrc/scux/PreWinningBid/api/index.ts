@@ -23,3 +23,14 @@ export async function operatePreWinningBid(params: any) {
     }
   );
 }
+
+// 通威二开 - 标后议价确认
+export async function confirmPostBidBargain(params: any) {
+  return request(
+    `${SRM_MARMOT}/v1/${getCurrentOrganizationId()}/marmot-api/FQpagiam4CtqfLWibs8MVgJHrPiceDu0TjP7EibReTdTITU`,
+    {
+      method: 'POST',
+      body: params,
+    }
+  );
+}

@@ -59,6 +59,40 @@ function getAttributeHeaderFields() {
       type: FieldType.string,
       disabled: true,
     },
+    // 通威二开 - 标后议价相关字段
+    {
+      name: 'attributeLongtext27',
+      label: intl.get(`${preWinningBidModel}bidAfterBargainReason`).d('标后议价原因说明'),
+      type: FieldType.string,
+    },
+    {
+      name: 'attributeLongtext28',
+      label: intl.get(`${preWinningBidModel}bidAfterBargainAttachment`).d('标后议价附件'),
+      type: FieldType.attachment,
+      bucketName: PRIVATE_BUCKET,
+      bucketDirectory: 'ssrc-rfx-rfxheader',
+    },
+    {
+      name: 'attributeLongtext24',
+      label: intl.get(`${preWinningBidModel}fbcProcess`).d('FBC流程'),
+      type: FieldType.string,
+    },
+    {
+      // FBC 流程的跳转地址，触发 FBC 后由后端写入，页面不直接展示
+      name: 'attributeLongtext25',
+      label: intl.get(`${preWinningBidModel}fbcProcessUrl`).d('URL'),
+      type: FieldType.string,
+    },
+    {
+      name: 'attributeVarchar27',
+      label: intl.get(`${preWinningBidModel}bargainStatus`).d('议价状态'),
+      lookupCode: 'SCUX.TWNF_BID_BARGAIN_STATUS',
+    },
+    {
+      name: 'attributeVarchar28',
+      label: intl.get(`${preWinningBidModel}fbcApproval`).d('FBC审批'),
+      type: FieldType.string,
+    },
   ];
 }
 
@@ -218,6 +252,11 @@ function getCommonSupplierListFields() {
     {
       name: 'bidDetail', // 虚拟字段，仅用于承接投标详情列的点击跳转，数据由 renderer 渲染
       label: intl.get(`${preWinningBidModel}bidDetail`).d('投标详情'),
+      type: FieldType.string,
+    },
+    {
+      name: 'businessNegotiate', // 虚拟字段，仅用于承接「商务谈判」操作列，数据由 renderer 渲染
+      label: intl.get(`${preWinningBidModel}operation`).d('操作'),
       type: FieldType.string,
     },
     {

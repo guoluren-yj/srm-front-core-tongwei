@@ -87,9 +87,10 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const [pageLoading, setPageLoading] = useState(false);
   const abnormalStatus = useObserver(() => baseInfoDs.current?.get('abnormalStatus'));
 
-  // 页面编辑标识
+  // 页面编辑标识：可编辑状态需与列表页「编辑」按钮的展示条件保持一致
+  // （NEW-新建、REFUSE-审批拒绝），否则从列表带 REFUSE 进入 update 页会被当成只读详情
   const editorFlag = useMemo(() => {
-    const flag = createFlag || (abnormalStatus === 'NEW' && pathname.includes('/scux/ssrc/bid-opening-anomaly-management/update'));
+    const flag = createFlag || (['NEW', 'REFUSE'].includes(abnormalStatus) && pathname.includes('/scux/ssrc/bid-opening-anomaly-management/update'));
     baseInfoDs.setState('editorFlag', flag);
     return flag;
   }, [abnormalStatus, baseInfoDs, createFlag, pathname]);

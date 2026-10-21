@@ -10,6 +10,10 @@ import { math } from 'choerodon-ui/dataset';
 const organizationId = getCurrentOrganizationId(); // 设置当前租户信息
 const intlPrompt = 'scux.prSplitModal'; // 多语言前缀
 
+// 人民币汇率为空时按 1 参与计算（空串/null/undefined 都视为空）
+export const getExchangeRate = (value?: number | string | null) =>
+  value === null || value === undefined || value === '' ? 1 : value;
+
 // 基础信息ds
 const tableDataSet = (): DataSetProps => {
   return {
@@ -69,8 +73,10 @@ const tableDataSet = (): DataSetProps => {
         bind: 'itemCodeLov.itemCode',
       },
       {
+        // 刻意不绑定 itemCodeLov.itemName：绑定后字段值实际存在 itemCodeLov 对象里，
+        // 清空物料编码 LOV 会把整个对象移除，物料名称会被连带清空（update 事件里注释掉的手动清空并不起作用）。
+        // 这里改为普通字段，选物料时在 update 事件里手动赋值，清空 LOV 时保留已填内容。
         name: 'itemName',
-        bind: 'itemCodeLov.itemName',
         type: FieldType.string,
         label: intl.get(`${intlPrompt}.item.itemName`).d('物料名称'),
       },
@@ -193,6 +199,40 @@ const tableDataSet = (): DataSetProps => {
             .get(`${intlPrompt}.validation.amountNotMatch`)
             .d('含税金额必须等于需求数量 × 含税单价');
         },
+      },
+      {
+        // 人民币汇率：取自原始行数据，只读展示
+        name: 'attributeDecimal10',
+        type: FieldType.number,
+        label: intl.get(`${intlPrompt}.item.attributeDecimal10`).d('人民币汇率'),
+      },
+      {
+        // 人民币行金额 = 含税金额 × 人民币汇率，只读
+        // 加载时按原始数据算一遍；数量/单价/汇率变化时在 update 事件里重算
+        name: 'attributeDecimal26',
+        type: FieldType.number,
+        label: intl.get(`${intlPrompt}.item.attributeDecimal26`).d('人民币行金额'),
+        precision: 2,
+        numberGrouping: true,
+        padDecimalZeros: true,
+        transformResponse: (_, data) => {
+          const lineAmount = data?.taxIncludedLineAmount;
+          if (lineAmount === null || lineAmount === undefined) {
+            return undefined;
+          }
+          // 汇率为空时按 1 计算
+          return math.toFixed(
+            math.multipliedBy(lineAmount, getExchangeRate(data?.attributeDecimal10)),
+            2
+          );
+        },
+      },
+      {
+        // 预算单价（含税）= 含税单价，只读
+        name: 'taxIncludedBudgetUnitPrice',
+        type: FieldType.number,
+        label: intl.get(`${intlPrompt}.item.taxIncludedBudgetUnitPrice`).d('预算单价（含税）'),
+        transformResponse: (_, data) => data?.taxIncludedUnitPrice,
       },
       {
         name: 'localCurrencyTaxUnit',
@@ -390,13 +430,14 @@ const tableDataSet = (): DataSetProps => {
     events: {
       update: ({ name, record, value }) => {
         if (name === 'itemCodeLov') {
+          console.log("value", value)
           if (!value) {
-            record.set('categoryLov', null);
-            record.set('uomNameLov', null);
-            record.set('itemModel', null);
-            record.set('itemSpecs', null);
-            record.set('attributeVarchar15', null);
-            record.set('attributeVarchar16', null);
+            // record.set('categoryLov', null);
+            // record.set('uomNameLov', null);
+            // record.set('itemModel', null);
+            // record.set('itemSpecs', null);
+            // record.set('attributeVarchar15', null);
+            // record.set('attributeVarchar16', null);
           } else {
             // 带出 物料品名/单位/型号/材质/品牌/规格/适用设备/物料名称
             const {
@@ -488,6 +529,26 @@ const tableDataSet = (): DataSetProps => {
               ),
               2
             )
+          );
+        }
+        if (name === 'taxIncludedUnitPrice') {
+          // 预算单价（含税）始终等于含税单价
+          record.set('taxIncludedBudgetUnitPrice', value);
+        }
+        if (name === 'quantity' || name === 'taxIncludedUnitPrice' || name === 'attributeDecimal10') {
+          // 人民币行金额 = 含税金额 × 人民币汇率（含税金额已在上一步重算），汇率为空按 1 计算
+          const lineAmount = record.get('taxIncludedLineAmount');
+          record.set(
+            'attributeDecimal26',
+            lineAmount === null || lineAmount === undefined
+              ? undefined
+              : math.toFixed(
+                  math.multipliedBy(
+                    lineAmount,
+                    getExchangeRate(record.get('attributeDecimal10') as number | string | null)
+                  ),
+                  2
+                )
           );
         }
       },

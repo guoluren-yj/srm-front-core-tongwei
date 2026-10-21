@@ -32,6 +32,7 @@ const ApproveRule = ({ scoreFlag = false, bargainFlag = false, targetField = [] 
           'resultApproveType',
           'closeApproveMethod',
           'bargainApproveMethod',
+          'bidAfterBargainApproveMethod',
           'clarifyApproveType',
           'rollbackApproveType',
         ].includes(item.targetField)
@@ -133,6 +134,14 @@ const ApproveRule = ({ scoreFlag = false, bargainFlag = false, targetField = [] 
         hidden={!bargainFlag}
         renderer={({ text }) => {
           return <AddonAfter text={text} name="bargainApproveMethod" />;
+        }}
+      />
+      {/* 通威二开 - 标后议价审批 */}
+      <Output
+        name="bidAfterBargainApproveMethod"
+        showHelp="label"
+        renderer={({ text }) => {
+          return <AddonAfter text={text} name="bidAfterBargainApproveMethod" />;
         }}
       />
       <Output

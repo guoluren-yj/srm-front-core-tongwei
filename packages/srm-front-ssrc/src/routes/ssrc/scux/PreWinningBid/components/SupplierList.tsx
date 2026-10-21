@@ -10,9 +10,12 @@ import { isNil } from 'lodash';
 
 import intl from 'utils/intl';
 import { openTab } from 'utils/menuTab';
+import { getResponse, getCurrentOrganizationId } from 'utils/utils';
 
 import FileTemplateAttachmentCheckPricePage from '@/routes/components/FileTemplateAttachmentCheckPricePage';
 import useIPDetailModal from '@/routes/components/IPDetails';
+import { fetchOpenBargain } from '@/services/inquiryHallService';
+import { getSourceUrlConfig } from '../../BidEvaluationManagement/api';
 
 import EvaluationDetailModal from '../../BidEvaluationManagement/SummaryDetail/components/EvaluationDetailModal';
 import SummaryDetailStoreProvider from '../../BidEvaluationManagement/SummaryDetail/store/StoreProvider';
@@ -32,6 +35,7 @@ const SupplierList: React.FC = observer(() => {
     customizeTable,
     customizeBtnGroup,
     rfxHeaderId,
+    history,
     setStoreData,
   } = useStore();
   const { headerDs, supplierListDs, sectionListDs } = commonDs || {};
@@ -43,6 +47,38 @@ const SupplierList: React.FC = observer(() => {
   // 通威二开 - 是否启用评标：templateScoreType 为 SCORE_NEW / WEIGHT 即启用了评标，
   // 此时才新增「评标明细」tab（内容同评标管理-评标明细供应商表）
   const ratingEnabled = useObserver(() => isRatingEnabled(headerDs?.current?.get('templateScoreType')));
+
+  // 通威二开 - 议价状态（attributeVarchar27）为审批通过（APPROVED）时才展示「商务谈判」操作列
+  const bargainApproved = useObserver(() => headerDs?.current?.get('attributeVarchar27')) === 'APPROVED';
+
+  // 通威二开 - 跳转商务谈判：与评标管理页一致，议价未发起（INITIATE）时先发起议价单再跳转
+  const handleBusinessNegotiate = async (record) => {
+    const quotationHeaderId = record.get('quotationHeaderId');
+    if (!quotationHeaderId || !rfxHeaderId) return;
+    let res;
+    try {
+      res = await getSourceUrlConfig({ sourceHeaderId: rfxHeaderId });
+    } catch (error) {
+      // 跳转地址配置查询失败时不阻塞进入商务谈判，直接按已有信息跳转
+      res = null;
+    }
+    if (getResponse(res) && res.bargainStatus === 'INITIATE') {
+      // bargainOfflineFlag / sourceType 取招标单详情（rfx/simple），与开标组织页同一数据源
+      const { bargainOfflineFlag, sourceType } = res;
+      await fetchOpenBargain({
+        organizationId: getCurrentOrganizationId(),
+        rfxHeaderId,
+        bargainMethod: bargainOfflineFlag === 0 ? 'ONLINE' : sourceType,
+      });
+    }
+    history.push({
+      pathname: `/ssrc/new-bid-hall/new-rfx-bargain/${rfxHeaderId}`,
+      search: querystring.stringify({
+        quotationHeaderId,
+        sourceStatus: 'newInquiryHallToBargain',
+      }),
+    });
+  };
 
   /**
    * 标段描述行跳转到报价详情
@@ -274,7 +310,19 @@ const SupplierList: React.FC = observer(() => {
       minWidth: 150,
       editor: true,
     },
-  ], [directorQuotationDetail, ratingEnabled]);
+    {
+      // 通威二开 - 商务谈判操作列，仅议价状态为审批通过时展示，固定在右侧
+      name: 'businessNegotiate',
+      lock: ColumnLock.right,
+      width: 120,
+      hidden: !bargainApproved,
+      renderer: ({ record }) => (
+        <Button funcType={FuncType.link} wait={1200} onClick={() => handleBusinessNegotiate(record)}>
+          {intl.get('scux.preWinningBid.view.button.businessNegotiate').d('商务谈判')}
+        </Button>
+      ),
+    },
+  ], [directorQuotationDetail, ratingEnabled, bargainApproved]);
 
   // 通威二开 - 标段列表 tab 的列，数据取自接口的 sectionList
   const sectionColumns: ColumnProps[] = useMemo(() => [

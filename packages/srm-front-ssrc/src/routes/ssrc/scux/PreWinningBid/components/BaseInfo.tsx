@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Collapse, Button, Card } from 'choerodon-ui';
-import { Form, Output, TextArea, TextField } from 'choerodon-ui/pro';
+import { Form, Output, TextArea, TextField, Attachment } from 'choerodon-ui/pro';
 import { observer, useObserver } from 'mobx-react-lite';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import querystring from 'querystring';
@@ -21,9 +21,28 @@ const BaseInfo: React.FC = observer(() => {
 
   if (!headerDs) return null;
 
-  const { rfxNum, rfxTitle, rfxHeaderId, attributeLongtext3 } = useObserver(() =>
-    headerDs?.current?.get(['rfxNum', 'rfxTitle', 'rfxHeaderId', 'attributeLongtext3']) || {}
+  const {
+    rfxNum,
+    rfxTitle,
+    rfxHeaderId,
+    attributeLongtext3,
+    attributeLongtext24,
+    attributeLongtext25,
+    attributeBigint2,
+  } = useObserver(() =>
+    headerDs?.current?.get([
+      'rfxNum',
+      'rfxTitle',
+      'rfxHeaderId',
+      'attributeLongtext3',
+      'attributeLongtext24',
+      'attributeLongtext25',
+      'attributeBigint2',
+    ]) || {}
   );
+
+  // 通威二开 - attributeBigint2 为 1 时才展示标后议价相关字段
+  const showBidAfterBargain = Number(attributeBigint2) === 1;
 
   // 查看单据详情
   const handleViewDocDetail = () => {
@@ -47,6 +66,16 @@ const BaseInfo: React.FC = observer(() => {
   const handleViewFbc = () => {
     if (attributeLongtext3) {
       window.open(attributeLongtext3);
+    }
+  };
+
+  // 查看FBC流程：attributeLongtext24 本身是URL时直接打开；
+  // 否则用后端在触发FBC后写入的 attributeLongtext25 作为跳转地址（该字段不单独展示）
+  const handleViewFbcProcess = () => {
+    const isUrl = /^https?:\/\//i.test(attributeLongtext24 || '');
+    const url = isUrl ? attributeLongtext24 : attributeLongtext25;
+    if (url) {
+      window.open(url);
     }
   };
 
@@ -95,6 +124,27 @@ const BaseInfo: React.FC = observer(() => {
             />
             <TextField name="attributeLongtext32" />
             {/* <TextField name="attributeLongtext3" /> */}
+            {/* 通威二开 - 标后议价信息，仅 attributeBigint2 === 1 时展示，均为只读展示 */}
+            {showBidAfterBargain && (
+              <>
+                <Output name="attributeLongtext27" newLine />
+                {/* viewMode="popup" 时组件只渲染「查看附件」按钮、不展示字段 label，
+                    这里用默认的 list 只读模式，label 与附件列表（可预览/下载）一起展示 */}
+                <Attachment name="attributeLongtext28" readOnly />
+                <Output
+                  name="attributeLongtext24"
+                  renderer={({ value }) =>
+                    value && (/^https?:\/\//i.test(value) || attributeLongtext25) ? (
+                      <a onClick={handleViewFbcProcess}>{value}</a>
+                    ) : (
+                      value
+                    )
+                  }
+                />
+                <Output name="attributeVarchar27" />
+                <Output name="attributeVarchar28" />
+              </>
+            )}
           </Form>
         </Card>
       </Panel>

@@ -8,7 +8,7 @@ import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column';
 import { FuncType } from 'choerodon-ui/pro/lib/button/enum';
 import { math } from 'choerodon-ui/dataset';
 
-import { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi, deleteSplitApi } from './initialDs';
+import { tableDataSet, intlPrompt, saveDetailApi, fetchDataApi, deleteSplitApi, getExchangeRate } from './initialDs';
 
 const EditableStatus = ['UNASSIGNED', 'ASSIGNED']; // 待分配、已分配
 
@@ -98,6 +98,11 @@ const PrSplitModal = props => {
     const lastRecord = tableDs.records[tableDs.length - 1];
     const attributeLongtext16 = !lastRecord.get('prLineId') ? `${lineNum}-${+lastRecord.get('attributeLongtext16').split('-')?.[1] + 1}` : `${lineNum}-${+maxLineNum + 1}`;
     const srmLineNum = !lastRecord.get('prLineId') ? +lastRecord.get('lineNum') + 1 : +maxSrmLineNum + 1;
+    // 人民币行金额随含税金额变化，拆分行创建时按「剩余可拆金额 × 人民币汇率」先算一次（汇率为空按 1）
+    const cnyLineAmount = math.toFixed(
+      math.multipliedBy(remainAmount, getExchangeRate(record.get('attributeDecimal10'))),
+      2
+    );
     const data = {
       ...record.toJSONData(),
       maxAmount: null,
@@ -112,6 +117,7 @@ const PrSplitModal = props => {
       // 新增拆分行含税金额默认 = 主行含税金额 - 所有拆分行含税金额（即剩余可拆金额），
       // 覆盖 toJSONData 从主行带出的原值；后续修改数量/单价时仍会按 数量 × 单价 重算
       taxIncludedLineAmount: Number(remainAmount),
+      attributeDecimal26: cnyLineAmount,
     };
     tableDs.create(data, tableDs.length);
   };
@@ -169,7 +175,11 @@ const PrSplitModal = props => {
         { name: 'attributeVarchar17Lov', editor: (record) => canOperate(record) },
         { name: 'quantity', editor: (record) => canOperate(record) },
         { name: 'taxIncludedUnitPrice', editor: (record) => canOperate(record) },
+        // 通威二开 - 以下三个字段均为只读：预算单价（含税）= 含税单价，人民币行金额 = 含税金额 × 人民币汇率
+        { name: 'taxIncludedBudgetUnitPrice' },
         { name: 'taxIncludedLineAmount' },
+        { name: 'attributeDecimal10' },
+        { name: 'attributeDecimal26' },
         // { name: 'localCurrencyTaxUnit' },
         // { name: 'localCurrencyTaxSum' },
         // { name: 'localCurrencyNoTaxUnit' },

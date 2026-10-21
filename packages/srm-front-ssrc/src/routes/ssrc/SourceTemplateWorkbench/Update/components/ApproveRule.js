@@ -117,6 +117,7 @@ const ApproveRule = ({
           'resultApproveType',
           'closeApproveMethod',
           'bargainApproveMethod',
+          'bidAfterBargainApproveMethod',
           'clarifyApproveType',
           'rollbackApproveType',
         ].includes(item.targetField)
@@ -190,6 +191,17 @@ const ApproveRule = ({
         addonAfter={
           getAddonAfter({ name: 'bargainApproveMethod' }) ? (
             <AddonAfter ds={approveRuleDs} name="bargainApproveMethod" />
+          ) : null
+        }
+        clearButton={false}
+        showHelp="tooltip"
+      />
+      {/* 通威二开 - 标后议价审批 */}
+      <Select
+        name="bidAfterBargainApproveMethod"
+        addonAfter={
+          getAddonAfter({ name: 'bidAfterBargainApproveMethod' }) ? (
+            <AddonAfter ds={approveRuleDs} name="bidAfterBargainApproveMethod" />
           ) : null
         }
         clearButton={false}

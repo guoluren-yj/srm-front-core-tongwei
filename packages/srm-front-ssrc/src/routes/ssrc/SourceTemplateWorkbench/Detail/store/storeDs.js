@@ -155,6 +155,19 @@ const approveRuleDS = () => ({
         ),
     },
     {
+      // 通威二开 - 标后议价审批
+      name: 'bidAfterBargainApproveMethod',
+      label: intl
+        .get(`ssrc.sourceTemplate.model.template.bidAfterBargainApprove`)
+        .d('标后议价审批'),
+      lookupCode: 'SCUX.TWNF_REVIEW_APV_METHOD',
+      help: intl
+        .get(`ssrc.sourceTemplate.model.template.bidAfterBargainApproveTitle`)
+        .d(
+          '用于配置发起标后议价时的审批类型，包括自审批（自动审批通过）、外部系统审批（与外部系统对接进行审批）。'
+        ),
+    },
+    {
       name: 'rollbackApproveType',
       label: intl.get(`ssrc.sourceTemplate.model.template.rollbackApproveType`).d('退回至核价审批'),
       lookupCode: 'SSRC.ROLLBACK_APPROVE_METHOD',
