@@ -742,6 +742,10 @@ const getComputedBtn = ({
         })
       );
     case 'change':
+      // 通威二开 - 变更审批中（attributeVarchar13 = CHANGE_APPROVING）时不允许再次发起变更
+      if (record.get('attributeVarchar13') === 'CHANGE_APPROVING') {
+        return null;
+      }
       return getPermissionButtonNode({
         ...commonParams,
         btnType: 'changeBtn',

@@ -3590,7 +3590,7 @@ class Bargain extends Component {
               ) : null} */}
             </div>
           </Col>
-          {this.renderBargainEndDate(now, time)}
+          {/* {this.renderBargainEndDate(now, time)} */}
         </Row>
       </React.Fragment>
     );

@@ -83,7 +83,7 @@ const BaseInfo: React.FC = observer(() => {
   const panelHeader = useMemo(() => {
     return (
       <span>
-        <span>{`${rfxNum}-${rfxTitle}`}</span>
+        <span style={{fontSize: "16px", fontWeight: "500"}}>{`${rfxNum}-${rfxTitle}`}</span>
         <Button icon="feed" funcType={FuncType.flat} onClick={handleViewDocDetail}>{intl.get('scux.bidEvaluationManagement.view.title.viewDocDetail').d('查看单据详情')}</Button>
       </span>
     );

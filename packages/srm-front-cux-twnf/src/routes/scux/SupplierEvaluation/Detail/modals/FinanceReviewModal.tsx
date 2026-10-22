@@ -65,7 +65,10 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
 
   // 判断是否存在上次提名：存在时评审信息明细由上次提名带入，保存/提交需特殊处理
 
-  const { hasLastNomination } = resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
+  // 「明细行是否仍由上次提名带入、尚未落库」：这个状态是会变的——
+  // 弹框内保存成功后明细已重新落库并归属当前提名（刷新后带回新的 financeReviewLineId），
+  // 之后的提交必须带上 financeReviewLineId，否则会被当成新增行重复创建。
+  let { hasLastNomination } = resolveNominationId(resultDs, nominationHeaderId, nominationSupLineId);
   let modal;
   // 「保存 / 提交 / 关闭」共用一个 loading：任一动作进行中，三个按钮一起转圈、一起点不动。
   // 顺便兜住「保存后马上点提交」——保存后的刷新不带回新的 objectVersionNumber 就提交，后端乐观锁会报「数据已过时」。
@@ -248,6 +251,8 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
             infoDs.setQueryParameter('nominationSupLineId', savedNominationSupLineId);
           }
           await Promise.all([infoDs.query(), resultDs.query()]);
+          // 保存并刷新完成后，明细行已归属当前提名，后续保存/提交都要带 financeReviewLineId
+          hasLastNomination = false;
         } else if(modal) {
           await dataSet.query();
           modalClosed = true;

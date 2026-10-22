@@ -70,17 +70,6 @@ const listDS = ({ rfxHeaderId }) => ({
       label: intl.get(`ssrc.common.model.common.quotationNumber`).d('报价行数'),
     },
     {
-      name: 'techAttachmentUuid',
-      type: 'attachment',
-      label: intl.get(`ssrc.inquiryHall.model.inquiryHall.techAttachments`).d('技术附件'),
-    },
-
-    {
-      name: 'businessAttachmentUuid',
-      type: 'attachment',
-      label: intl.get(`ssrc.inquiryHall.model.inquiryHall.businessAttachments`).d('商务附件'),
-    },
-    {
       name: 'currencyCode',
       type: 'string',
       label: intl.get('ssrc.inquiryHall.model.inquiryHall.quotationCurrency').d('报价币种'),

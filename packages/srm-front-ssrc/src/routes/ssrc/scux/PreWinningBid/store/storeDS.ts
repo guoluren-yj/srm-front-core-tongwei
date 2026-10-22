@@ -266,11 +266,11 @@ function getCommonSupplierListFields() {
       trueValue: '1',
       falseValue: '0',
     },
-    {
-      name: 'sectionName',
-      label: intl.get(`${preWinningBidModel}sectionName`).d('标段名称'),
-      type: FieldType.string,
-    },
+    // {
+    //   name: 'sectionName',
+    //   label: intl.get(`${preWinningBidModel}sectionName`).d('标段名称'),
+    //   type: FieldType.string,
+    // },
     // {
     //   name: 'sectionBidQtnTotalAmount',
     //   label: intl.get(`${preWinningBidModel}sectionBidQtnTotalAmount`).d('标段投标价（元）'),

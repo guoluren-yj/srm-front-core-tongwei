@@ -161,7 +161,7 @@ const Index = observer((props) => {
     const { nodeStatus = null, finishedFlag = 0, nodeFlag } = record || {};
     const id = headerInfo.sourceHeaderId
     if (!finishedFlag && nodeFlag > 0) {
-      if (['RELEASE_PREPARE', 'IN_QUOTATION', 'CHECK_PENDING', 'FINISHED'].includes(nodeStatus) && id) {
+      if (['RELEASE_PREPARE', 'IN_QUOTATION', 'CHECK_PENDING', 'FINISHED', 'OPEN_BID_PENDING', 'SCORING'].includes(nodeStatus) && id) {
         history.push({
           pathname: `/ssrc/new-bid-hall/bid-detail/${id}`,
           search: querystring.stringify({

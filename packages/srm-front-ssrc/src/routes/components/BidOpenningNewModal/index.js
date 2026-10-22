@@ -10,14 +10,12 @@ import { observer } from 'mobx-react-lite';
 import { Tag } from 'choerodon-ui';
 import { noop, compose, isEmpty } from 'lodash';
 import querystring from 'querystring';
-import { PRIVATE_BUCKET } from '_utils/config';
 import EmbedPage from '_components/EmbedPage';
 import { getActiveTabKey } from 'utils/menuTab';
 import DynamicButtons from '_components/DynamicButtons';
 import OpeningBid from '@/routes/ssrc/InquiryHallNew/OpeningBid';
-import { FIlESIZE, ChunkUploadProps } from '@/utils/SsrcRegx';
 // import formatterCollections from 'utils/intl/formatterCollections';
-import { Modal, useDataSet, Table, Button, Attachment } from 'choerodon-ui/pro';
+import { Modal, useDataSet, Table, Button } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
 import notification from 'utils/notification';
@@ -159,44 +157,6 @@ const List = forwardRef((props, ref) => {
     !allQuotationFlag && {
       name: 'assignItemCountConcatQuotedCount',
       // 全部报价不显示该字段
-    },
-    {
-      name: 'techAttachmentUuid',
-      renderer: ({ record }) => {
-        if (record.get('hideTechAttachmentFlag')) return '***';
-        return (
-          <Attachment
-            readOnly
-            record={record}
-            funcType="link"
-            name="techAttachmentUuid"
-            fileSize={FIlESIZE}
-            bucketName={PRIVATE_BUCKET}
-            // bucketDirectory="ssrc-rfx-prequal"
-            viewMode="popup"
-            {...ChunkUploadProps}
-          />
-        );
-      },
-    },
-    {
-      name: 'businessAttachmentUuid',
-      renderer: ({ record }) => {
-        if (record.get('hideBusinessAttachmentFlag')) return '***';
-        return (
-          <Attachment
-            readOnly
-            record={record}
-            funcType="link"
-            name="businessAttachmentUuid"
-            fileSize={FIlESIZE}
-            bucketName={PRIVATE_BUCKET}
-            // bucketDirectory="ssrc-rfx-prequal"
-            viewMode="popup"
-            {...ChunkUploadProps}
-          />
-        );
-      },
     },
     {
       name: 'currencyCode',

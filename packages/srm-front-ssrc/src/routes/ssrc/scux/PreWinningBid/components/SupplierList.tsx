@@ -146,7 +146,7 @@ const SupplierList: React.FC = observer(() => {
       // },
       {
         name: 'invalidFlag',
-        hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
+        // hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
         width: 100,
         renderer: ({ value }) =>
           isNil(value)
@@ -157,7 +157,7 @@ const SupplierList: React.FC = observer(() => {
       },
       {
         name: 'invalidReason',
-        hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
+        // hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
         width: 120,
       },
       {
@@ -175,10 +175,10 @@ const SupplierList: React.FC = observer(() => {
         hidden: !['10', '20', '40'].includes(scoreWay),
         renderer: ({ record, value }) => scoreWay === '10' && !isNil(value) ? <EvaluationDetailModal record={record} btnName={value} /> : value,
       },
-      {
-        name: 'sectionName',
-        width: 120,
-      },
+      // {
+      //   name: 'sectionName',
+      //   width: 120,
+      // },
       // {
       //   name: 'sectionBidQtnTotalAmount',
       //   width: 130,

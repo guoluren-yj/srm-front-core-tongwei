@@ -6784,6 +6784,7 @@ class CheckPrice extends Component {
       bidFlag: this.bidFlag,
       onRef: this.handleAttachmentTableRef,
       unitCodeSymbol: 'oldUpdateOrApproval', // 个性化标识
+      hideTemplateFields: true, // 通威二开 - 该页面不展示「模板附件」「模板描述」两列
     };
 
     return (

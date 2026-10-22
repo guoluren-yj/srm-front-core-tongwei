@@ -404,7 +404,7 @@ class FileTemplateAttachmentCheckPricePage extends Component {
 
   // table columns
   getColumns = () => {
-    const { editorFlag = 0, fileEditorFlag = false } = this.props;
+    const { editorFlag = 0, fileEditorFlag = false, hideTemplateFields = false } = this.props;
 
     const columns = [
       {
@@ -485,11 +485,15 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       },
     ];
 
-    return columns;
+    // 通威二开 - 部分页面（如老核价维护/审批）不展示「模板附件」「模板描述」两列
+    return hideTemplateFields
+      ? columns.filter((column) => !['templateAttachment', 'remark'].includes(column.name))
+      : columns;
   };
 
   // hzeo table column
   getH0TableColumns = () => {
+    const { hideTemplateFields = false } = this.props;
     const columns = [
       {
         title: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.attachType`).d('附件类型'),
@@ -564,7 +568,10 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       },
     ];
 
-    return columns;
+    // 通威二开 - 与 c7n 表格保持一致：hideTemplateFields 时隐藏「模板附件」「模板描述」两列
+    return hideTemplateFields
+      ? columns.filter((column) => !['templateAttachment', 'remark'].includes(column.dataIndex))
+      : columns;
   };
 
   // batch delete
