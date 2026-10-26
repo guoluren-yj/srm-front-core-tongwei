@@ -26,6 +26,68 @@ const BidManagementAttachment = (props) => {
   const { rfxHeaderId } = rfxInfoDS?.current?.get(['rfxHeaderId']) || {};
   const [saving, setSaving] = useState(false);
 
+  // 判断新增行是否为空行（仅设置了 attributeLongtext11 默认值的不算内容）
+  const hasAttachLineContent = (record) =>
+    Boolean(
+      record?.get('attachmentUuid') ||
+        record?.get('attachmentType')?.uniqueKey ||
+        record?.get('fileManageId') ||
+        record?.get('tempAttachmentUuid') ||
+        record?.get('attributeVarchar19') ||
+        record?.get('attributeLongtext10')
+        //  ||
+        // record?.get('remark')
+    );
+
+  // 保存附件----通威二开：仅提交变更行，成功后刷新当前附件列表（复用页面已有的读取接口）
+  // silent：静默保存（如生成附件后自动保存），无变更时不提示
+  const handleSaveAttachment = async ({ silent = false } = {}) => {
+    const currentRfxHeaderId = rfxInfoDS?.current?.get('rfxHeaderId');
+    if (!currentRfxHeaderId) {
+      notification.warning({
+        message: intl
+          .get('scux.bidAttachment.view.message.twnf.saveHeaderFirst')
+          .d('请先保存单据头后再保存附件！'),
+      });
+      return;
+    }
+    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
+    const changedRecords = [
+      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
+      ...updated,
+    ];
+    if (!changedRecords.length) {
+      if (!silent) {
+        notification.info({
+          message: intl
+            .get('scux.bidAttachment.view.message.twnf.noSaveChange')
+            .d('当前没有需要保存的附件变更！'),
+        });
+      }
+      return;
+    }
+    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
+    setSaving(true);
+    try {
+      const res = await cuxSaveBidAttachment({
+        rfxHeaderId: currentRfxHeaderId,
+        attachmentLineList,
+      });
+      if (getResponse(res)) {
+        notification.success();
+        // 复用页面已有的附件列表读取接口刷新当前附件列表
+        const templateId = rfxInfoDS?.current?.get('templateId');
+        bidAttachTableDs.setQueryParameter('sourceId', currentRfxHeaderId);
+        if (templateId && templateId !== 'null') {
+          bidAttachTableDs.setQueryParameter('templateId', templateId);
+        }
+        bidAttachTableDs.query();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // change attachment type
   const handleChangeAttachmentType = (value, record) => {
     const { uniqueKey, sourceNode, sourceNodeMeaning } = value || {};
@@ -45,39 +107,39 @@ const BidManagementAttachment = (props) => {
   };
 
   // 生成附件
-  const handleGenerateAttachment = (record) => {
+  const handleGenerateAttachment = async (record) => {
     const { fileManageId, attachmentUuid, editableFlag } =
       record.get(['fileManageId', 'attachmentUuid', 'editableFlag']) || {};
     const sourceId = bidAttachTableDs.getQueryParameter('sourceId');
 
     if (!sourceId || sourceId === 'null' || !fileManageId) return;
 
-    return generateAttTemplate({
+    const res = await generateAttTemplate({
       sourceId,
       fileManageId,
       sourceCategory: 'RFX',
       attachmentUuid: editableFlag === 1 ? undefined : attachmentUuid, // 注意：editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
-    }).then((res) => {
-      if (getResponse(res)) {
-        notification.success();
-        if (!record.get('attachmentUuid')) {
-          record.set('attachmentUuid', res.attachmentUuid);
-        } else {
-          record.set('attachmentUuid', null);
-          record.set('attachmentUuid', res.attachmentUuid);
-          queryFileList({
-            organizationId: getCurrentOrganizationId(),
-            bucketName: PRIVATE_BUCKET,
-            bucketDirectory: 'ssrc-template-requirement',
-            attachmentUUID: res.attachmentUuid,
-          }).then((fileList) => {
-            if (getResponse(fileList)) {
-              record.getField('attachmentUuid').setAttachmentCount(fileList?.length || 0);
-            }
-          });
-        }
-      }
     });
+    if (!getResponse(res)) return;
+    notification.success();
+    if (!record.get('attachmentUuid')) {
+      record.set('attachmentUuid', res.attachmentUuid);
+    } else {
+      record.set('attachmentUuid', null);
+      record.set('attachmentUuid', res.attachmentUuid);
+      const fileList = await queryFileList({
+        organizationId: getCurrentOrganizationId(),
+        bucketName: PRIVATE_BUCKET,
+        bucketDirectory: 'ssrc-template-requirement',
+        attachmentUUID: res.attachmentUuid,
+      });
+      if (getResponse(fileList)) {
+        record.getField('attachmentUuid').setAttachmentCount(fileList?.length || 0);
+      }
+    }
+    // 生成附件回填 uuid 后需要落库，保存成功后会刷新附件表格数据
+    // 静默保存：无变更时不提示；保存失败时 request 层已给出提示，这里吞掉异常避免中断生成流程
+    await handleSaveAttachment({ silent: true }).catch(() => undefined);
   };
 
   // 附件上传前限制
@@ -229,65 +291,6 @@ const BidManagementAttachment = (props) => {
     );
   };
 
-  // 判断新增行是否为空行（仅设置了 attributeLongtext11 默认值的不算内容）
-  const hasAttachLineContent = (record) =>
-    Boolean(
-      record?.get('attachmentUuid') ||
-        record?.get('attachmentType')?.uniqueKey ||
-        record?.get('fileManageId') ||
-        record?.get('tempAttachmentUuid') ||
-        record?.get('attributeVarchar19') ||
-        record?.get('attributeLongtext10')
-        //  ||
-        // record?.get('remark')
-    );
-
-  // 保存附件----通威二开：仅提交变更行，成功后刷新当前附件列表（复用页面已有的读取接口）
-  const handleSaveAttachment = async () => {
-    const currentRfxHeaderId = rfxInfoDS?.current?.get('rfxHeaderId');
-    if (!currentRfxHeaderId) {
-      notification.warning({
-        message: intl
-          .get('scux.bidAttachment.view.message.twnf.saveHeaderFirst')
-          .d('请先保存单据头后再保存附件！'),
-      });
-      return;
-    }
-    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
-    const changedRecords = [
-      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
-      ...updated,
-    ];
-    if (!changedRecords.length) {
-      notification.info({
-        message: intl
-          .get('scux.bidAttachment.view.message.twnf.noSaveChange')
-          .d('当前没有需要保存的附件变更！'),
-      });
-      return;
-    }
-    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
-    setSaving(true);
-    try {
-      const res = await cuxSaveBidAttachment({
-        rfxHeaderId: currentRfxHeaderId,
-        attachmentLineList,
-      });
-      if (getResponse(res)) {
-        notification.success();
-        // 复用页面已有的附件列表读取接口刷新当前附件列表
-        const templateId = rfxInfoDS?.current?.get('templateId');
-        bidAttachTableDs.setQueryParameter('sourceId', currentRfxHeaderId);
-        if (templateId && templateId !== 'null') {
-          bidAttachTableDs.setQueryParameter('templateId', templateId);
-        }
-        bidAttachTableDs.query();
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
   // 批量删除按钮、复制禁用逻辑
   const batchDisabledFlag = useMemo(() => {
     return (
@@ -324,7 +327,7 @@ const BidManagementAttachment = (props) => {
         color="primary"
         funcType="flat"
         loading={saving}
-        onClick={handleSaveAttachment}
+        onClick={() => handleSaveAttachment()}
       >
         {intl.get('hzero.common.button.save').d('保存')}
       </Button>,

@@ -73,6 +73,8 @@ const PageHeader: React.FC<any> = () => {
     };
     const validateRes = await Promise.all([
       evaluationItemsDs.validate(),
+      // 表单字段也有动态必填（如是否合格为不合格时评审意见必填），需要一并校验
+      evaluationHeaderDs.validate(),
     ]);
     if (validateRes.some((item) => !item)) return false;
     return true;

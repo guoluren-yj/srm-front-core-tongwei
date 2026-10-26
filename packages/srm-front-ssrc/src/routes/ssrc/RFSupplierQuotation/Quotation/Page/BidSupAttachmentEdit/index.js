@@ -126,8 +126,54 @@ const BidManagementAttachment = (props) => {
       });
   };
 
+  // 判断新增行是否为空行（用户没填任何内容的不提交）
+  const hasAttachLineContent = (record) =>
+    Boolean(
+      record?.get('attachmentUuid') ||
+        record?.get('attachmentType') ||
+        record?.get('fileManageId') ||
+        record?.get('attributeVarchar19') ||
+        record?.get('attributeLongtext1') ||
+        record?.get('remark')
+    );
+
+  // 保存附件：仅提交变更行，成功后刷新当前附件列表
+  // silent：静默保存（如生成附件后自动保存），无变更时不提示
+  // 返回是否真正发起了保存并成功
+  const handleSaveAttachment = async ({ silent = false } = {}) => {
+    if (!rfxHeaderId) return false;
+    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
+    const changedRecords = [
+      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
+      ...updated,
+    ];
+    if (!changedRecords.length) {
+      if (!silent) {
+        notification.info({
+          message: intl
+            .get('scux.bidAttachment.view.message.twnf.noSaveChange')
+            .d('当前没有需要保存的附件变更！'),
+        });
+      }
+      return false;
+    }
+    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
+    setSaving(true);
+    try {
+      const res = await cuxSaveBidAttachment({ rfxHeaderId, quotationHeaderCurrentId, attachmentLineList });
+      if (getResponse(res)) {
+        notification.success();
+        handleQuery();
+        return true;
+      }
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // 生成附件（参考：new-bid-hall/bid-update 招标文件及附件的附件模板 生成附件）
-  const handleGenerateAttachment = (record) => {
+  const handleGenerateAttachment = async (record) => {
     const { fileManageId, attachmentUuid, attachmentLineId } =
       record.get(['fileManageId', 'attachmentUuid', 'editableFlag', 'attachmentLineId']) || {};
 
@@ -142,15 +188,18 @@ const BidManagementAttachment = (props) => {
       // ...(editableFlag === 1 ? {} : { attachmentUuid }), // editableFlag为1 表示寻源模板上的附件要求【限制文件不可修改】= 1
     };
 
-    return generateAttTemplate(params).then((res) => {
-      if (!getResponse(res)) {
-        return;
-      }
-      notification.success();
-      // 生成附件是后端写库，会连带刷新行上的 attachmentUuid / attachmentLineId / objectVersionNumber 等；
-      // 只在前端 record 上 set 的话，后面保存或提交带上去的还是旧数据，会被乐观锁判成「数据已过时」
+    const res = await generateAttTemplate(params);
+    if (!getResponse(res)) {
+      return;
+    }
+    notification.success();
+    // 生成附件是后端写库，会连带刷新行上的 attachmentUuid / attachmentLineId / objectVersionNumber 等；
+    // 只在前端 record 上 set 的话，后面保存或提交带上去的还是旧数据，会被乐观锁判成「数据已过时」
+    // 生成后先静默保存表格变更（无变更不提示），保存成功已刷新列表；未保存时再刷新一次，展示后端生成结果
+    const saved = await handleSaveAttachment({ silent: true }).catch(() => false);
+    if (!saved) {
       handleQuery();
-    });
+    }
   };
 
   // 是否电签（attributeVarchar1）为「是」
@@ -246,7 +295,8 @@ const BidManagementAttachment = (props) => {
         if (action === 'cancel') {
           return (
             <>
-              <Button
+              {/* 暂时隐藏 */}
+              {/* <Button
                 funcType="link"
                 wait={1200}
                 onClick={() =>
@@ -260,7 +310,7 @@ const BidManagementAttachment = (props) => {
                 }
               >
                 {intl.get('scux.bidAttachment.model.fileTemplateAttachment.twnf.void').d('作废')}
-              </Button>
+              </Button> */}
               <Button
                 funcType="link"
                 wait={1200}
@@ -306,9 +356,9 @@ const BidManagementAttachment = (props) => {
     {
       name: 'attributeVarchar5',
     },
-    {
-      name: 'attributeLongtext16',
-    },
+    // {
+    //   name: 'attributeLongtext16',
+    // },
     {
       name: 'attributeLongtext17',
       // cuxSupplierCreateFlag 为 1（供应商新建/上传的行）才允许编辑文件名称
@@ -341,46 +391,6 @@ const BidManagementAttachment = (props) => {
   // 新增
   const handleAdd = () => {
     bidAttachTableDs.create({cuxSupplierCreateFlag: "1"}, 0);
-  };
-
-  // 判断新增行是否为空行（用户没填任何内容的不提交）
-  const hasAttachLineContent = (record) =>
-    Boolean(
-      record?.get('attachmentUuid') ||
-        record?.get('attachmentType') ||
-        record?.get('fileManageId') ||
-        record?.get('attributeVarchar19') ||
-        record?.get('attributeLongtext1') ||
-        record?.get('remark')
-    );
-
-  // 保存附件：仅提交变更行，成功后刷新当前附件列表
-  const handleSaveAttachment = async () => {
-    if (!rfxHeaderId) return;
-    const [created = [], updated = []] = bidAttachTableDs?.dirtyRecords || [];
-    const changedRecords = [
-      ...created.filter((record) => record?.dirty && hasAttachLineContent(record)),
-      ...updated,
-    ];
-    if (!changedRecords.length) {
-      notification.info({
-        message: intl
-          .get('scux.bidAttachment.view.message.twnf.noSaveChange')
-          .d('当前没有需要保存的附件变更！'),
-      });
-      return;
-    }
-    const attachmentLineList = changedRecords.map((record) => record.toJSONData());
-    setSaving(true);
-    try {
-      const res = await cuxSaveBidAttachment({ rfxHeaderId, quotationHeaderCurrentId, attachmentLineList });
-      if (getResponse(res)) {
-        notification.success();
-        handleQuery();
-      }
-    } finally {
-      setSaving(false);
-    }
   };
 
   // 批量删除按钮、复制禁用逻辑
@@ -420,7 +430,7 @@ const BidManagementAttachment = (props) => {
         funcType="flat"
         loading={saving}
         disabled={!rfxHeaderId || rfxHeaderId === 'null'}
-        onClick={handleSaveAttachment}
+        onClick={() => handleSaveAttachment()}
       >
         {intl.get('hzero.common.button.save').d('保存')}
       </Button>,

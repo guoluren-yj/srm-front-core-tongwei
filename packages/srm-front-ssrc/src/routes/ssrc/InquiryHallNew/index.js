@@ -1886,17 +1886,23 @@ class InquiryHall extends React.Component {
   @Bind()
   copyHistoryRFQNode = (record) => {
     const { remote } = this.props;
+    // approve 表示是否拥有该权限；无权限且配置为 disabled 时置灰，其他情况不渲染（见调用处）
+    const { approve } = this.CheckPermissionObject?.copy || {};
     return (
       <div>
         <a
-          onClick={() =>
-            remote?.event
-              ? remote?.event?.fireEvent('copyHistoryOrderModal', {
-                  copyHistoryOrderModal: this.copyHistoryOrderModal,
-                  record,
-                  bidFlag: this.bidFlag,
-                })
-              : this.copyHistoryOrderModal(record)
+          style={approve ? undefined : { cursor: 'not-allowed', color: 'rgba(0, 0, 0, 0.25)' }}
+          onClick={
+            approve
+              ? () =>
+                  remote?.event
+                    ? remote?.event?.fireEvent('copyHistoryOrderModal', {
+                        copyHistoryOrderModal: this.copyHistoryOrderModal,
+                        record,
+                        bidFlag: this.bidFlag,
+                      })
+                    : this.copyHistoryOrderModal(record)
+              : undefined
           }
         >
           {intl.get(`ssrc.inquiryHall.view.message.button.copyHistoryRFQ`).d('复制')}
@@ -2675,11 +2681,11 @@ class InquiryHall extends React.Component {
         );
     const onOperateBidNode = this.onOperateBidNode(record);
 
-    if (
-      tabStatus === 'all' &&
-      this.CheckPermissionObject?.copy?.controllerType !== 'hidden' &&
-      !offlineWholeFlag
-    ) {
+    // 有权限正常显示；无权限且 controllerType=disabled 置灰显示；其余（hidden/未返回）不显示
+    const copyPermission = this.CheckPermissionObject?.copy;
+    const copyVisible =
+      copyPermission?.approve === true || copyPermission?.controllerType === 'disabled';
+    if (tabStatus === 'all' && copyVisible && !offlineWholeFlag) {
       mean.push(this.copyHistoryRFQNode(record));
     }
     switch (rfxStatus) {
@@ -3412,7 +3418,7 @@ class InquiryHall extends React.Component {
         this.handleReleaseCreateRFP(record);
         break;
       case 'COPY':
-        if (this.CheckPermissionObject?.copy?.controllerType !== 'hidden') {
+        if (this.CheckPermissionObject?.copy?.approve === true) {
           this.handleCopyOk(record);
         }
         break;

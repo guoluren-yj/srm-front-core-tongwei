@@ -54,14 +54,14 @@ const DemandInfoDS = ({ sourceProjectId }) => {
       },
       {
         name: 'estimatedPrice',
-        label: intl.get(`ssrc.projectSetupApprovalWf.model.approvalWf.estimatedPrice`).d('预估单价'),
+        label: intl.get(`ssrc.projectSetupApprovalWf.model.approvalWf.estimatedPrice`).d('单价'),
         type: 'number',
       },
       {
         name: 'estimatedAmount',
         label: intl
           .get(`ssrc.projectSetupApprovalWf.model.approvalWf.estimatedAmount`)
-          .d('预估行金额'),
+          .d('概算金额'),
         type: 'number',
       },
       {

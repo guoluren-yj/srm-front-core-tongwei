@@ -140,6 +140,33 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
   };
 
   const columns = [
+    // 操作列置顶；无技术/商务/财务任一权限时不渲染空的操作列
+    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && (nominationStatus === 'PENDING_REVIEW' || nominationStatus === 'TO_BE_RELEASED') && btnCount > 0 && {
+      name: 'action',
+      header: intl.get(`${prefix}.button.operation`).d('操作'),
+      width: btnCount * 90,
+      lock: 'left',
+      align: 'center',
+      renderer: ({ record }) => (
+        <>
+          {showTech && (
+            <Button funcType={FuncType.flat} onClick={() => handleTechnicalReview(record)}>
+              {intl.get(`${prefix}.button.technical`).d('技术')}
+            </Button>
+          )}
+          {showBiz && (
+            <Button funcType={FuncType.flat} onClick={() => handleBusinessReview(record)}>
+              {intl.get(`${prefix}.button.business`).d('商务')}
+            </Button>
+          )}
+          {showFin && (
+            <Button funcType={FuncType.flat} onClick={() => handleFinanceReview(record)}>
+              {intl.get(`${prefix}.button.finance`).d('财务')}
+            </Button>
+          )}
+        </>
+      ),
+    },
     { name: 'seqNum', width: 80 },
     (type === 'submit' || type === 'view') && {
       name: 'isSelected',
@@ -170,39 +197,43 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       ),
     },
     { name: 'supplierCompanyName', width: 200 },
+    // 评审页面（pendingReview）只渲染当前用户有评审权限的评审结果列；查看/提交等页面不做限制
+    !isNew && (clickableReview || (type === 'pendingReview' && showTech)) && {
+      name: 'technologyReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => (text ? (
+        <Button funcType={FuncType.link} onClick={() => openTechnicalReviewModal(record, 'unreleasedReadOnly', dataSet)}>
+          {text}
+        </Button>
+      ) : '-'),
+    },
+    !isNew && (clickableReview || (type === 'pendingReview' && showBiz)) && {
+      name: 'businessReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => (text ? (
+        <Button funcType={FuncType.link} onClick={() => openBusinessReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
+          {text}
+        </Button>
+      ) : '-'),
+    },
+    !isNew && (clickableReview || (type === 'pendingReview' && showFin)) && {
+      name: 'financeReviewResult',
+      width: 120,
+      renderer: ({ text, record }: any) => (text ? (
+        <Button funcType={FuncType.link} onClick={() => openFinanceReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
+          {text}
+        </Button>
+      ) : '-'),
+    },
+    // 综评结果是三项评审的汇总，仍紧跟财务评审结果
+    !isNew && type !== 'pendingReview' && { name: 'summaryReviewResult', width: 120 },
+    { name: 'stageDescription', width: 100 },
     { name: 'contactPersonLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'contactMobilephone', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 130 },
     { name: 'contactMail', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
     { name: 'recommenderLov', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 120 },
     { name: 'employeeCompanyName', width: 150 },
-    !isNew &&{
-      name: 'technologyReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showTech || type === 'view') ? (
-        <Button funcType={FuncType.link} onClick={() => openTechnicalReviewModal(record, 'unreleasedReadOnly', dataSet)}>
-          {text}
-        </Button>
-      ) : '-',
-    },
-    !isNew &&{
-      name: 'businessReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showBiz || type === 'view') ? (
-        <Button funcType={FuncType.link} onClick={() => openBusinessReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
-          {text}
-        </Button>
-      ) : '-',
-    },
-    !isNew && {
-      name: 'financeReviewResult',
-      width: 120,
-      renderer: ({ text, record }: any) => (clickableReview || type === 'pendingReview') && text && (showFin || type === 'view') ? (
-        <Button funcType={FuncType.link} onClick={() => openFinanceReviewModal(record, 'unreleasedReadOnly', dataSet, basicInfoDs)}>
-          {text}
-        </Button>
-      ) : '-',
-    },
-    !isNew && type !== 'pendingReview' && { name: 'summaryReviewResult', width: 120 },
+    // 以下列未在调整需求中列出，保持在末尾
     type !== 'pendingReview' && { name: 'riskScanDate', width: 160 },
     type !== 'pendingReview' && { name: 'riskLevelMeaning', width: 100 },
     type !== 'pendingReview' && {
@@ -234,33 +265,6 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       ),
     },
     type !== 'pendingReview' && { name: 'remark', editor: (record: any) => !readOnly && record.get('releaseFlag') !== '1', width: 150 },
-    !clickableReview && (type === 'pendingReview' || type === 'unreleasedReadOnly') && (nominationStatus === 'PENDING_REVIEW' || nominationStatus === 'TO_BE_RELEASED') && {
-      name: 'action',
-      header: intl.get(`${prefix}.button.operation`).d('操作'),
-      width: btnCount * 90,
-      lock: 'left',
-      align: 'center',
-      renderer: ({ record }) => (
-        <>
-          {showTech && (
-            <Button funcType={FuncType.flat} onClick={() => handleTechnicalReview(record)}>
-              {intl.get(`${prefix}.button.technical`).d('技术')}
-            </Button>
-          )}
-          {showBiz && (
-            <Button funcType={FuncType.flat} onClick={() => handleBusinessReview(record)}>
-              {intl.get(`${prefix}.button.business`).d('商务')}
-            </Button>
-          )}
-          {showFin && (
-            <Button funcType={FuncType.flat} onClick={() => handleFinanceReview(record)}>
-              {intl.get(`${prefix}.button.finance`).d('财务')}
-            </Button>
-          )}
-        </>
-      ),
-    },
-    { name: 'stageDescription', width: 100 },
   ].filter(Boolean) as ColumnProps[];
 
   const hasEmptyReview = dataSet.some((r: any) => !r.get('technologyReviewResult') || !r.get('businessReviewResult') || !r.get('financeReviewResult'));

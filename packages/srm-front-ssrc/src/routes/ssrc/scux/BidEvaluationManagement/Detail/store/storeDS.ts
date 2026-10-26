@@ -93,6 +93,10 @@ export const evaluationHeaderDataSet = ({ evaluateScoreId }): DataSetProps => {
       {
         name: 'expertSuggestion',
         label: intl.get(`${prefix}.model.twnf.expertSuggestion`).d('评审意见'),
+        dynamicProps: {
+          // 是否合格为「不合格」时，评审意见必填
+          required: ({ record }) => String(record.get('suggestInvalidFlag')) === '1',
+        },
       },
     ],
     transport: {
@@ -229,6 +233,10 @@ export const evaluationItemsDataSet = ({ scoreFlag }): DataSetProps => ({
       label: intl.get(`${prefix}.model.twnf.expertScoring.remark`).d('备注'),
       dynamicProps: {
         disabled: ({ record }) => scoreFlag,
+        // 供应商分数（是否通过）为「不符合」时，备注必填
+        required: ({ record }) =>
+          record.get('indicateType') !== 'SCORE' &&
+          String(record.get('passStatus')) === 'NO_APPROVED',
       },
     },
   ],
