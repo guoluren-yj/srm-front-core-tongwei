@@ -982,6 +982,23 @@
     }
   }
 
+  // 招标：供应商头部中间的状态/评分/金额等标签全部不显示（保留空盒子占位，不影响右侧布局）
+  .middleBox.bidPlainTags {
+    align-self: flex-start;
+    align-items: flex-start;
+    > * {
+      display: none !important;
+    }
+
+    // 招标：投标详情跳转链接
+    > .bidDetailLink {
+      display: inline-block !important;
+      align-self: flex-start;
+      white-space: nowrap;
+      line-height: 20px;
+    }
+  }
+
   // 右边盒子宽度固定
   .rightBox {
     width: 360px;

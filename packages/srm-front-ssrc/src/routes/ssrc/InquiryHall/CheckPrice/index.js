@@ -132,7 +132,6 @@ import {
 import FileTemplateAttachmentCheckPricePage from '@/routes/components/FileTemplateAttachmentCheckPricePage';
 import ChatRoomSourceLink from '@/routes/components/ChatRoomSource/ChatRoomSourceLink';
 import BidManagementAttachment from '@/routes/ssrc/scux/components/BidAttachmentDetail/BidManagementAttachment';
-import CuxSupplierListDetail from '@/routes/ssrc/scux/PreWinningBid/components/SupplierListDetail';
 
 import { customPermissionButton, supplierRiskScan } from '../../InquiryHallNew/utils';
 import BasicInfoForm from './Header/BasicInfoForm';
@@ -146,6 +145,7 @@ import {
   SupplierLineList,
   SupplierLineListBid,
 } from './Tabs';
+import SuggestSupplierList from './Tabs/SuggestSupplierList';
 import {
   basicInfoDS,
   itemOperationDS,
@@ -153,6 +153,7 @@ import {
   quoteLineOperationDS,
 } from './store/headerDS';
 import { quoteLineDS } from './store/AllQuoteLineDS';
+import suggestSupplierListDS from './store/suggestSupplierDS';
 import { withStandardCompEnhancer } from './standardCompEnhancerCreator';
 import PanelTitle from './components/PanelTitle';
 import ReturnToPretrial from './components/ReturnToPretrial';
@@ -319,6 +320,8 @@ class CheckPrice extends Component {
 
   quoteLineDsProps = {
     ...this.quoteLineDS,
+    // 招标：全部报价明细表格不需要行勾选框（c7n 默认 selection 为 multiple）；询价保持原有勾选
+    ...(this.bidFlag ? { selection: false } : null),
     events: {
       ...this.quoteLineDS.events,
       load: ({ dataSet, data }) => {
@@ -404,6 +407,14 @@ class CheckPrice extends Component {
       : this.quoteLineDsProps
   );
 
+  // 招标 & sourceFrom === 'PROJECT' 时，「物品明细」页签展示供应商清单（数据来自 marmot 接口）
+  suggestSupplierDs = new DataSet(
+    suggestSupplierListDS({
+      rfxHeaderId: this.props.match.params?.rfxId,
+      sourceKey: this.sourceKey,
+    })
+  );
+
   itemOperationDs = new DataSet(itemOperationDS({ rfxHeaderId: this.props.match.params?.rfxId }));
 
   supplierOperationDs = new DataSet(
@@ -444,6 +455,12 @@ class CheckPrice extends Component {
   allQuoteLineRef = React.createRef();
 
   openModal = useModal().openModal;
+
+  // 物品明细是否已做过默认展开（只自动展开一次，之后由用户手动控制）
+  defaultExpandItemLineDone = false;
+
+  // 当前 props 中的 itemLine 数据所属的单据 id（防止切换单据时用旧数据默认展开）
+  itemLineLoadedRfxId = null;
 
   componentDidMount() {
     const { remote } = this.props;
@@ -708,7 +725,40 @@ class CheckPrice extends Component {
   componentDidUpdate(...params) {
     if (params[2]) {
       this.handeleSearchQuerySourceExchangeRateConfig();
+      // 切换单据后重新按「默认展开」处理
+      this.defaultExpandItemLineDone = false;
     }
+    this.autoExpandItemLine();
+  }
+
+  /**
+   * 物品明细默认展开：物品行数据查询完成后自动执行一次「一键展开」
+   * 业务要求「一键展开/收起」默认是展开状态；仅在租户开启一键展开配置时生效
+   */
+  autoExpandItemLine() {
+    const {
+      modelName = 'inquiryHall',
+      match: { params } = {},
+      [modelName]: { itemLine = [] } = {},
+    } = this.props;
+    const { openExpandAllFlag, expandAllFlag, activeKey, pageLoading } = this.state;
+    if (
+      // 仅招标页面默认展开，询价保持原有折叠状态
+      !this.bidFlag ||
+      this.defaultExpandItemLineDone ||
+      // 物料行必须是当前单据查回来的数据，避免切换单据时展开上一个单据的旧数据
+      this.itemLineLoadedRfxId !== params.rfxId ||
+      !openExpandAllFlag ||
+      !itemLine.length ||
+      expandAllFlag ||
+      pageLoading ||
+      activeKey !== 'itemLine'
+    ) {
+      return;
+    }
+    // 先置位，避免 handleClickExpandAll 内部的 setState 再次触发重复展开
+    this.defaultExpandItemLineDone = true;
+    this.handleClickExpandAll('item');
   }
 
   // 查询双单位是否开启
@@ -1149,31 +1199,44 @@ class CheckPrice extends Component {
         onlyAllowAllWinBids = 0, // 模板配置允许整单中标
       } = res || {};
 
-      const setDefaultCheckWay = remote
-        ? remote.process('SSRC_CHECK_PRICE_PROCESS_DEFAULT_CHECK_WAY', false)
-        : false;
-      const cuxOnlyAllowAllWinBids = remote
-        ? remote.process('SSRC_CHECK_PRICE_PROCESS_ONLY_ALLOW_ALL_WINDBIDS', false)
-        : false;
-
-      // 此处合并setState, 异步set 会触发多次渲染
-      this.setState(
-        Object.assign(
-          {
-            checkAttachmentUuid: res.checkAttachmentUuid || uuidv4(),
-          },
-          onlyAllowAllWinBids &&
-            (setDefaultCheckWay || {
-              checkWay: 'ratio',
-              activeKey: 'supplierLine',
-            })
-        )
-      );
-      if (onlyAllowAllWinBids && !cuxOnlyAllowAllWinBids) {
+      if (this.bidFlag) {
+        // 招标：业务要求核价方式固定为「按数量」，不再读取 checkPriceWay 配置，页面也不提供「按比例/按数量」切换
+        // 整单中标时仍默认切到「供应商行」页签
+        this.setState({
+          checkAttachmentUuid: res.checkAttachmentUuid || uuidv4(),
+          checkWay: 'quantity',
+          ...(onlyAllowAllWinBids ? { activeKey: 'supplierLine' } : {}),
+        });
         // 给全部报价明细ds设置checkWay
-        this.quoteLineDs.setState('checkWay', 'ratio');
+        this.quoteLineDs.setState('checkWay', 'quantity');
       } else {
-        this.fetchCheckWay();
+        // 询价：保持原有核价方式逻辑
+        const setDefaultCheckWay = remote
+          ? remote.process('SSRC_CHECK_PRICE_PROCESS_DEFAULT_CHECK_WAY', false)
+          : false;
+        const cuxOnlyAllowAllWinBids = remote
+          ? remote.process('SSRC_CHECK_PRICE_PROCESS_ONLY_ALLOW_ALL_WINDBIDS', false)
+          : false;
+
+        // 此处合并setState, 异步set 会触发多次渲染
+        this.setState(
+          Object.assign(
+            {
+              checkAttachmentUuid: res.checkAttachmentUuid || uuidv4(),
+            },
+            onlyAllowAllWinBids &&
+              (setDefaultCheckWay || {
+                checkWay: 'ratio',
+                activeKey: 'supplierLine',
+              })
+          )
+        );
+        if (onlyAllowAllWinBids && !cuxOnlyAllowAllWinBids) {
+          // 给全部报价明细ds设置checkWay
+          this.quoteLineDs.setState('checkWay', 'ratio');
+        } else {
+          this.fetchCheckWay();
+        }
       }
       if (remote?.event) {
         const eventProps = {
@@ -1248,6 +1311,13 @@ class CheckPrice extends Component {
         rfxLineItemIds,
       },
     }).then((res) => {
+      // 记录当前 props 中的 itemLine 数据属于哪个单据，供默认展开判断
+      // 切换单据时旧请求可能后返回，此时不能再覆盖新单据的标记
+      if (this.props.match.params.rfxId === params.rfxId) {
+        this.itemLineLoadedRfxId = params.rfxId;
+        // 等 redux 数据同步到 props 后再判断是否需要默认展开
+        setTimeout(() => this.autoExpandItemLine(), 0);
+      }
       const eventProps = {
         res,
         current: this,
@@ -1751,6 +1821,24 @@ class CheckPrice extends Component {
     if (isNil(supplierLineTable)) return true;
     const promiseArr = Object.values(supplierLineTable).map((ds) => ds.validate());
     return Promise.all(promiseArr).then((res) => res.every((validateFlag) => validateFlag));
+  }
+
+  /**
+   * 校验供应商清单（勾选「选用」时，「选用理由」必填）
+   */
+  @Bind()
+  async validateSuggestSupplierList() {
+    if (!this.useSuggestSupplierList() || !this.suggestSupplierDs) return true;
+    const validateFlag = await this.suggestSupplierDs.validate();
+    if (!validateFlag) {
+      notification.warning({
+        message: intl
+          .get('ssrc.inquiryHall.view.message.suggestedRemarkRequired')
+          .d('勾选「选用」的供应商必须填写选用理由'),
+      });
+      throw new Error('suggestSupplierList validate failed');
+    }
+    return true;
   }
 
   /**
@@ -3849,11 +3937,12 @@ class CheckPrice extends Component {
       // const validateCostRemarkForm = this.validateForm('costRemark');
       const validateBasicInfoDs = this.validateBasinInfoForm();
       const validateQuoteLine = this.getCurrentEditTableDataQuoteLine(checkWay, sectionChange);
+      const validateSuggestSupplier = this.validateSuggestSupplierList();
       const attachmentLineList = this.getAttachmentListTableData() || [];
       const cuxTabData = this.getCuxTabData() || {};
 
       // 全部校验通过后
-      Promise.all([validateBasicInfoDs, validateQuoteLine])
+      Promise.all([validateBasicInfoDs, validateQuoteLine, validateSuggestSupplier])
         .then(async ([basicInfos, quoteLineValues]) => {
           const values = omit(basicInfos, 'selectionStrategy');
           const { costRemark = '', totalCost = '' } = values;
@@ -3866,7 +3955,11 @@ class CheckPrice extends Component {
               current?.get(['objectVersionNumber', 'rfxHeaderId']) || {};
             const allProjectLineSectionList =
               this.sectionInfo.getAllSectionList && this.sectionInfo.getAllSectionList();
-            if (checkPriceDTOLineList && checkPriceDTOLineList.length) {
+            // 招标 & sourceFrom === 'PROJECT'：清单内容为供应商表格，物料行可能为空，仍允许保存
+            if (
+              (checkPriceDTOLineList && checkPriceDTOLineList.length) ||
+              this.useSuggestSupplierList()
+            ) {
               const res = await dispatch({
                 type: `${modelName}/saveCheckPrice`,
                 payload: Object.assign(
@@ -3883,6 +3976,10 @@ class CheckPrice extends Component {
                     customizeUnitCode,
                     allProjectLineSectionList,
                     attachmentLineList,
+                    // 招标 & sourceFrom === 'PROJECT'：供应商清单（选用/分配数量/选用理由）；询价不传该字段
+                    ...(this.useSuggestSupplierList()
+                      ? { cuxSuggestSupplierList: this.getCuxSuggestSupplierList() }
+                      : {}),
                     ...cuxTabData,
                   },
                   this.getStateParams()
@@ -3907,6 +4004,10 @@ class CheckPrice extends Component {
               if (res) {
                 resolve(true);
                 if (!refreshFlag) return; // 无须刷新
+                // 招标 & sourceFrom === 'PROJECT'：刷新供应商清单
+                if (this.useSuggestSupplierList()) {
+                  this.suggestSupplierDs.query();
+                }
                 if (!sectionChange) {
                   this.refreshActiveData(true);
                   this.refreshCuxTab(); // CUX TAB REFRESH
@@ -4425,10 +4526,11 @@ class CheckPrice extends Component {
       // const validateCostRemarkForm = this.validateForm('costRemark');
       const validateBasicInfoDs = this.validateBasinInfoForm();
       const validateQuoteLine = this.getCurrentEditTableDataQuoteLine(checkWay, submitFlag);
+      const validateSuggestSupplier = this.validateSuggestSupplierList();
       const cuxTabData = this.getCuxTabData() || {};
 
       // 全部校验通过后
-      return Promise.all([validateBasicInfoDs, validateQuoteLine]).then(
+      return Promise.all([validateBasicInfoDs, validateQuoteLine, validateSuggestSupplier]).then(
         async ([basicInfos, quoteLineValues]) => {
           const values = remote
             ? remote.process(
@@ -4477,6 +4579,10 @@ class CheckPrice extends Component {
                           )
                         : sectionCheckedParams,
                       allProjectLineSectionList,
+                      // 招标 & sourceFrom === 'PROJECT'：供应商清单（选用/分配数量/选用理由）；询价不传该字段
+                      ...(this.useSuggestSupplierList()
+                        ? { cuxSuggestSupplierList: this.getCuxSuggestSupplierList() }
+                        : {}),
                       ...cuxTabData, // cux tab
                     },
                     this.getStateParams()
@@ -5397,6 +5503,10 @@ class CheckPrice extends Component {
       this.fetchItemLine(page || itemLinePagination);
       // id 去重，根据行rfxLineItemId遍历查询物料行数据
       this.setState({ updateState: true }, () => {
+        // 招标 & sourceFrom === 'PROJECT'：物品明细页签展示的是供应商清单，物料行表格未挂载
+        if (this.useSuggestSupplierList()) {
+          return;
+        }
         if (newFunctionFlag) {
           this.itemLineList.setState({
             isShow: {},
@@ -6647,11 +6757,51 @@ class CheckPrice extends Component {
    * @protected
    */
   renderItemLineList(itemLineListProps) {
+    // 头部信息未加载完成时先不渲染，避免项目来源的招标在两种表格之间来回切换
+    if (this.bidFlag && !this.basicInfoDs?.current) {
+      return <Spin spinning />;
+    }
+    if (this.useSuggestSupplierList()) {
+      return (
+        <SuggestSupplierList
+          dataSet={this.suggestSupplierDs}
+          rfxHeaderId={this.rfxHeaderId}
+          sourceKey={this.sourceKey}
+          customizeTable={this.props.customizeTable}
+        />
+      );
+    }
     return this.sourceKey === 'NEW_BID' ? (
       <ItemLineListBid {...itemLineListProps} />
     ) : (
       <ItemLineList {...itemLineListProps} />
     );
+  }
+
+  /**
+   * 招标且头部 sourceFrom === 'PROJECT' 时，「物品明细」页签展示新的供应商清单表格
+   */
+  useSuggestSupplierList() {
+    if (!this.bidFlag) return false;
+    const sourceFrom = this.basicInfoDs?.current?.get('sourceFrom');
+    return sourceFrom === 'PROJECT';
+  }
+
+  /**
+   * 供应商清单编辑数据：保存/提交时通过 cuxSuggestSupplierList 下发
+   */
+  getCuxSuggestSupplierList() {
+    if (!this.useSuggestSupplierList()) return undefined;
+    const data = this.suggestSupplierDs?.toData() || [];
+    // 清单未查询过（没进过物品明细页签）时不传，避免误清空
+    if (!data.length) return undefined;
+    return data.map((item) => ({
+      supplierCompanyId: item.supplierCompanyId,
+      attributeLongtext8: item.attributeLongtext8,
+      suggestedFlag: item.suggestedFlag,
+      allottedQuantity: item.allottedQuantity,
+      suggestedRemark: item.suggestedRemark,
+    }));
   }
 
   /**
@@ -6813,14 +6963,7 @@ class CheckPrice extends Component {
       match: { params },
     } = this.props;
     return [
-      this.bidFlag ? (
-        <TabPane
-          tab={intl.get(`sscux.ssrc.view.message.tab.cuxPreWinningBidDetail`).d('拟中标明细')}
-          key="cuxPreWinningBidDetail"
-        >
-          <CuxSupplierListDetail rfxHeaderId={params.rfxId} />
-        </TabPane>
-      ) : null,
+      // 招标不展示「拟中标明细」页签
       !onlyAllowAllWinBids ? (
         <TabPane
           tab={intl.get(`ssrc.inquiryHall.view.message.tab.itemLine`).d('物品明细')}
@@ -6983,6 +7126,10 @@ class CheckPrice extends Component {
 
   @Bind()
   getItemOperations() {
+    // 招标 & sourceFrom === 'PROJECT'：物品明细页签展示的是供应商清单，无需一键展开/收起
+    if (this.useSuggestSupplierList()) {
+      return null;
+    }
     const {
       modelName = 'inquiryHall',
       [modelName]: {
@@ -7009,37 +7156,42 @@ class CheckPrice extends Component {
             {intl.get(`ssrc.inquiryHall.model.inquiryHall.allExpand`).d('一键展开/收起')}
           </Button>
         )}
-        <Lov
-          dataSet={this.itemOperationDs}
-          viewMode="popup"
-          name="checkItems"
-          onChange={this.changeSelectItemOps}
-          paramMatcher={({ key, text }) => ({ [key]: (text || []).toString() })}
-          searchFieldProps={{
-            multiple: true,
-            placeholder: lovSearchPlaceholder,
-          }}
-          placeholder={intl.get(`ssrc.inquiryHall.model.inquiryHall.viewItemDetail`).d('物料')}
-          onSearchMatcherChange={this.handleLovSearchMatcherChange}
-          searchMatcher={searchMatcher}
-          popupCls={styles['checkPrice-tab-checkItems-lov-modal']}
-          maxTagCount={3}
-          maxTagTextLength={60}
-        />
-        <Select
-          onChange={(value) => this.changeItemTableSelectedPolicy(value)}
-          placeholder={intl.get(`ssrc.inquiryHall.model.inquiryHall.strategy`).d('选择策略')}
-          style={{ width: '150px', margin: '0 10px' }}
-        >
-          {selectedPolicyFilterValue &&
-            selectedPolicyFilterValue.map((index) => (
-              <Select.Option key={index.value} value={index.value}>
-                <Tooltip title={selectionInfoMap()[index.value]} placement="left">
-                  {index.meaning}
-                </Tooltip>
-              </Select.Option>
-            ))}
-        </Select>
+        {/* 招标：隐藏物料筛选和选择策略；询价保持原样 */}
+        {!this.bidFlag && (
+          <React.Fragment>
+            <Lov
+              dataSet={this.itemOperationDs}
+              viewMode="popup"
+              name="checkItems"
+              onChange={this.changeSelectItemOps}
+              paramMatcher={({ key, text }) => ({ [key]: (text || []).toString() })}
+              searchFieldProps={{
+                multiple: true,
+                placeholder: lovSearchPlaceholder,
+              }}
+              placeholder={intl.get(`ssrc.inquiryHall.model.inquiryHall.viewItemDetail`).d('物料')}
+              onSearchMatcherChange={this.handleLovSearchMatcherChange}
+              searchMatcher={searchMatcher}
+              popupCls={styles['checkPrice-tab-checkItems-lov-modal']}
+              maxTagCount={3}
+              maxTagTextLength={60}
+            />
+            <Select
+              onChange={(value) => this.changeItemTableSelectedPolicy(value)}
+              placeholder={intl.get(`ssrc.inquiryHall.model.inquiryHall.strategy`).d('选择策略')}
+              style={{ width: '150px', margin: '0 10px' }}
+            >
+              {selectedPolicyFilterValue &&
+                selectedPolicyFilterValue.map((index) => (
+                  <Select.Option key={index.value} value={index.value}>
+                    <Tooltip title={selectionInfoMap()[index.value]} placement="left">
+                      {index.meaning}
+                    </Tooltip>
+                  </Select.Option>
+                ))}
+            </Select>
+          </React.Fragment>
+        )}
       </React.Fragment>
     );
   }
@@ -7347,14 +7499,18 @@ class CheckPrice extends Component {
       remote,
       [modelName]: { itemLine = [], supplierLine = [] },
     } = this.props;
-    const { expandAllFlag } = this.state;
+    const { expandAllFlag, itemActivePanel = [], supplierActivePanel = [] } = this.state;
     this.setState({
       pageLoading: true,
     });
     let res;
     const pageSize = remote ? remote.process('SSRC_CHECK_PRICE_PROCESS_PAGESIZE', 10) : 10;
     if (type === 'item') {
-      if (!expandAllFlag) {
+      // 招标：按物品页签自己的展开状态判断，避免两个页签共用 expandAllFlag 导致状态串台；询价保持原逻辑
+      const itemAllExpanded = this.bidFlag
+        ? !!itemLine.length && itemActivePanel.length === itemLine.length
+        : expandAllFlag;
+      if (!itemAllExpanded) {
         const itemkeys = itemLine.map((item) => item.rfxLineItemId);
         const itemExpand = {};
         itemkeys.forEach((item) => {
@@ -7430,11 +7586,14 @@ class CheckPrice extends Component {
         );
       }
       if (this.itemLineList.scrollTo && this.scrollerContainerRef) {
-        this.scrollerContainerRef.scrollTo(0, !expandAllFlag ? 0 : 1);
+        this.scrollerContainerRef.scrollTo(0, itemAllExpanded ? 1 : 0);
       }
       return res;
     } else if (type === 'supplier') {
-      if (!expandAllFlag) {
+      const supplierAllExpanded = this.bidFlag
+        ? !!supplierLine.length && supplierActivePanel.length === supplierLine.length
+        : expandAllFlag;
+      if (!supplierAllExpanded) {
         const supplierkeys = supplierLine.map((item) => item.rfxLineSupplierId);
         const supplierExpand = {};
         supplierkeys.forEach((item) => {
@@ -7502,7 +7661,7 @@ class CheckPrice extends Component {
         });
       }
       if (this.supplierLineList.scrollTo && this.scrollerContainerRef) {
-        this.scrollerContainerRef.scrollTo(0, !expandAllFlag ? 0 : 1);
+        this.scrollerContainerRef.scrollTo(0, supplierAllExpanded ? 1 : 0);
       }
       return res;
     }
@@ -7511,6 +7670,11 @@ class CheckPrice extends Component {
   @Bind()
   renderButtonGroup({ onlyAllowAllWinBids, checkWay, changeCheckWayLoading }) {
     const { remote } = this.props;
+
+    // 招标：核价方式固定为「按数量」，不再展示「按比例/按数量」切换按钮
+    if (this.bidFlag) {
+      return null;
+    }
 
     const showButtonsFlag = remote
       ? remote.process('SSRC_CHECK_PRICE_PROCESS_SHOW_BUTTONS_FLAG', !onlyAllowAllWinBids)

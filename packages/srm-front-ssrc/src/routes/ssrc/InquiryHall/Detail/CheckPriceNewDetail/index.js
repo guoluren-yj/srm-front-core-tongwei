@@ -35,6 +35,7 @@ import { basicInfoDataSet } from './store/basicInfoDataSet';
 
 import BasicInfoForm from './Header/BasicInfoForm';
 import CostRemarkForm from './Header/CostRemarkForm';
+import SuggestSupplierListDetail from './Tabs/SuggestSupplierListDetail';
 
 const { Panel } = Collapse;
 const { openIPDetailModal } = useIPDetailModal();
@@ -71,6 +72,7 @@ class CheckPriceNewDetail extends PureComponent {
         'basicInfo',
         'costComment',
         'details',
+        'cuxSuggestSupplierList',
         'cuxAwardBidDetail',
         'cuxScoreDetail',
       ],
@@ -469,7 +471,7 @@ class CheckPriceNewDetail extends PureComponent {
     const { header = {} } = this.state;
     const ratingEnabled =
       header.templateScoreType === 'SCORE_NEW' || header.templateScoreType === 'WEIGHT';
-
+    console.log("header",header.sourceFrom)
     const panels = [
       <Panel
         showArrow={false}
@@ -495,7 +497,7 @@ class CheckPriceNewDetail extends PureComponent {
       >
         {this.rfxCostRemarkForm()}
       </Panel>,
-      !showCuxSupplierListFlag && (
+      (!showCuxSupplierListFlag || (header.sourceFrom !== 'PROJECT' && bidFlag)) && (
         <Panel
           showArrow={false}
           header={
@@ -527,6 +529,25 @@ class CheckPriceNewDetail extends PureComponent {
           ) : (
             this.renderCheckPriceTabs()
           )}
+        </Panel>
+      ),
+      // 通威二开 - 招标 & 来源为项目：清单内容（只读，数据来自 marmot 接口）
+      bidFlag && header.sourceFrom === 'PROJECT' && (
+        <Panel
+          showArrow={false}
+          header={
+            <React.Fragment>
+              <h3>
+                {intl
+                  .get('ssrc.inquiryHall.view.title.inquiryHall.suggestSupplierList')
+                  .d('清单内容')}
+              </h3>
+              {this.renderPanelArrawSymbol({ currentKey: 'cuxSuggestSupplierList' })}
+            </React.Fragment>
+          }
+          key="cuxSuggestSupplierList"
+        >
+          <SuggestSupplierListDetail rfxHeaderId={rfxHeaderId} />
         </Panel>
       ),
       showCuxSupplierListFlag && (

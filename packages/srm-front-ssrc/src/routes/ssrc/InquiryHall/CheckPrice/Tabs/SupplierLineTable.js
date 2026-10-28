@@ -58,6 +58,8 @@ const SupplierLineTable = (props) => {
       rfxLineSupplierId,
       doubleUnitFlag,
     }),
+    // 招标：表格不需要行勾选框（c7n 默认 selection 为 multiple）；询价保持原有勾选
+    ...(sourceKey === 'NEW_BID' ? { selection: false } : null),
     events: {
       ...supplierLineTableDS({ sourceKey, doubleUnitFlag }).events,
       load: ({ dataSet, data }) => {
@@ -738,7 +740,7 @@ const SupplierLineTable = (props) => {
       code: `SSRC.${sourceKey}_HALL_CHECK_PRICE.TAB_SUPPLIER`,
       namespace: rfxLineSupplierId,
     },
-    <Table {...tableProps} />
+    <Table {...tableProps} selectionMode={sourceKey === 'NEW_BID' ? 'none' : undefined} />
   );
 };
 

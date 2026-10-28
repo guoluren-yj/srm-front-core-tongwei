@@ -1136,6 +1136,8 @@ const AllQuoteLine = (props) => {
     onRow: renderRow,
     virtual: true,
     virtualCell: true,
+    // 招标：不渲染行勾选框（表头全选框/每行勾选框）；询价保持默认 rowbox
+    ...(sourceKey === 'NEW_BID' ? { selectionMode: 'none' } : null),
   };
 
   const tableProps = remote

@@ -606,6 +606,34 @@ class SupplierLineList extends PureComponent {
     });
   }
 
+  /**
+   * 跳转投标详情（招标）
+   */
+  @Bind()
+  handleOpenBidDetail(item, e) {
+    e.stopPropagation();
+    const { quotationHeaderId } = item || {};
+    if (!quotationHeaderId) {
+      return;
+    }
+    const { rfxHeaderId } = this.props;
+    const path = `/ssrc/bid-supplier-reply/query/${quotationHeaderId}`;
+    const searchObj = {
+      rfxHeaderId,
+      noBackFlag: 1,
+      pageType: 'SUPPLIER_DETAIL_QUERY',
+      switchUrl: 2,
+    };
+    openTab({
+      key: path,
+      path,
+      title: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+      action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+      search: querystring.stringify(searchObj),
+      closable: true,
+    });
+  }
+
   suggestedRemarkRef;
 
   @Bind()
@@ -1007,7 +1035,12 @@ class SupplierLineList extends PureComponent {
             </div>
           </span>
         </div>
-        <div className={styles.middleBox}>
+        <div className={`${styles.middleBox}${bidFlag ? ` ${styles.bidPlainTags}` : ''}`}>
+          {bidFlag && item.quotationHeaderId ? (
+            <a className={styles.bidDetailLink} onClick={(e) => this.handleOpenBidDetail(item, e)}>
+              {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
+            </a>
+          ) : null}
           {!japanDutchTotalBidding ? (
             <Tag
               className={
@@ -1143,7 +1176,8 @@ class SupplierLineList extends PureComponent {
                 that: this,
               })
             : null}
-          {item.quotationLineNumber * 1 >= 1 && (
+          {/* 招标：卡片不显示「整包推荐」开关；询价保持原样 */}
+          {!bidFlag && item.quotationLineNumber * 1 >= 1 && (
             <span onClick={(e) => this.rfxLineTag(e)}>
               <Form.Item
                 label={intl.get(`ssrc.inquiryHall.model.inquiryHall.wholePackage`).d('整包推荐')}

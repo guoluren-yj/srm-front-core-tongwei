@@ -1,12 +1,15 @@
 /**
  * 分配申请弹框
- * - 查询：GET  /marmot/v1/{organizationId}/marmot-api/jnGiaAPr0vns7KB9wic7ODC8E5pQHXoyqIkmzWnibncFm4?rfxLineItemId=xxx
+ * - 查询：GET  /marmot/v1/{organizationId}/marmot-api/jnGiaAPr0vns7KB9wic7ODC8E5pQHXoyqIkmzWnibncFm4
+ *   物料明细：?rfxLineItemId=xxx
+ *   供应商清单：?rfxHeaderId=xxx&supplierCompanyId=xxx&attributeLongtext8=标段
  * - 保存：POST 同 URL，只修改分配金额(assignAmount)，其他字段使用接口原返回
  */
 import React, { useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { DataSet, Table } from 'choerodon-ui/pro';
 import { observer } from 'mobx-react';
-import { isEmpty } from 'lodash';
+import { isEmpty, omitBy, isNil } from 'lodash';
+import querystring from 'querystring';
 
 import intl from 'utils/intl';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
@@ -15,7 +18,20 @@ import request from 'utils/request';
 
 const ALLOCATE_URL = `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/jnGiaAPr0vns7KB9wic7ODC8E5pQHXoyqIkmzWnibncFm4`;
 
-const AllocateRequestModal = forwardRef(({ rfxLineItemId }, ref) => {
+const AllocateRequestModal = forwardRef((props, ref) => {
+  // readOnly：详情页只查看，不允许修改分配金额
+  const { rfxLineItemId, rfxHeaderId, supplierCompanyId, attributeLongtext8, readOnly = false } =
+    props;
+  const queryString = useMemo(
+    () =>
+      querystring.stringify(
+        omitBy(
+          { rfxLineItemId, rfxHeaderId, supplierCompanyId, attributeLongtext8 },
+          (value) => isNil(value) || value === ''
+        )
+      ),
+    [rfxLineItemId, rfxHeaderId, supplierCompanyId, attributeLongtext8]
+  );
   const allocateDs = useMemo(
     () =>
       new DataSet({
@@ -62,12 +78,12 @@ const AllocateRequestModal = forwardRef(({ rfxLineItemId }, ref) => {
         ],
         transport: {
           read: () => ({
-            url: `${ALLOCATE_URL}?rfxLineItemId=${rfxLineItemId}`,
+            url: `${ALLOCATE_URL}?${queryString}`,
             method: 'GET',
           }),
         },
       }),
-    [rfxLineItemId]
+    [queryString]
   );
 
   useEffect(() => {
@@ -105,7 +121,7 @@ const AllocateRequestModal = forwardRef(({ rfxLineItemId }, ref) => {
     { name: 'companyName', width: 180 },
     { name: 'displayPrNum', width: 140 },
     { name: 'itemName', width: 140 },
-    { name: 'assignAmount', editor: true, width: 130 },
+    { name: 'assignAmount', editor: !readOnly, width: 130 },
     { name: 'estimatedAmount', width: 130 },
   ];
 

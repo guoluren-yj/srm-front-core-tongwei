@@ -42,6 +42,8 @@ class ItemLineTable extends PureComponent {
     } = props;
     const dsProps = {
       ...itemLineTableDS({ sourceKey, doubleUnitFlag }),
+      // 招标：表格不需要行勾选框（c7n 默认 selection 为 multiple）；询价保持原有勾选
+      ...(sourceKey === 'NEW_BID' ? { selection: false } : null),
       events: {
         ...itemLineTableDS({ sourceKey, doubleUnitFlag }).events,
         load: ({ dataSet, data }) => {
@@ -793,7 +795,7 @@ class ItemLineTable extends PureComponent {
         code: `SSRC.${sourceKey}_HALL_CHECK_PRICE.TAB_ITEM_DTL`,
         namespace: rfxLineItemId,
       },
-      <Table {...tableProps} />
+      <Table {...tableProps} selectionMode={sourceKey === 'NEW_BID' ? 'none' : undefined} />
     );
   }
 }
