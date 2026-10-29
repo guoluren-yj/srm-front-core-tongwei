@@ -34,6 +34,17 @@ export function supplierEvaluationDetailPostApi(body: any, operationType) {
   });
 }
 
+// 入围单版本列表（历史版本）
+export function queryNominationHistoryApi(nominationHeaderId) {
+  return request(`${SRM_MARMOT}/v1/${organizationId}/marmot-api/YmqoMCVomiaIrEZCkyzZfwQ1zQVwLiaMJxBq2csUQynvqwj7VjbmmW1kjgAwyEO2Hic`, {
+    method: 'GET',
+    query: {
+      nominationHeaderId,
+      queryType: 'HEADER_HISTORY',
+    },
+  });
+}
+
 // 风险扫描
 export function supplierRiskScanApi(body: any) {
  return request(`${SRM_SSLM}/v1/${organizationId}/monitor/riskScan-validate`, {

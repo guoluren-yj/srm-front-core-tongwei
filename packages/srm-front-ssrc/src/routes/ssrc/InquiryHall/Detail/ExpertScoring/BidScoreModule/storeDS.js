@@ -4,7 +4,8 @@ const prefix = 'scux.bidEvaluationManagement';
 
 // 评标进度 - 供应商列表数据集
 // 通威二开 - 字段与评标管理「评标明细」页(bid-evaluation-management/summary/view)保持一致：
-// 序号/供应商编码/供应商名称/价格标开启标识/报价总金额/技术组/商务组/价格组，接口仍为原 BASIC 单次查询。
+// 序号/供应商编码/供应商名称/价格标开启标识/报价总金额/投标价/最终价/谈判标识/技术组/商务组/价格组，
+// 接口仍为原 BASIC 单次查询。
 const supplierListDataSet = () => {
   return {
     autoQuery: false,
@@ -32,6 +33,17 @@ const supplierListDataSet = () => {
         name: 'qtnTotalAmount',
         label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
         type: 'number',
+      },
+      {
+        name: 'bidQtnTotalAmount',
+        label: intl.get(`${prefix}.model.twnf.summary.bidQtnTotalAmount`).d('投标价'),
+        type: 'number',
+      },
+      // 谈判标识：1-是、0-否
+      {
+        name: 'bargainFlag',
+        label: intl.get(`${prefix}.model.twnf.summary.bargainFlag`).d('谈判标识'),
+        lookupCode: 'HPFM.FLAG',
       },
       {
         name: 'techExpertRatio',

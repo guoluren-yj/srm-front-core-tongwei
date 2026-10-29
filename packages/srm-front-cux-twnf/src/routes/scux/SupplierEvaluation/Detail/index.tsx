@@ -17,6 +17,7 @@ import { basicInfoDS, supplierListDS, prefix, businessStandardDS, technicalStand
 import BasicInfo from './BasicInfo';
 import EvaluationInfo from './EvaluationInfo';
 import SupplierList from './SupplierList';
+import HistoryVersionListBtn from './HistoryVersionListBtn';
 import styles from './index.less';
 import { supplierEvaluationPostApi, supplierEvaluationDetailPostApi } from '../../../../services/scux/supplierEvaluationServices';
 
@@ -47,10 +48,13 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
   const searchParams = new URLSearchParams(search || '');
   const nominationHeaderId = searchParams.get('nominationHeaderId');
   const type = searchParams.get('type') || 'readOnly';
+  // 查看历史版本：URL 带 nominationVersion 时按版本号查询历史数据，页面整体按查看态（只读）渲染
+  const nominationVersion = searchParams.get('nominationVersion');
+  const displayType = nominationVersion ? 'view' : type;
   console.log(type)
 
-  const basicInfoDs = useMemo(() => new DataSet(basicInfoDS(nominationHeaderId, type)), [nominationHeaderId, type]);
-  const supplierListDs = useMemo(() => new DataSet(supplierListDS(nominationHeaderId, type, () => basicInfoDs?.current?.get('companyId'))), [nominationHeaderId, type, basicInfoDs]);
+  const basicInfoDs = useMemo(() => new DataSet(basicInfoDS(nominationHeaderId, displayType, nominationVersion)), [nominationHeaderId, displayType, nominationVersion]);
+  const supplierListDs = useMemo(() => new DataSet(supplierListDS(nominationHeaderId, displayType, () => basicInfoDs?.current?.get('companyId'), nominationVersion)), [nominationHeaderId, displayType, basicInfoDs, nominationVersion]);
 
   useEffect(() => {
     supplierListDs.setState('nominationHeaderId', nominationHeaderId)
@@ -58,7 +62,27 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
 
   const readOnly = type !== 'edit' && type !== 'change';
 
-  const backPath = useMemo(() => '/scux/supplier-evaluation/list', []);
+  // 查看历史版本时在标题上标注版本号
+  const pageTitle = useMemo(
+    () =>
+      nominationVersion
+        ? `${getPageTitle(displayType)} - ${intl
+            .get('scux.supplierEvaluation.view.menuItem.version')
+            .d('版本')}v${nominationVersion}`
+        : getPageTitle(displayType),
+    [displayType, nominationVersion]
+  );
+
+  // 历史版本页返回时先回到同路由的无版本号详情页，无版本号页再返回列表
+  const backPath = useMemo(() => {
+    if (!nominationVersion) {
+      return '/scux/supplier-evaluation/list';
+    }
+    const params = new URLSearchParams(search || '');
+    params.delete('nominationVersion');
+    const restSearch = params.toString();
+    return `${location.pathname}${restSearch ? `?${restSearch}` : ''}`;
+  }, [nominationVersion, search, location]);
 
   const backList = useCallback(() => {
     history.push(backPath);
@@ -144,7 +168,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
     // 查询，避免污染正在编辑的 basicInfoDs。
     let headerRecord: any = basicInfoDs.current;
     try {
-      const headDs = new DataSet({ ...basicInfoDS(nominationHeaderId, type), autoQuery: false });
+      const headDs = new DataSet({ ...basicInfoDS(nominationHeaderId, displayType), autoQuery: false });
       await headDs.query();
       headerRecord = headDs.current || basicInfoDs.current;
     } catch (e) {
@@ -196,7 +220,7 @@ const SupplierEvaluationDetail = ({ location, history }: any) => {
         }
       },
     });
-  }, [basicInfoDs, supplierListDs, nominationHeaderId, type, backList, waitRefreshDone]);
+  }, [basicInfoDs, supplierListDs, nominationHeaderId, displayType, backList, waitRefreshDone]);
 
 const handleBusinessStandard = useCallback(() => {
     const businessStandardDs = new DataSet(businessStandardDS(nominationHeaderId, basicInfoDs));
@@ -387,7 +411,7 @@ const handleBusinessStandard = useCallback(() => {
         const buttons = [
           {
             name: 'submit',
-            hidden: type !== 'unreleasedReadOnly' && type !== 'submit',
+            hidden: displayType !== 'unreleasedReadOnly' && displayType !== 'submit',
             child: intl.get('hzero.common.button.submit').d('提交'),
             btnProps: { icon: 'publish2', color: 'primary', onClick: handleSubmit },
           },
@@ -406,7 +430,7 @@ const handleBusinessStandard = useCallback(() => {
           {
             name: 'save',
             // 列表「提交」跳转进来时 type=submit，此时「是否入围」列可编辑，需要能先保存再提交
-            hidden: !!readOnly && type !== 'submit',
+            hidden: !!readOnly && displayType !== 'submit',
             child: intl.get('hzero.common.btn.save').d('保存'),
             // 不传 funcType，走与「操作记录」一致的默认凸起样式（有边框）
             btnProps: { icon: 'save', onClick: handleSave },
@@ -427,7 +451,7 @@ const handleBusinessStandard = useCallback(() => {
         ];
         return <DynamicButtons buttons={buttons} maxNum={5} defaultBtnType="c7n-pro" />;
       }),
-    [handleSubmit, handleSave, handlePublish, handleBusinessStandard, handleTechnicalStandard, readOnly, nominationHeaderId, type]
+    [handleSubmit, handleSave, handlePublish, handleBusinessStandard, handleTechnicalStandard, readOnly, nominationHeaderId, displayType]
   );
 
   const contentList = useMemo(() => {
@@ -445,7 +469,7 @@ const handleBusinessStandard = useCallback(() => {
         key: 'evaluationInfo',
         content: (
           <Panel key="evaluationInfo" header={intl.get(`${prefix}.view.panel.evaluationInfo`).d('评审详情')}>
-            <EvaluationInfo dataSet={basicInfoDs} type={type} />
+            <EvaluationInfo dataSet={basicInfoDs} type={displayType} />
           </Panel>
         ),
       },
@@ -453,16 +477,17 @@ const handleBusinessStandard = useCallback(() => {
         key: 'supplierList',
         content: (
           <Panel key="supplierList" header={intl.get(`${prefix}.view.panel.supplierList`).d('供应商列表')}>
-            <SupplierList dataSet={supplierListDs} type={type} history={history} basicInfoDs={basicInfoDs} onBusinessStandard={handleBusinessStandard} onTechnicalStandard={handleTechnicalStandard} />
+            <SupplierList dataSet={supplierListDs} type={displayType} history={history} basicInfoDs={basicInfoDs} historyVersion={nominationVersion} onBusinessStandard={handleBusinessStandard} onTechnicalStandard={handleTechnicalStandard} />
           </Panel>
         ),
       },
     ];
-  }, [basicInfoDs, supplierListDs, type]);
+  }, [basicInfoDs, supplierListDs, displayType, nominationVersion]);
 
   return (
     <>
-      <Header backPath={backPath} title={getPageTitle(type)}>
+      <Header backPath={backPath} title={pageTitle}>
+        <HistoryVersionListBtn nominationHeaderId={nominationHeaderId} history={history} />
         <HeaderButtons />
       </Header>
       <Content>
@@ -471,7 +496,7 @@ const handleBusinessStandard = useCallback(() => {
             trigger="text-icon"
             ghost
             expandIconPosition="text-right"
-            defaultActiveKey={getDefaultActiveKey(type)}
+            defaultActiveKey={getDefaultActiveKey(displayType)}
           >
             {contentList.map(i => i.content)}
           </Collapse>

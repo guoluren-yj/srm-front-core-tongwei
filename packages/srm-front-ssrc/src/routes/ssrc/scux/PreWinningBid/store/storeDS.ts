@@ -85,7 +85,7 @@ function getAttributeHeaderFields() {
     },
     {
       name: 'attributeVarchar27',
-      label: intl.get(`${preWinningBidModel}bargainStatus`).d('议价状态'),
+      label: intl.get(`${preWinningBidModel}bargainStatus`).d('议价申请状态'),
       lookupCode: 'SCUX.TWNF_BID_BARGAIN_STATUS',
     },
     {

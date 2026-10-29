@@ -1882,27 +1882,21 @@ class InquiryHall extends React.Component {
       : node;
   };
 
-  // 复制历史单据
+  // 复制历史单据（无权限时调用处不渲染，这里不再做鉴权判断）
   @Bind()
   copyHistoryRFQNode = (record) => {
     const { remote } = this.props;
-    // approve 表示是否拥有该权限；无权限且配置为 disabled 时置灰，其他情况不渲染（见调用处）
-    const { approve } = this.CheckPermissionObject?.copy || {};
     return (
       <div>
         <a
-          style={approve ? undefined : { cursor: 'not-allowed', color: 'rgba(0, 0, 0, 0.25)' }}
-          onClick={
-            approve
-              ? () =>
-                  remote?.event
-                    ? remote?.event?.fireEvent('copyHistoryOrderModal', {
-                        copyHistoryOrderModal: this.copyHistoryOrderModal,
-                        record,
-                        bidFlag: this.bidFlag,
-                      })
-                    : this.copyHistoryOrderModal(record)
-              : undefined
+          onClick={() =>
+            remote?.event
+              ? remote?.event?.fireEvent('copyHistoryOrderModal', {
+                  copyHistoryOrderModal: this.copyHistoryOrderModal,
+                  record,
+                  bidFlag: this.bidFlag,
+                })
+              : this.copyHistoryOrderModal(record)
           }
         >
           {intl.get(`ssrc.inquiryHall.view.message.button.copyHistoryRFQ`).d('复制')}
@@ -2681,11 +2675,9 @@ class InquiryHall extends React.Component {
         );
     const onOperateBidNode = this.onOperateBidNode(record);
 
-    // 有权限正常显示；无权限且 controllerType=disabled 置灰显示；其余（hidden/未返回）不显示
+    // 有权限才显示；无权限直接隐藏，不再区分 controllerType 是 disabled 还是 hidden
     const copyPermission = this.CheckPermissionObject?.copy;
-    const copyVisible =
-      copyPermission?.approve === true || copyPermission?.controllerType === 'disabled';
-    if (tabStatus === 'all' && copyVisible && !offlineWholeFlag) {
+    if (tabStatus === 'all' && copyPermission?.approve === true && !offlineWholeFlag) {
       mean.push(this.copyHistoryRFQNode(record));
     }
     switch (rfxStatus) {

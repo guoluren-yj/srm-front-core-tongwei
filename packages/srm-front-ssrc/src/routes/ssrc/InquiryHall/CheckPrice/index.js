@@ -4908,24 +4908,33 @@ class CheckPrice extends Component {
           };
 
           if (activeKey === 'itemLine') {
-            // 先校验物料行选择策略
-            // eslint-disable-next-line no-unused-expressions
-            this.itemLineList?.props?.form?.validateFields(async (error) => {
-              if (!isEmpty(error)) {
-                return;
-              }
+            const submitItem = async () => {
               const checkPriceDTOLineList = await this.getCheckPriceDTOLineList();
               const newList = checkPriceDTOLineList.filter(
                 (item) =>
                   item.selectionStrategy === 'RECOMMENDATION' || item.selectionStrategy === 'CANCEL'
               );
 
-              const submitItem = () => {
-                submitted({}, () => {
-                  this.setState({ newList });
-                });
-              };
-
+              submitted({}, () => {
+                this.setState({ newList });
+              });
+            };
+            // 招标 & sourceFrom === 'PROJECT'：物品明细页签渲染的是供应商清单，物料行表格（itemLineList）未挂载，
+            // 也就没有物料行选择策略表单需要校验，直接提交即可；
+            // 否则 validateFields 的回调永远不会执行，表现为点击提交没反应
+            const itemLineListForm = this.useSuggestSupplierList()
+              ? null
+              : this.itemLineList?.props?.form;
+            if (!itemLineListForm) {
+              submitItem();
+              return;
+            }
+            // 先校验物料行选择策略
+            // eslint-disable-next-line no-unused-expressions
+            itemLineListForm.validateFields(async (error) => {
+              if (!isEmpty(error)) {
+                return;
+              }
               submitItem();
             });
           } else if (activeKey === 'supplierLine') {

@@ -65,6 +65,25 @@ const SupplierList: React.FC = () => {
       renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
     },
     {
+      name: 'bidQtnTotalAmount',
+      width: 100,
+      renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
+    },
+    {
+      // 最终价与「报价总金额」取同一个字段，用独立 key 避免两列 key（默认取 name）重复
+      key: 'finalQtnTotalAmount',
+      name: 'qtnTotalAmount',
+      header: intl.get(`${prefix}.model.twnf.summary.finalQtnTotalAmount`).d('最终价'),
+      width: 100,
+      renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
+    },
+    {
+      // 谈判标识：1-是、0-否，按字段配置的值集展示含义（text 为值集含义）
+      name: 'bargainFlag',
+      width: 100,
+      renderer: ({ record, text }) => (record?.get('priceBid') === '已开启' ? text : '-'),
+    },
+    {
       name: 'bidDetail',
       header: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
       renderer: ({ record }) =>

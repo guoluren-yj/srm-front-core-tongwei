@@ -23,11 +23,13 @@ interface SupplierListProps {
   type?: string;
   history?: any;
   basicInfoDs: any;
+  // 查看历史版本时为版本号，此时不允许再触发提醒等业务操作
+  historyVersion?: string | null;
   onBusinessStandard?: () => void;
   onTechnicalStandard?: () => void;
 }
 
-const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, history, basicInfoDs, onBusinessStandard, onTechnicalStandard }) => {
+const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, history, basicInfoDs, historyVersion, onBusinessStandard, onTechnicalStandard }) => {
   const readOnly = type !== 'edit' && type !== 'change';
 
   const handleRiskScan = async (record: any) => {
@@ -344,7 +346,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
         );
       }
     }
-    if (type === 'view' && nominationStatus === 'PENDING_REVIEW' && hasEmptyReview) {
+    if (!historyVersion && type === 'view' && nominationStatus === 'PENDING_REVIEW' && hasEmptyReview) {
       btns.push(
         <Button
           funcType={FuncType.flat}
@@ -356,7 +358,7 @@ const SupplierList: React.FC<SupplierListProps> = observer(({ dataSet, type, his
       );
     }
     return btns;
-  }, [type, onBusinessStandard, onTechnicalStandard, dataSet, clickableReview, hasEmptyReview]);
+  }, [type, onBusinessStandard, onTechnicalStandard, dataSet, clickableReview, hasEmptyReview, historyVersion]);
 
   return (
     <Table

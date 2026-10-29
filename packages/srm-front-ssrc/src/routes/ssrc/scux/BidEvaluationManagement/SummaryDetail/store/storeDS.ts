@@ -219,6 +219,17 @@ export const supplierListDataSet = ({ legacy = false }: { legacy?: boolean } = {
         label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
         type: FieldType.number,
       },
+      {
+        name: 'bidQtnTotalAmount',
+        label: intl.get(`${prefix}.model.twnf.summary.bidQtnTotalAmount`).d('投标价'),
+        type: FieldType.number,
+      },
+      // 谈判标识：1-是、0-否
+      {
+        name: 'bargainFlag',
+        label: intl.get(`${prefix}.model.twnf.summary.bargainFlag`).d('谈判标识'),
+        lookupCode: 'HPFM.FLAG',
+      },
       ...(legacy
         ? [
           {

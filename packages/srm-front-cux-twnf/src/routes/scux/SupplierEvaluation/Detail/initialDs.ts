@@ -10,7 +10,8 @@ export const prefix = 'scux.supplierEvaluation';
 const organizationId = getCurrentOrganizationId();
 
 // 基础信息数据集
-export const basicInfoDS = (nominationHeaderId, type): DataSetProps => ({
+// nominationVersion：查看历史版本时传入，接口按版本号返回历史数据
+export const basicInfoDS = (nominationHeaderId, type, nominationVersion?): DataSetProps => ({
   autoQuery: !!nominationHeaderId,
   paging: false,
   fields: [
@@ -65,14 +66,16 @@ export const basicInfoDS = (nominationHeaderId, type): DataSetProps => ({
         ...params,
         nominationHeaderId,
         queryType: 'HEADER',
-        type
+        type,
+        // 查看历史版本：带上版本号，并传默认异步统计标识
+        ...(nominationVersion ? { asyncCountFlag: 'DEFAULT', nominationVersion } : {}),
       },
     }),
   },
 });
 
 // 供应商列表数据集
-export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSetProps => ({
+export const supplierListDS = (nominationHeaderId, type, getCompanyId?, nominationVersion?): DataSetProps => ({
   selection: (type === 'edit' || type === 'change') ? DataSetSelection.multiple : false,
   autoQuery: !!nominationHeaderId,
   paging: false,
@@ -126,6 +129,8 @@ export const supplierListDS = (nominationHeaderId, type, getCompanyId?): DataSet
         nominationHeaderId,
         releaseFlag: (type !== 'edit' && type !== 'change' && type !== 'view') ? '1' : undefined,
         queryType: 'SUP_LINE',
+        // 查看历史版本：带上版本号查询历史供应商行
+        ...(nominationVersion ? { asyncCountFlag: 'DEFAULT', nominationVersion } : {}),
       },
     }),
     destroy: ({ data }) => ({

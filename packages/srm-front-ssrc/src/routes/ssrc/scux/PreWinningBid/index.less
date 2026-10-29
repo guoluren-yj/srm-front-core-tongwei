@@ -1,9 +1,19 @@
 .scux-pre-winning-bid {
-  height: 100%;
+  // 不能用固定 height：页头 sticky 的包含块会被限制在一屏内，滚动超过一屏后页头就跟着滚走了。
+  // 用 min-height 既保证内容少时撑满一屏，又让容器随内容变高，sticky 才能一直吸顶。
+  min-height: 100%;
   :global {
     .c7n-spin-nested-loading,
     .c7n-spin-container {
       height: 100%;
+    }
+  }
+  :global {
+    // 页面往下滚动时，页头（Page Header）固定在顶部
+    .page-head {
+      position: sticky;
+      top: 0;
+      z-index: 9;
     }
   }
   :global {

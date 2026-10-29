@@ -172,6 +172,7 @@ const SupplierList: React.FC = observer(() => {
       },
       {
         name: 'allScoreSum',
+        width: 120,
         hidden: !['10', '20', '40'].includes(scoreWay),
         renderer: ({ record, value }) => scoreWay === '10' && !isNil(value) ? <EvaluationDetailModal record={record} btnName={value} /> : value,
       },
