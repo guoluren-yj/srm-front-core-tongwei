@@ -37,6 +37,7 @@ const SupplierList: React.FC = observer(() => {
     rfxHeaderId,
     history,
     setStoreData,
+    getStoreData,
   } = useStore();
   const { headerDs, supplierListDs, sectionListDs } = commonDs || {};
 
@@ -416,6 +417,15 @@ const SupplierList: React.FC = observer(() => {
     );
   }, [handleViewIPDetail]);
 
+  // 通威二开 - 附件表格「生成附件」回填 uuid 后自动保存整页（保存方法由 Header 通过 store 暴露）
+  const handleAfterGenerateAttachment = () => {
+    const savePageData = getStoreData ? getStoreData('savePageData') : null;
+    if (typeof savePageData === 'function') {
+      return savePageData();
+    }
+    return undefined;
+  };
+
   const fileProps = useMemo(() => ({
     customizeTable,
     customizeBtnGroup,
@@ -427,7 +437,8 @@ const SupplierList: React.FC = observer(() => {
     onRef: handleAttachmentTableRef,
     unitCodeSymbol: 'oldUpdateOrApproval', // 个性化标识
     fileEditorFlag: true, // 附件表格列对齐招标文件及附件表格(文件编辑 OnlyOffice 在线编辑 / 附件模板 文案)
-  }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef]);
+    onAfterGenerateAttachment: handleAfterGenerateAttachment, // 生成附件回填 uuid 后自动保存整页
+  }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef, handleAfterGenerateAttachment]);
 
   // 通威二开 - 新增的 tab 单独一组，不再和旧 tab 混在同一个 Tabs 里
   const newTabPanes = [

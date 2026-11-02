@@ -36,6 +36,7 @@ import { basicInfoDataSet } from './store/basicInfoDataSet';
 import BasicInfoForm from './Header/BasicInfoForm';
 import CostRemarkForm from './Header/CostRemarkForm';
 import SuggestSupplierListDetail from './Tabs/SuggestSupplierListDetail';
+import ClearTenderDetail from './Tabs/ClearTenderDetail';
 
 const { Panel } = Collapse;
 const { openIPDetailModal } = useIPDetailModal();
@@ -75,6 +76,7 @@ class CheckPriceNewDetail extends PureComponent {
         'cuxSuggestSupplierList',
         'cuxAwardBidDetail',
         'cuxScoreDetail',
+        'cuxClearTender',
       ],
       settings: {},
       fileTemplateManageFlag: 0, // 招标文件tab
@@ -471,7 +473,11 @@ class CheckPriceNewDetail extends PureComponent {
     const { header = {} } = this.state;
     const ratingEnabled =
       header.templateScoreType === 'SCORE_NEW' || header.templateScoreType === 'WEIGHT';
-    console.log("header",header.sourceFrom)
+    // 通威二开 - 清标：招标业务类型 attributeVarchar12 = 30（建筑类）且来源为项目
+    const { header: pageHeader = {} } = this.props;
+    const attributeVarchar12 = header.attributeVarchar12 ?? pageHeader.attributeVarchar12;
+    const showCuxClearTenderFlag =
+      String(attributeVarchar12) === '30' && header.sourceFrom === 'PROJECT';
     const panels = [
       <Panel
         showArrow={false}
@@ -593,6 +599,25 @@ class CheckPriceNewDetail extends PureComponent {
           >
             <ScoreDetailSupplierList />
           </SummaryDetailStoreProvider>
+        </Panel>
+      ),
+      // 通威二开 - 招标类型为建筑类(30) & 来源为项目：清标（只读，数据来自 marmot 接口）
+      showCuxClearTenderFlag && (
+        <Panel
+          showArrow={false}
+          header={
+            <React.Fragment>
+              <h3>
+                {intl
+                  .get('scux.ssrc.view.button.inquiryHall.twnf.clearTender')
+                  .d('清标')}
+              </h3>
+              {this.renderPanelArrawSymbol({ currentKey: 'cuxClearTender' })}
+            </React.Fragment>
+          }
+          key="cuxClearTender"
+        >
+          <ClearTenderDetail rfxHeaderId={rfxHeaderId} />
         </Panel>
       ),
     ].filter(Boolean);

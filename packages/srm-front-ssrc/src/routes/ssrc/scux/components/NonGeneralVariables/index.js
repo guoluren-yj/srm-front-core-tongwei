@@ -51,11 +51,18 @@ const Index = (props) => {
   }, [editorFlag]);
 
   // batch delete
-  // 批量删除成功后刷新表格，保证展示数据与服务端一致（线上行删除后本地已移除，需重新查询以拉取最新列表）
+  // 批量删除成功后刷新表格，保证展示数据与服务端一致；
+  // 但若其他行还有未保存的新增/修改，不能整表刷新，否则会把用户已录入的值重置
   const handleBatchDeleteTableData = async () => {
     const selectedRecords = nonGeneralVariablesDs?.selected || [];
     const addRecords = selectedRecords?.filter((r) => r.status === 'add') || [];
-    const oldRecords = selectedRecords?.filter((r) => r.get('variableId')) || [];
+    const oldRecords = selectedRecords?.filter((r) => r.status !== 'add' && r.get('variableId')) || [];
+
+    // 删除前先记录：除被选中行外是否还有未保存的数据（新增行或改过值的行）
+    const hasOtherUnsavedChanges = (nonGeneralVariablesDs?.records || []).some(
+      (record) =>
+        !selectedRecords.includes(record) && (record.status === 'add' || record.dirty)
+    );
 
     // 删除新增（未落库）数据
     if (!isEmpty(addRecords)) {
@@ -77,10 +84,15 @@ const Index = (props) => {
       if (deleteRes === undefined || deleteRes === false) {
         return;
       }
-      nonGeneralVariablesDs.query();
+      // 被删行本地已移除；存在其他未保存修改时跳过整表刷新，保留用户已录入的值
+      if (!hasOtherUnsavedChanges) {
+        nonGeneralVariablesDs.query();
+      }
     } catch (error) {
-      // 删除请求异常时本地行已移除，刷新以与服务端同步，避免数据不一致
-      nonGeneralVariablesDs.query();
+      // 删除请求异常时本地行已移除，仅在没有其他未保存修改时刷新以与服务端同步
+      if (!hasOtherUnsavedChanges) {
+        nonGeneralVariablesDs.query();
+      }
     }
   };
 

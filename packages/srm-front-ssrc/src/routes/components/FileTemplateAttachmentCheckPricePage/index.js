@@ -34,6 +34,8 @@ import { fileTemplateAttachmentDS } from './storeDS';
  * headerData
  * editorFlag 是否可编辑
  * unitCodeSymbol string 页面标识 主要区分页面和个性化
+ * onAfterGenerateAttachment fn({ record, attachmentUuid }) 可选，
+ *   「生成附件」把 uuid 回填到行后调用，由宿主页面在这里保存整页数据（附件行随之落库）；不传则保持原逻辑
  *
  *   老核价维护/审批-附件表格 oldUpdateOrApproval
      新核价/审批/明细 newUpdateOrApproval
@@ -349,12 +351,14 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       const { attachmentUuid } = result || {};
 
       notification.success();
+
+      let refreshFileCount = Promise.resolve();
       if (!lineUuid) {
         record.set('attachmentUuid', attachmentUuid);
       } else {
         record.set('attachmentUuid', null);
         record.set('attachmentUuid', attachmentUuid);
-        queryFileList({
+        refreshFileCount = queryFileList({
           organizationId: this.organizationId,
           bucketName: PRIVATE_BUCKET,
           bucketDirectory: 'ssrc-template-requirement',
@@ -368,7 +372,26 @@ class FileTemplateAttachmentCheckPricePage extends Component {
           }
         });
       }
+
+      // 通威二开 - uuid 回填到行之后自动调用宿主页面的保存，避免新生成的附件只存在于前端
+      return refreshFileCount
+        .catch(() => undefined)
+        .then(() => this.saveAfterGenerateAttachment(record, attachmentUuid));
     });
+  };
+
+  // 生成附件后自动保存：仅在宿主页面传入 onAfterGenerateAttachment 时生效，
+  // 连续生成多行时串行执行，避免并发保存携带同一份 objectVersionNumber 触发后端乐观锁
+  saveAfterGenerateAttachment = (record, attachmentUuid) => {
+    const { onAfterGenerateAttachment } = this.props;
+    if (typeof onAfterGenerateAttachment !== 'function') {
+      return Promise.resolve();
+    }
+    this.afterGenerateSaveQueue = Promise.resolve(this.afterGenerateSaveQueue)
+      .catch(() => undefined)
+      .then(() => onAfterGenerateAttachment({ record, attachmentUuid }));
+    // 自动保存失败（如页面校验未通过）不打断「生成附件」本身
+    return this.afterGenerateSaveQueue.catch(() => undefined);
   };
 
   // 文件编辑列（OnlyOffice 在线编辑），仅当 fileEditorFlag 打开时使用，默认不展示以免影响其他引用页面

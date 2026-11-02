@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { observer, useObserver } from 'mobx-react-lite';
 import { Button, Modal, DataSet, Form, TextArea, Attachment } from 'choerodon-ui/pro';
 import { FuncType, ButtonColor } from 'choerodon-ui/pro/lib/button/enum';
@@ -23,7 +23,7 @@ import { operatePreWinningBid, confirmPostBidBargain } from '../api';
 const TypedBidPriceComparison = BidPriceComparison as React.ComponentType<any>;
 
 const PageHeader: React.FC = observer(() => {
-  const { pageLoading, setPageLoading = noop, history, getStoreData, initData = noop, rfxHeaderId, commonDs } = useStore();
+  const { pageLoading, setPageLoading = noop, history, getStoreData, setStoreData, initData = noop, rfxHeaderId, commonDs } = useStore();
   const { headerDs, supplierListDs, sectionListDs } = commonDs || {};
 
   const { biddingTarget, diyLadderQuotationFlag, templateScoreType } = useObserver(() => headerDs?.current?.get(['biddingTarget', 'diyLadderQuotationFlag', 'templateScoreType']) || {});
@@ -122,6 +122,16 @@ const PageHeader: React.FC = observer(() => {
       setPageLoading(false);
     };
   };
+
+  // 通威二开 - 附件表格「生成附件」回填 uuid 后需要自动保存整页（附件行一并落库），
+  // 这里把保存方法挂到 store 上供附件表格组件调用；用 ref 转发，避免 handleSave 每次渲染生成新函数导致 store 反复刷新
+  const savePageRef = useRef(handleSave);
+  savePageRef.current = handleSave;
+  useEffect(() => {
+    if (setStoreData) {
+      setStoreData('savePageData', () => savePageRef.current());
+    }
+  }, [setStoreData]);
 
   const handleSubmit = async () => {
     // 通威二开 - 已触发标后议价流程（attributeBigint2 === 1）时的弱校验提示：
