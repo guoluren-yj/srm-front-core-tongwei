@@ -199,14 +199,14 @@ const lineInfoDS = ({ supplierFlag, qbHeaderId }): DataSetProps => {
         min: 0,
         disabled: supplierFlag,
       },
-      {
-        name: 'deviation',
-        label: intl.get(`scux.clearTenderManagement.model.twnf.lineInfo.deviationPercent`).d('偏离%'),
-        type: FieldType.number,
-        required: !supplierFlag,
-        min: 0,
-        disabled: supplierFlag,
-      },
+      // {
+      //   name: 'deviation',
+      //   label: intl.get(`scux.clearTenderManagement.model.twnf.lineInfo.deviationPercent`).d('偏离%'),
+      //   type: FieldType.number,
+      //   required: !supplierFlag,
+      //   min: 0,
+      //   disabled: supplierFlag,
+      // },
       {
         name: 'lineRemark',
         label: intl.get(`scux.clearTenderManagement.model.twnf.lineInfo.lineRemark`).d('备注'),

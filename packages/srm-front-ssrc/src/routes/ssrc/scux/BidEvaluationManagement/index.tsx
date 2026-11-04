@@ -229,10 +229,22 @@ const Index: React.FC<any> = (props) => {
   const getColumns = (tabKey: string): ColumnProps[] => {
     return [
       {
+        name: 'rfxTitle',
+        width: 180,
+      },
+      {
         header: intl.get('hzero.common.button.operator').d('操作'),
         name: 'operator',
         width: 150,
         renderer: ({ record }) => getListButtons({ record, tabKey }),
+      },
+      tabKey !== 'evaluationSummary' && {
+        name: 'supplierCompanyName',
+        width: 180,
+      },
+      tabKey !== 'evaluationSummary' && {
+        name: 'scoreTeam',
+        width: 120,
       },
       tabKey === 'historyEvaluated' ? {
         name: 'scoreStatus',
@@ -262,19 +274,7 @@ const Index: React.FC<any> = (props) => {
         },
       },
       {
-        name: 'rfxTitle',
-        width: 180,
-      },
-      tabKey !== 'evaluationSummary' && {
-        name: 'scoreTeam',
-        width: 120,
-      },
-      {
         name: 'companyName',
-        width: 120,
-      },
-      tabKey !== 'evaluationSummary' && {
-        name: 'supplierCompanyName',
         width: 120,
       },
       {

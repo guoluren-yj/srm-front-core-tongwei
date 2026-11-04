@@ -22,12 +22,15 @@ const BidAttachment = (props) => {
     [rfxHeaderId]
   );
 
+  // 通威二开 - 来源为项目时展示「招标文件及附件」，否则展示「附件」
+  const purAttachTitle =
+    header?.sourceFrom === 'PROJECT'
+      ? intl.get('scux.bidAttachment.view.title.purAttach').d('招标文件及附件')
+      : intl.get('ssrc.common.model.common.attachment').d('附件');
   return (
     <>
       <div>
-        <SecLevelTitle
-          title={intl.get('scux.bidAttachment.view.title.purAttach').d('招标文件及附件')}
-        />
+        <SecLevelTitle title={purAttachTitle} />
         <BidManagementAttachment
           queryParams={{ ...queryParams, attributeLongtext11: 'PUR' }}
           customizeTable={customizeTable}

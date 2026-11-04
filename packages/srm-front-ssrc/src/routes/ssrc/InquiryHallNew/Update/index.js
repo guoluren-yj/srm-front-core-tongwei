@@ -3770,11 +3770,16 @@ class UpdateComponent extends Component {
             .then((cuxRes) => {
               const cuxReleaseRes = getResponse(cuxRes);
               if (!cuxReleaseRes) {
+                // 接口报错时刷新页面，避免版本号过期导致再次提交报「数据已过时」
+                this.fetchInquiryHallUpdate();
                 return;
               }
 
               notification.success();
               this.releaseAndCancelPath('release'); // 发布路径跳转
+            })
+            .catch(() => {
+              this.fetchInquiryHallUpdate();
             })
             .finally(() => {
               this.toggleButtonsLoading(false);
@@ -3824,6 +3829,40 @@ class UpdateComponent extends Component {
     // }
 
     // doSubmit();
+  }
+
+  /**
+   * 概算提交-确认后调用二开发布接口（与发布超概算分支逻辑一致）
+   */
+  @Bind()
+  async budgetEstimateSubmitConfirm() {
+    const {
+      match: { params = {} },
+    } = this.props;
+    let { rfxId = null } = params;
+    rfxId = rfxId && rfxId !== 'null' ? rfxId : null;
+
+    const saveRes = await this.saveUpdatePageData();
+    if (!saveRes || isEmpty(saveRes)) {
+      return;
+    }
+
+    this.toggleButtonsLoading(true);
+    try {
+      const cuxRes = getResponse(await cuxReleaseInquiryHall({ rfxHeaderId: rfxId }));
+      if (!cuxRes) {
+        // 接口报错时刷新页面，避免版本号过期导致再次提交报「数据已过时」
+        this.fetchInquiryHallUpdate();
+        return;
+      }
+      notification.success();
+      this.releaseAndCancelPath('release'); // 发布路径跳转
+    } catch (e) {
+      this.fetchInquiryHallUpdate();
+    } finally {
+      this.toggleButtonsLoading(false);
+      this.togglePageLoading(false);
+    }
   }
 
   // 取消页面所有表格ds校验行数
@@ -7455,6 +7494,7 @@ class UpdateComponent extends Component {
       supplierListTableDS: this.SupplierListTableDS,
       itemLineTableDS: this.ItemLineTableDS,
       fetchInquiryHallUpdate: this.fetchInquiryHallUpdate,
+      budgetEstimateSubmitConfirm: this.budgetEstimateSubmitConfirm,
     };
 
     // 锚点定位Props
@@ -7558,11 +7598,12 @@ class UpdateComponent extends Component {
                 <Content className={styles['custom-page-content']}>
                   <h3 id="rfxDeamnd" className={styles['rfx-card-item-title']}>
                     {!newBiddingFlag
-                      ? intl
+                      ? this.RfxInfoDS?.current?.get('sourceFrom') === 'PROJECT' ? intl
                           .get('ssrc.inquiryHall.view.inquiryHall.rfxDeamndRFX', {
                             sourceCategoryName: this.sourceCategoryName,
                           })
                           .d(`{sourceCategoryName}要求`)
+                        : intl.get('ssrc.common.view.rfxDemand').d('寻源要求')
                       : intl.get('ssrc.common.view.biddingRequest').d('竞价要求')}
                     {this.showValidateSymbol(rfxDemandValidate)}
                   </h3>

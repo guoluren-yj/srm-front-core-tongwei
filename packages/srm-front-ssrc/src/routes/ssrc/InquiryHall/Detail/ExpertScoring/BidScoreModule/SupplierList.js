@@ -141,12 +141,12 @@ const SupplierList = (props) => {
         name: 'supplierCompanyName',
         width: 180,
       },
-      {
-        name: 'qtnTotalAmount',
-        width: 140,
-        renderer: ({ record, value }) =>
-          isPriceBidOpened(record) ? numberSeparatorRender(value) : '-',
-      },
+      // {
+      //   name: 'qtnTotalAmount',
+      //   width: 140,
+      //   renderer: ({ record, value }) =>
+      //     isPriceBidOpened(record) ? numberSeparatorRender(value) : '-',
+      // },
       {
         name: 'bidQtnTotalAmount',
         width: 140,
@@ -163,7 +163,7 @@ const SupplierList = (props) => {
           isPriceBidOpened(record) ? numberSeparatorRender(value) : '-',
       },
       {
-        // 谈判标识：1-是、0-否，按字段配置的值集展示含义（text 为值集含义）
+        // 商务谈判：1-是、0-否，按字段配置的值集展示含义（text 为值集含义）
         name: 'bargainFlag',
         width: 100,
         renderer: ({ record, text }) => (isPriceBidOpened(record) ? text : '-'),

@@ -141,7 +141,7 @@ const Index: React.FC<any> = (props) => {
         header: intl.get('hzero.common.button.operator').d('操作'),
         name: 'operation',
         renderer: ({ record }) => getListButtons({ record }),
-        hidden: supplierFlag,
+        // hidden: supplierFlag,
         width: 100,
       },
       {

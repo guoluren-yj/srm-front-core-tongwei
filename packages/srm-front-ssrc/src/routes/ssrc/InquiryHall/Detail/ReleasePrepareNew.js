@@ -1562,11 +1562,13 @@ class ReleasePrepareNewComponent extends Component {
                   <h3 id="rfxDeamnd" className={maintainStyles['rfx-card-item-title']}>
                     {newBiddingFlag
                       ? intl.get('ssrc.common.view.biddingRequest').d('竞价要求')
-                      : intl
+                      : this.RfxInfoDS?.current?.get('sourceFrom') === 'PROJECT'
+                      ? intl
                           .get('ssrc.inquiryHall.view.inquiryHall.rfxDeamndRFX', {
                             sourceCategoryName,
                           })
-                          .d(`{sourceCategoryName}要求`)}
+                          .d(`{sourceCategoryName}要求`)
+                      : intl.get('ssrc.common.view.rfxDemand').d('寻源要求')}
                   </h3>
                   <RfxDemandForm {...RfxDemandProps} />
                 </Content>

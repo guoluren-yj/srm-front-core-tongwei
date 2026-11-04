@@ -11,6 +11,7 @@ import { isNil } from 'lodash';
 import intl from 'utils/intl';
 import { openTab } from 'utils/menuTab';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
+import { yesOrNoRender } from 'hzero-front/lib/utils/renderer';
 
 import FileTemplateAttachmentCheckPricePage from '@/routes/components/FileTemplateAttachmentCheckPricePage';
 import useIPDetailModal from '@/routes/components/IPDetails';
@@ -29,7 +30,14 @@ const { openIPDetailModal } = useIPDetailModal();
 
 const { TabPane } = Tabs;
 
-const SupplierList: React.FC = observer(() => {
+interface SupplierListProps {
+  /** 通威二开 - 仅展示标段列表/供应商列表/定标附件三个 tab，用于核价详情页只读展示 */
+  onlyNewTabs?: boolean;
+  /** 通威二开 - 只读模式：不渲染任何可编辑控件，不影响定标页编辑 */
+  readOnly?: boolean;
+}
+
+const SupplierList: React.FC<SupplierListProps> = observer(({ onlyNewTabs = false, readOnly = false }) => {
   const {
     commonDs,
     customizeTable,
@@ -147,7 +155,7 @@ const SupplierList: React.FC = observer(() => {
       // },
       {
         name: 'invalidFlag',
-        // hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
+        hidden: true, // 综评结果默认隐藏，可通过右上角列设置放出
         width: 100,
         renderer: ({ value }) =>
           isNil(value)
@@ -158,7 +166,7 @@ const SupplierList: React.FC = observer(() => {
       },
       {
         name: 'invalidReason',
-        // hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
+        hidden: true, // 综评说明默认隐藏，可通过右上角列设置放出
         width: 120,
       },
       {
@@ -252,7 +260,12 @@ const SupplierList: React.FC = observer(() => {
     {
       name: 'attributeVarchar2', // 1-推荐，其余为不推荐
       width: 120,
-      editor: () => <Switch />,
+      editor: readOnly ? false : () => <Switch />,
+      ...(readOnly
+        ? {
+            renderer: ({ value }) => (isNil(value) ? '-' : yesOrNoRender(Number(value))),
+          }
+        : {}),
     },
     {
       name: 'supplierCompanyName',
@@ -288,7 +301,7 @@ const SupplierList: React.FC = observer(() => {
       // 数字输入框，最大14位、最小0，金额保留两位小数（与字段 precision 一致），
       // 千分位/补零由字段的 numberGrouping、padDecimalZeros 继承
       editor: (record) =>
-        !ratingEnabled && record.get('barginFlag') !== '1' ? (
+        !readOnly && !ratingEnabled && record.get('barginFlag') !== '1' ? (
           <NumberField name="qtnTotalAmount" record={record} min={0} max={99999999999999} precision={2} />
         ) : false,
     },
@@ -303,6 +316,7 @@ const SupplierList: React.FC = observer(() => {
           name="attributeLongtext9"
           viewMode="popup"
           funcType={FuncType.link}
+          readOnly={readOnly}
         />
       ),
     },
@@ -310,28 +324,33 @@ const SupplierList: React.FC = observer(() => {
       name: 'attributeLongtext22', // 备注（后端字段由 attributeLongtext2 变更为 attributeLongtext22）
       lock: ColumnLock.right, // 备注列冻结右侧
       minWidth: 150,
-      editor: true,
+      editor: !readOnly,
     },
     {
-      // 通威二开 - 商务谈判操作列，仅议价状态为审批通过时展示，固定在右侧
+      // 通威二开 - 商务谈判操作列，仅议价状态为审批通过时展示，固定在右侧；只读模式不展示
       name: 'businessNegotiate',
       lock: ColumnLock.right,
       width: 120,
-      hidden: !bargainApproved,
+      hidden: readOnly || !bargainApproved,
       renderer: ({ record }) => (
         <Button funcType={FuncType.link} wait={1200} onClick={() => handleBusinessNegotiate(record)}>
           {intl.get('scux.preWinningBid.view.button.businessNegotiate').d('商务谈判')}
         </Button>
       ),
     },
-  ], [directorQuotationDetail, ratingEnabled, bargainApproved]);
+  ], [directorQuotationDetail, ratingEnabled, bargainApproved, readOnly]);
 
   // 通威二开 - 标段列表 tab 的列，数据取自接口的 sectionList
   const sectionColumns: ColumnProps[] = useMemo(() => [
     {
       name: 'attributeVarchar9', // 1-推荐，其余为不推荐
       width: 120,
-      editor: () => <Switch />,
+      editor: readOnly ? false : () => <Switch />,
+      ...(readOnly
+        ? {
+            renderer: ({ value }) => (isNil(value) ? '-' : yesOrNoRender(Number(value))),
+          }
+        : {}),
     },
     {
       name: 'attributeLongtext8',
@@ -370,9 +389,9 @@ const SupplierList: React.FC = observer(() => {
       name: 'attributeLongtext22',
       lock: ColumnLock.right, // 备注列冻结右侧
       minWidth: 150,
-      editor: true, // 备注可编辑，保存/提交时随 sectionList 一起下发
+      editor: !readOnly, // 备注可编辑，保存/提交时随 sectionList 一起下发
     },
-  ], [directorQuotationDetail]);
+  ], [directorQuotationDetail, readOnly]);
 
   const tabTitle = useMemo(() => {
     switch (scoreWay) {
@@ -432,13 +451,13 @@ const SupplierList: React.FC = observer(() => {
     headerDS: headerDs,
     fileTemplateManageFlag: 1,
     rfxHeaderId,
-    editorFlag: 1,
+    editorFlag: readOnly ? 0 : 1,
     bidFlag: true,
     onRef: handleAttachmentTableRef,
     unitCodeSymbol: 'oldUpdateOrApproval', // 个性化标识
     fileEditorFlag: true, // 附件表格列对齐招标文件及附件表格(文件编辑 OnlyOffice 在线编辑 / 附件模板 文案)
     onAfterGenerateAttachment: handleAfterGenerateAttachment, // 生成附件回填 uuid 后自动保存整页
-  }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef, handleAfterGenerateAttachment]);
+  }), [customizeTable, customizeBtnGroup, headerDs, rfxHeaderId, handleAttachmentTableRef, handleAfterGenerateAttachment, readOnly]);
 
   // 通威二开 - 新增的 tab 单独一组，不再和旧 tab 混在同一个 Tabs 里
   const newTabPanes = [
@@ -465,7 +484,7 @@ const SupplierList: React.FC = observer(() => {
         customizedCode='SCUX_TONGWEI_PRE_WINNING_BID_SUPPLIER_LIST_NEW'
       />
     </TabPane>,
-    <TabPane forceRender tab={intl.get(`ssrc.common.view.attachmentTable`).d('附件表格')} key="attachmentTable">
+    <TabPane forceRender tab={intl.get(`ssrc.common.view.attachmentTable`).d('定标附件')} key="attachmentTable">
       <FileTemplateAttachmentCheckPricePage {...fileProps} />
     </TabPane>,
   ];
@@ -499,6 +518,11 @@ const SupplierList: React.FC = observer(() => {
         </SummaryDetailStoreProvider>
       </TabPane>
     );
+  }
+
+  // 通威二开 - 核价详情页只展示新的三个 tab
+  if (onlyNewTabs) {
+    return <Tabs style={{ marginBottom: '48px' }}>{newTabPanes}</Tabs>;
   }
 
   return (

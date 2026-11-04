@@ -88,9 +88,10 @@ const OrganizeBidOpening = (props) => {
   // 抽签
   const handleCheckDrawLots = async () => {
     const rfxNum = baseInfoDs?.current?.get('rfxNum');
+    const rfxTitle = baseInfoDs?.current?.get('rfxTitle');
     Modal.confirm({
       key: 'scux-ssrc-back-to-check-supplier-modal',
-      title: `招标单号：${rfxNum}-标题`,
+      title: `招标单号：${rfxNum}-${rfxTitle}`,
       children: intl.get(`${prefix}.model.checkDrawLotsTips`).d('请确认是否进行开标顺序抽签'),
       okText: intl.get('hzero.common.button.ok').d('是'),
       cancelText: intl.get('hzero.common.button.cancel').d('否'),

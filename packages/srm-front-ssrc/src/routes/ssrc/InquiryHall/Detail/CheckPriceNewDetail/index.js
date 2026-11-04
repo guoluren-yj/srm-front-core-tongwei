@@ -17,7 +17,8 @@ import intl from 'utils/intl';
 import { getResponse } from 'utils/utils';
 
 import useIPDetailModal from '@/routes/components/IPDetails';
-import CuxSupplierListDetail from '@/routes/ssrc/scux/PreWinningBid/components/SupplierListDetail';
+import PreWinningBidStoreProvider from '@/routes/ssrc/scux/PreWinningBid/store/StoreProvider';
+import PreWinningBidSupplierList from '@/routes/ssrc/scux/PreWinningBid/components/SupplierList';
 import SummaryDetailStoreProvider from '@/routes/ssrc/scux/BidEvaluationManagement/SummaryDetail/store/StoreProvider';
 import { SupplierList as ScoreDetailSupplierList } from '@/routes/ssrc/scux/BidEvaluationManagement/SummaryDetail/components';
 import { queryBidFileTemplateConfig } from '@/utils/utils';
@@ -464,7 +465,15 @@ class CheckPriceNewDetail extends PureComponent {
   };
 
   getTabPaneArray() {
-    const { rfx, isTechExpertFlag = false, currentStep, rfxHeaderId } = this.props;
+    const {
+      rfx,
+      isTechExpertFlag = false,
+      currentStep,
+      rfxHeaderId,
+      history,
+      customizeTable,
+      customizeBtnGroup,
+    } = this.props;
     const { checkPriceName, bidFlag } = rfx || {};
 
     const showCuxSupplierListFlag = currentStep === 'CHECK_PENDING' && bidFlag;
@@ -473,11 +482,13 @@ class CheckPriceNewDetail extends PureComponent {
     const { header = {} } = this.state;
     const ratingEnabled =
       header.templateScoreType === 'SCORE_NEW' || header.templateScoreType === 'WEIGHT';
-    // 通威二开 - 清标：招标业务类型 attributeVarchar12 = 30（建筑类）且来源为项目
+    // 通威二开 - 清标：招标业务类型 attributeVarchar12 = 30（建筑类）且来源为项目，仅中标确认节点(FINISHED)显示
     const { header: pageHeader = {} } = this.props;
     const attributeVarchar12 = header.attributeVarchar12 ?? pageHeader.attributeVarchar12;
     const showCuxClearTenderFlag =
-      String(attributeVarchar12) === '30' && header.sourceFrom === 'PROJECT';
+      String(attributeVarchar12) === '30' &&
+      header.sourceFrom === 'PROJECT' &&
+      currentStep === 'FINISHED';
     const panels = [
       <Panel
         showArrow={false}
@@ -537,8 +548,8 @@ class CheckPriceNewDetail extends PureComponent {
           )}
         </Panel>
       ),
-      // 通威二开 - 招标 & 来源为项目：清单内容（只读，数据来自 marmot 接口）
-      bidFlag && header.sourceFrom === 'PROJECT' && (
+      // 通威二开 - 招标 & 来源为项目 & 中标确认节点(FINISHED)：清单内容（只读，数据来自 marmot 接口）
+      bidFlag && header.sourceFrom === 'PROJECT' && currentStep === 'FINISHED' && (
         <Panel
           showArrow={false}
           header={
@@ -576,7 +587,15 @@ class CheckPriceNewDetail extends PureComponent {
           }
           key="cuxAwardBidDetail"
         >
-          <CuxSupplierListDetail rfxHeaderId={rfxHeaderId} />
+          {/* 通威二开 - 复用定标页的三个 tab：标段列表 / 供应商列表 / 定标附件 */}
+          <PreWinningBidStoreProvider
+            match={{ params: { rfxHeaderId } }}
+            history={history}
+            customizeTable={customizeTable}
+            customizeBtnGroup={customizeBtnGroup}
+          >
+            <PreWinningBidSupplierList onlyNewTabs readOnly />
+          </PreWinningBidStoreProvider>
         </Panel>
       ),
       // 通威二开 - 启用了评标才新增「评标明细」面板，复用评标管理-评标明细供应商表
@@ -601,7 +620,7 @@ class CheckPriceNewDetail extends PureComponent {
           </SummaryDetailStoreProvider>
         </Panel>
       ),
-      // 通威二开 - 招标类型为建筑类(30) & 来源为项目：清标（只读，数据来自 marmot 接口）
+      // 通威二开 - 招标类型为建筑类(30) & 来源为项目 & 中标确认节点(FINISHED)：清标（只读，数据来自 marmot 接口）
       showCuxClearTenderFlag && (
         <Panel
           showArrow={false}

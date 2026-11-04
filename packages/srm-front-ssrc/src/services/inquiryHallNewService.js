@@ -1520,3 +1520,14 @@ export async function cuxSaveUseSeal(params) {
     }
   );
 }
+
+// 二开概算提交
+export async function cuxSubmitBudgetEstimate(params) {
+  return request(
+    `/marmot/v1/${getCurrentOrganizationId()}/marmot-api/vCowib0YvpfrrGj2818Wn0O9GC9Mp8I7UfnpYvpvQInk`,
+    {
+      method: 'GET',
+      query: params,
+    }
+  );
+}

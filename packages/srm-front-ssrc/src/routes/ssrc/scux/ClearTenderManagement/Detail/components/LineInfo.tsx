@@ -33,10 +33,10 @@ const LineInfo: React.FC<any> = () => {
       editor: editorFlag,
 
     },
-    {
-      name: 'deviation',
-      editor: editorFlag,
-    },
+    // {
+    //   name: 'deviation',
+    //   editor: editorFlag,
+    // },
     {
       name: 'lineRemark',
       editor: editorFlag,

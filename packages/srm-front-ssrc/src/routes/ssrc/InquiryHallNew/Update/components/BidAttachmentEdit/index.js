@@ -1,5 +1,6 @@
 import React, { useImperativeHandle, useRef, memo } from 'react';
 import { useDataSet } from 'choerodon-ui/pro';
+import { useObserver } from 'mobx-react-lite';
 
 import formatterCollections from 'utils/intl/formatterCollections';
 import intl from 'utils/intl';
@@ -40,12 +41,17 @@ const BidAttachment = (props) => {
     supAttachmentDs,
   }));
 
+  // 通威二开 - 来源为项目时展示「招标文件及附件」，否则展示「附件」
+  const sourceFrom = useObserver(() => rfxInfoDS?.current?.get('sourceFrom'));
+  const purAttachTitle =
+    sourceFrom === 'PROJECT'
+      ? intl.get('scux.bidAttachment.view.title.purAttach').d('招标文件及附件')
+      : intl.get('ssrc.common.model.common.attachment').d('附件');
+
   return (
     <>
       <div>
-        <SecLevelTitle
-          title={intl.get('scux.bidAttachment.view.title.purAttach').d('招标文件及附件')}
-        />
+        <SecLevelTitle title={purAttachTitle} />
         <BidManagementAttachment {...props} bidAttachTableDs={purAttachmentDs} attachType="PUR" />
       </div>
       <div>

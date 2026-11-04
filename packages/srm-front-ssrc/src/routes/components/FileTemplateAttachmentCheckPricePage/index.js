@@ -401,6 +401,7 @@ class FileTemplateAttachmentCheckPricePage extends Component {
     return {
       header: intl.get(`ssrc.inquiryHall.model.fileTemplateAttachment.fileEdit`).d('文件编辑'),
       width: 180,
+      name: 'editorOnline',
       renderer: ({ record }) => {
         // 无编辑权限、或尚未保存(无 attachmentLineId)的行不可在线编辑，与招标文件及附件表格(bid-update)行为一致
         const notEditable =
@@ -430,19 +431,6 @@ class FileTemplateAttachmentCheckPricePage extends Component {
     const { editorFlag = 0, fileEditorFlag = false, hideTemplateFields = false } = this.props;
 
     const columns = [
-      {
-        name: 'attachmentType',
-        width: 180,
-        editor: (record) => {
-          return (
-            <Lov
-              record={record}
-              name="attachmentType"
-              onChange={(value) => this.handleChangeAttachmentType(value, record)}
-            />
-          );
-        },
-      },
       {
         name: 'templateAttachment',
         width: 180,
@@ -500,12 +488,25 @@ class FileTemplateAttachmentCheckPricePage extends Component {
       ...(fileEditorFlag
         ? [this.getFileEditColumn()]
         : [{ name: 'editorOnline', hidden: !!editorFlag, width: 180 }]),
-      { name: 'remark' },
+      {
+        name: 'attachmentType',
+        width: 180,
+        editor: (record) => {
+          return (
+            <Lov
+              record={record}
+              name="attachmentType"
+              onChange={(value) => this.handleChangeAttachmentType(value, record)}
+            />
+          );
+        },
+      },
       {
         name: 'attachmentUuid',
         editor: !!editorFlag,
         width: 180,
       },
+      { name: 'remark' },
     ];
 
     // 通威二开 - 部分页面（如老核价维护/审批）不展示「模板附件」「模板描述」两列
@@ -693,7 +694,7 @@ class FileTemplateAttachmentCheckPricePage extends Component {
     }
 
     const tableUnitCode = this.getCustomizeUnitCode(`${unitCodeSymbol}-Table`);
-
+    console.log("tableUnitCode", tableUnitCode)
     return (
       <div style={{ marginTop: '16px' }}>
         <div style={{ marginBottom: '4px' }}>{this.renderButtons()}</div>

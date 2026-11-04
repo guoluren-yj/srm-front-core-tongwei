@@ -212,7 +212,7 @@ const Buttons = (props = {}) => {
         hidden: !showConfirmElectronicSignatureFlag,
         child: intl
           .get(`scux.ssrc.view.button.quotation.twnf.confirmElectronicSignature`)
-          .d('确认电签'),
+          .d('电子签章'),
         btnProps: {
           onClick: () => saveQuotation({ cuxElectronicSignatureFlag: true }),
           loading,

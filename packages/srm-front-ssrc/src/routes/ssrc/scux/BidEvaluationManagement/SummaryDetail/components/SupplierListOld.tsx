@@ -59,11 +59,11 @@ const SupplierList: React.FC = () => {
       name: 'supplierCompanyName',
       width: 180,
     },
-    {
-      name: 'qtnTotalAmount',
-      width: 100,
-      renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
-    },
+    // {
+    //   name: 'qtnTotalAmount',
+    //   width: 100,
+    //   renderer: ({ record, value }) => (record?.get('priceBid') === '已开启' ? value : '-'),
+    // },
     {
       name: 'bidQtnTotalAmount',
       width: 100,

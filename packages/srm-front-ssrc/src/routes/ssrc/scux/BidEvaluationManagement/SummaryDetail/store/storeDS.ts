@@ -214,11 +214,11 @@ export const supplierListDataSet = ({ legacy = false }: { legacy?: boolean } = {
             type: FieldType.number,
           },
         ]),
-      {
-        name: 'qtnTotalAmount',
-        label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
-        type: FieldType.number,
-      },
+      // {
+      //   name: 'qtnTotalAmount',
+      //   label: intl.get(`${prefix}.model.twnf.summary.quoteTotalAmount`).d('报价总金额'),
+      //   type: FieldType.number,
+      // },
       {
         name: 'bidQtnTotalAmount',
         label: intl.get(`${prefix}.model.twnf.summary.bidQtnTotalAmount`).d('投标价'),
@@ -227,7 +227,7 @@ export const supplierListDataSet = ({ legacy = false }: { legacy?: boolean } = {
       // 谈判标识：1-是、0-否
       {
         name: 'bargainFlag',
-        label: intl.get(`${prefix}.model.twnf.summary.bargainFlag`).d('谈判标识'),
+        label: intl.get(`${prefix}.model.twnf.summary.bargainFlag`).d('商务谈判'),
         lookupCode: 'HPFM.FLAG',
       },
       ...(legacy

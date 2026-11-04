@@ -150,11 +150,11 @@ const SupplierList: React.FC<SupplierListProps> = ({ showStopEvaluation = false 
       name: 'supplierCompanyName',
       width: 180,
     },
-    {
-      name: 'qtnTotalAmount',
-      width: 140,
-      renderer: ({ record, value }) => (isPriceBidOpened(record) ? numberSeparatorRender(value) : '-'),
-    },
+    // {
+    //   name: 'qtnTotalAmount',
+    //   width: 140,
+    //   renderer: ({ record, value }) => (isPriceBidOpened(record) ? numberSeparatorRender(value) : '-'),
+    // },
     {
       name: 'bidQtnTotalAmount',
       width: 140,
