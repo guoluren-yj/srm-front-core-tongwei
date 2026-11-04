@@ -116,6 +116,7 @@ import {
   getTableFixSelfAdaptStyle,
   handleRevokeApproval,
   fetchBiddingHallConfigResult,
+  getJumpRoutePrefixUrl,
 } from '@/utils/utils';
 import {
   abandonRemarkRender,
@@ -5610,8 +5611,11 @@ class InquiryHall extends React.Component {
   @Throttle(500)
   @Bind()
   async directControllerDetail(record) {
-    const { history, organizationId } = this.props;
+    const { history, organizationId, location } = this.props;
     const { rfxHeaderId, projectLineSectionId } = record || {};
+    // 通威二开 - 自采招标等列表菜单的 tabKey 会带上列表路径（如 /ssrc/new-bid-hall/sourced-bidding/list），
+    // 直接拼接会得到不存在的路由，这里截取到模块根路径（/ssrc/new-bid-hall）后再拼接
+    const routePrefix = getJumpRoutePrefixUrl(location?.pathname) || getActiveTabKey();
 
     const searchObj = {};
     if (projectLineSectionId) {
@@ -5657,7 +5661,7 @@ class InquiryHall extends React.Component {
 
             if (createRes) {
               if (!createRes.failed) {
-                const url = `${getActiveTabKey()}/new-rfx-detail-controller/${
+                const url = `${routePrefix}/new-rfx-detail-controller/${
                   createRes.adjustRecordId
                 }`;
                 history.push({
@@ -5683,7 +5687,7 @@ class InquiryHall extends React.Component {
           } else if (result.validateResult === 'createAdjust') {
             await onOk();
           } else if (result.validateResult === 'openAdjust') {
-            const url = `${getActiveTabKey()}/new-rfx-detail-controller/${result.adjustRecordId}`;
+            const url = `${routePrefix}/new-rfx-detail-controller/${result.adjustRecordId}`;
             history.push({
               pathname: url,
               search,
@@ -5692,7 +5696,7 @@ class InquiryHall extends React.Component {
         }
       } else {
         history.push({
-          pathname: `${getActiveTabKey()}/rfx-detail-controller/${rfxHeaderId}`,
+          pathname: `${routePrefix}/rfx-detail-controller/${rfxHeaderId}`,
         });
       }
     } catch (error) {
