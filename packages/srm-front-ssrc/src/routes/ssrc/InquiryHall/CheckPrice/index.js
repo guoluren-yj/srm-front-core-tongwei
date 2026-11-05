@@ -1067,11 +1067,10 @@ class CheckPrice extends Component {
   dealCustActiveTabKey = () => {
     this.handleCollapseActiveKeys();
 
-    const field =
-      this.props.getHocInstance?.().custConfig[
-        `SSRC.${this.sourceKey}_HALL_CHECK_PRICE.ITEMSINFO_TABS`
-      ]?.fields || [];
-    const { fieldCode } = field.find((item) => item.defaultActive === 1) || {};
+    const field = this.getCustTabFields();
+    // 默认页签可能被个性化隐藏，隐藏时不能作为 activeKey
+    const { fieldCode } =
+      field.find((item) => item.defaultActive === 1 && item.visible !== 0) || {};
     if (fieldCode) {
       this.setState({
         activeKey: fieldCode,
@@ -7415,6 +7414,67 @@ class CheckPrice extends Component {
   };
 
   /**
+   * 获取个性化Tabs配置的字段
+   */
+  getCustTabFields() {
+    return (
+      this.props.getHocInstance?.().custConfig[
+        `SSRC.${this.sourceKey}_HALL_CHECK_PRICE.ITEMSINFO_TABS`
+      ]?.fields || []
+    );
+  }
+
+  /**
+   * 判断页签在当前业务条件下是否存在（个性化不存在的页签会按 fieldCode 新建，因此非标准页签默认存在）
+   */
+  isTabKeyRenderable(fieldCode) {
+    if (fieldCode === 'itemLine' || fieldCode === 'quoteLine') {
+      return !this.basicInfoDs?.current?.get('onlyAllowAllWinBids');
+    }
+    if (fieldCode === 'attachmentTable') {
+      return this.state.fileTemplateManageFlag === 1;
+    }
+    return true;
+  }
+
+  /**
+   * 个性化Tabs渲染完成后的兜底：Tabs 是受控组件，defaultActiveKey 不生效。
+   * 个性化配置的默认页签可能被隐藏，导致 activeKey 找不到匹配页签时所有页签都未选中，
+   * 这里改为取第一个可见页签重新同步 activeKey
+   */
+  handleCustTabDefaultActive = (defaultActiveKey, { firstRenderHiddenKeys = [] } = {}) => {
+    const fields = this.getCustTabFields();
+    if (!fields.length) {
+      return;
+    }
+    const isFieldVisible = (fieldCode) => {
+      const field = fields.find((item) => item.fieldCode === fieldCode);
+      if (!field) {
+        return this.isTabKeyRenderable(fieldCode);
+      }
+      return (
+        field.visible !== 0 &&
+        !firstRenderHiddenKeys.includes(fieldCode) &&
+        this.isTabKeyRenderable(fieldCode)
+      );
+    };
+    // 当前 activeKey 已经对应可见页签时不覆盖，避免影响业务/用户默认选择
+    if (this.state.activeKey && isFieldVisible(this.state.activeKey)) {
+      return;
+    }
+    if (defaultActiveKey && isFieldVisible(defaultActiveKey)) {
+      this.setState({ activeKey: defaultActiveKey });
+      return;
+    }
+    const firstVisibleField = fields
+      .filter((item) => isFieldVisible(item.fieldCode))
+      .sort((a, b) => (a?.seq ?? Infinity) - (b?.seq ?? Infinity))[0];
+    if (firstVisibleField?.fieldCode) {
+      this.setState({ activeKey: firstVisibleField.fieldCode });
+    }
+  };
+
+  /**
    * 三生制药二开 渲染物料Tabs
    * @protected
    */
@@ -7445,14 +7505,6 @@ class CheckPrice extends Component {
         AttachmentsProps,
         onlyAllowAllWinBids,
       }) || [];
-    const tabBarExtraOperations =
-      activeKey === 'supplierLine'
-        ? operations
-        : activeKey === 'itemLine'
-        ? this.getItemOperations()
-        : activeKey === 'quoteLine'
-        ? this.getQuoteLineOperations()
-        : false;
     const tabPaneArray = remote
       ? remote.process('SSRC_CHECK_PRICE_PROCESS_TAB_PANE_ARRAT', preTabPaneArray, {
           rfxHeaderId,
@@ -7462,13 +7514,36 @@ class CheckPrice extends Component {
           checkPricePage: 'EDIT',
         })
       : preTabPaneArray;
+    // 业务条件可能隐藏 activeKey 对应页签（如整单中标隐藏物品明细），受控 Tabs 会导致全部未选中
+    const paneKeys = (isArray(tabPaneArray) ? tabPaneArray : [tabPaneArray])
+      .filter((pane) => React.isValidElement(pane) && pane.key !== undefined && pane.key !== null)
+      .map((pane) => String(pane.key));
+    // 个性化配置还会新增页签（key 为 fieldCode），这类页签不在 paneKeys 中，需要一并视为合法 activeKey
+    const custVisibleKeys = this.getCustTabFields()
+      .filter(
+        (item) => item.visible !== 0 && item.fieldCode && this.isTabKeyRenderable(item.fieldCode)
+      )
+      .sort((a, b) => (a?.seq ?? Infinity) - (b?.seq ?? Infinity))
+      .map((item) => item.fieldCode);
+    const validActiveKeys = [...new Set([...paneKeys, ...custVisibleKeys])];
+    const renderActiveKey = validActiveKeys.includes(String(activeKey))
+      ? activeKey
+      : custVisibleKeys[0] || paneKeys[0] || activeKey;
+    const tabBarExtraOperations =
+      renderActiveKey === 'supplierLine'
+        ? operations
+        : renderActiveKey === 'itemLine'
+        ? this.getItemOperations()
+        : renderActiveKey === 'quoteLine'
+        ? this.getQuoteLineOperations()
+        : false;
     return (
       <Tabs
-        defaultActiveKey={activeKey}
+        defaultActiveKey={renderActiveKey}
         onChange={this.handleChangeTab}
         animated={false}
         className={fixedFlag ? styles.fixedTabStyle : styles.tabStyle}
-        activeKey={activeKey}
+        activeKey={renderActiveKey}
         tabBarExtraContent={
           remote
             ? remote.process(
@@ -7476,7 +7551,7 @@ class CheckPrice extends Component {
                 [tabBarExtraOperations],
                 {
                   checkPriceProp: this,
-                  activeKey,
+                  activeKey: renderActiveKey,
                   // sourceKey: this.sourceKey,
                   itemLineListProps,
                   supplierLineListProps,
@@ -8426,6 +8501,7 @@ class CheckPrice extends Component {
                     {customizeTabPane(
                       {
                         code: `SSRC.${this.sourceKey}_HALL_CHECK_PRICE.ITEMSINFO_TABS`,
+                        custDefaultActive: this.handleCustTabDefaultActive,
                       },
                       this.renderTabPanes({
                         activeKey,

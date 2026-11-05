@@ -10,6 +10,7 @@ import DynamicButtons from 'srm-front-boot/lib/components/DynamicButtons';
 import FilterBarTable from 'srm-front-boot/lib/components/FilterBarTable';
 import { downloadFileByAxios } from 'hzero-front/lib/services/api';
 import { filterNullValueObject, getCurrentUserId, getResponse } from 'hzero-front/lib/utils/utils';
+import { openTab } from 'hzero-front/lib/utils/menuTab';
 
 import { tableDs, prefix, getTabValue } from './initialDs';
 import useStatusVisible from '../useStatusVisible';
@@ -29,11 +30,17 @@ const handleToDetail = (history: any, search: any) => {
   });
 };
 
-const handleToSupplierEntryDetail = (history: any, record: any, type: string) => {
-  handleToDetail(history, stringify({
-    nominationHeaderId: record?.get('nominationHeaderId'),
-    type,
-  }));
+// 入围单编号需要新开页签查看详情
+const handleToSupplierEntryDetail = (record: any, type: string) => {
+  openTab({
+    key: '/scux/supplier-evaluation/detail',
+    path: '/scux/supplier-evaluation/detail',
+    title: intl.get(`${prefix}.view.viewTitle`).d('入围单查看'),
+    search: stringify({
+      nominationHeaderId: record?.get('nominationHeaderId'),
+      type,
+    }),
+  });
 };
 
 const handleToEdit = (history: any, record: any) => {
@@ -121,7 +128,7 @@ const SupplierEvaluationList = ({ history, location }: any) => {
 
     const renderNominationNum = ({ value, record }: any) => (
       <a
-        onClick={() => handleToSupplierEntryDetail(history, record, 'view')}
+        onClick={() => handleToSupplierEntryDetail(record, 'view')}
       >
         {value}
       </a>

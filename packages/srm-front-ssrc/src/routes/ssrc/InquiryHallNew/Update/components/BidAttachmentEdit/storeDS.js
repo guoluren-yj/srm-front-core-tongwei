@@ -64,6 +64,7 @@ const attachmentDS = ({
 
           return {
             sourceCategory,
+            rfxHeaderId: rfxInfoDS?.current?.get('rfxHeaderId'),
             node: 'RELEASE',
           };
         },

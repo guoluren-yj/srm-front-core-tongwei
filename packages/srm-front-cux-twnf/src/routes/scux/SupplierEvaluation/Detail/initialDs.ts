@@ -619,7 +619,7 @@ export const businessReviewDS = (nominationHeaderId, nominationSupLineId, record
 
     // 商务审查信息
     { name: 'businessQualificationReview', type: FieldType.string, label: intl.get(`${prefix}.field.businessQualificationReview`).d('资格审查情况'), required: true },
-    { name: 'businessCreditLawReview', type: FieldType.string, label: intl.get(`${prefix}.field.businessCreditLawReview`).d('资信、失信情况等审查情况'), required: true },
+    { name: 'businessCreditLawReview', type: FieldType.string, label: intl.get(`${prefix}.field.businessCreditLawReview`).d('资信、失信信息等审查情况'), required: true },
     { name: 'businessLegalAction', type: FieldType.string, label: intl.get(`${prefix}.field.businessLegalAction`).d('法律诉讼'), required: true },
     { name: 'businessOtherSituations', type: FieldType.string, label: intl.get(`${prefix}.field.businessOtherSituations`).d('其他情况'), required: true },
     { name: 'businessReviewDesc', type: FieldType.string, label: intl.get(`${prefix}.field.businessReviewDesc`).d('审查说明'), required: true },

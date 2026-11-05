@@ -3842,7 +3842,8 @@ class UpdateComponent extends Component {
     let { rfxId = null } = params;
     rfxId = rfxId && rfxId !== 'null' ? rfxId : null;
 
-    const saveRes = await this.saveUpdatePageData();
+    // 概算提交确认：不校验必填，直接保存当前录入信息后调用发布接口
+    const saveRes = await this.saveUpdatePageData({ skipValidate: true });
     if (!saveRes || isEmpty(saveRes)) {
       return;
     }

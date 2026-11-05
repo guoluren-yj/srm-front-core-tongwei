@@ -258,7 +258,7 @@ const SupplierList = (props) => {
             <Attachment
               record={record}
               name="signUuid"
-              accept={BID_NOTICE_ATTACHMENT_ACCEPT}
+              // accept={BID_NOTICE_ATTACHMENT_ACCEPT}
               viewMode="popup"
               funcType="link"
             />
