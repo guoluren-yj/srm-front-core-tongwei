@@ -6,11 +6,12 @@ import intl from 'utils/intl';
 // 评分明细表table
 
 import React, { Component } from 'react';
-import { Table, DataSet } from 'choerodon-ui/pro';
+import { Table, DataSet, Button } from 'choerodon-ui/pro';
 import querystring from 'querystring';
 
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
 import notification from 'utils/notification';
+import { openTab } from 'utils/menuTab';
 import { fetchOpenBargain } from '@/services/inquiryHallService';
 import { getSourceUrlConfig } from '@/routes/ssrc/scux/BidEvaluationManagement/api';
 
@@ -89,6 +90,10 @@ export default class CheckIn extends Component {
                     // type: 'dateTime',
                 },
                 {
+                    label: '投标详情',
+                    name: 'bidDetail',
+                },
+                {
                     label: '商务谈判',
                     name: 'businessBattle',
                     // type: 'dateTime',
@@ -151,10 +156,63 @@ export default class CheckIn extends Component {
         });
     };
 
-    // 价格标已开启才展示「商务谈判」入口
+    // 价格标已开启才展示「商务谈判」入口；cuxNegotiationFlag = 1 才允许点击，否则禁用
     renderBusinessBattle = ({ record }) => {
         if (record.get('priceBid') !== '已开启') return null;
-        return <a onClick={() => this.handleBusinessBattle(record)}>商务谈判</a>;
+        return (
+          <Button
+            funcType="link"
+            wait={1200}
+            disabled={String(record.get('cuxNegotiationFlag')) !== '1'}
+            onClick={() => this.handleBusinessBattle(record)}
+          >
+            商务谈判
+          </Button>
+        );
+    };
+
+    /**
+     * 跳转投标详情
+     * 参考 routes/ssrc/InquiryHall/CheckPrice/Tabs/SupplierLineList.js 的 handleOpenBidDetail
+     */
+    handleOpenBidDetail = (record) => {
+        const { data = {} } = this.props;
+        const { rfxHeaderId } = data;
+        const quotationHeaderId = record.get('quotationHeaderId');
+        if (!rfxHeaderId || !quotationHeaderId) {
+            notification.warning({
+                message: intl.get('ssrc.inquiryHall.view.message.bidDetail.missingQuotation').d('缺少报价单信息，无法查看投标详情'),
+            });
+            return;
+        }
+        const path = `/ssrc/bid-supplier-reply/query/${quotationHeaderId}`;
+        openTab({
+            key: path,
+            path,
+            title: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+            action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+            search: querystring.stringify({
+                rfxHeaderId,
+                noBackFlag: 1, // openTab 不需要返回
+                pageType: 'SUPPLIER_DETAIL_QUERY',
+                switchUrl: 2, // 采购方跳转标识
+            }),
+            closable: true,
+        });
+    };
+
+    // 与「商务谈判」一致：价格标已开启才展示「投标详情」入口
+    renderBidDetail = ({ record }) => {
+        if (record.get('priceBid') !== '已开启') return null;
+        return (
+          <Button
+            funcType="link"
+            wait={1200}
+            onClick={() => this.handleOpenBidDetail(record)}
+          >
+            {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
+          </Button>
+        );
     };
 
     // table columns
@@ -183,6 +241,11 @@ export default class CheckIn extends Component {
                 label: '价格开标时间',
                 name: 'priceOpenTime',
                 // type: 'dateTime',
+            },
+            {
+                // 商务谈判左边新增「投标详情」入口
+                name: 'bidDetail',
+                renderer: this.renderBidDetail,
             },
             {
                 name: 'businessBattle',

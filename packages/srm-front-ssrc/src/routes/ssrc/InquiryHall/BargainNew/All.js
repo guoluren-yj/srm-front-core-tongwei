@@ -314,6 +314,21 @@ class All extends PureComponent {
             renderer: ({ record, value }) =>
               this.renderRedMinPrice({ value, record, name: 'validNetPrice' }),
           },
+      // 通威二开：线下含税单价修改后需上传附件（必填规则见 AllDS.js 的 attributeLongtext7）
+      isOfflineFlag
+        ? {
+            name: 'attributeLongtext7',
+            width: 130,
+            editor: (record) => (
+              <Attachment
+                record={record}
+                name="attributeLongtext7"
+                viewMode="popup"
+                funcType="link"
+              />
+            ),
+          }
+        : null,
       {
         name: 'preQuotationPrice',
         width: 100,

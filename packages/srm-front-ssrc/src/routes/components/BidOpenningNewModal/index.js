@@ -129,6 +129,7 @@ const List = forwardRef((props, ref) => {
     data,
     modal,
     bidExcutionStatusMap,
+    bidFlag,
     // sourceKey,
     // customizeCode= '',
     // customizeTable = noop,
@@ -189,7 +190,20 @@ const List = forwardRef((props, ref) => {
         // 先商务后技术 && 存在二阶段 && 并且一阶段已开标 && 二阶段未开标
         const hideTechFileFlag =
           openBidOrder === 'BUSINESS_FIRST' && firstAllOpened && !secondAllOpened ? 1 : 0;
-        const pathname = `/pub/ssrc/supplier-reply/query/null?rfxHeaderId=${_rfxHeaderId}&pageType=SUPPLIER_DETAIL_QUERY&quotationHeaderId=${quotationHeaderId}&supplierCompanyId=${supplierCompanyId}&supplierId=${supplierId}&externalModalFlag=1&historyDestroyAllFlag=0&hideTechFileFlag=${hideTechFileFlag}`;
+        // 招标：弹框内嵌投标详情页面；询价：保持原有供应商报价查询页面
+        const bidDetailSearch = bidFlag
+          ? querystring.stringify({
+              rfxHeaderId: _rfxHeaderId || rfxHeaderId,
+              noBackFlag: 1,
+              pageType: 'SUPPLIER_DETAIL_QUERY',
+              switchUrl: 2,
+              // 二阶段先商务后技术：一阶段已开标、二阶段未开标时隐藏技术文件
+              ...(Number(hideTechFileFlag) === 1 ? { hideTechFileFlag: 1 } : {}),
+            })
+          : '';
+        const pathname = bidFlag
+          ? `/ssrc/bid-supplier-reply/query/${quotationHeaderId}?${bidDetailSearch}`
+          : `/pub/ssrc/supplier-reply/query/null?rfxHeaderId=${_rfxHeaderId}&pageType=SUPPLIER_DETAIL_QUERY&quotationHeaderId=${quotationHeaderId}&supplierCompanyId=${supplierCompanyId}&supplierId=${supplierId}&externalModalFlag=1&historyDestroyAllFlag=0&hideTechFileFlag=${hideTechFileFlag}`;
         const handleClick = () =>
           Modal.open({
             key: Modal.key(),
@@ -200,7 +214,15 @@ const List = forwardRef((props, ref) => {
               <div>
                 <EmbedPage
                   href={pathname}
-                  match={{ params: { rfxId: rfxHeaderId, path: null } }}
+                  match={{
+                    params: {
+                      rfxId: rfxHeaderId,
+                      path: null,
+                      // 内嵌投标详情页时需要路径参数
+                      ...(bidFlag ? { quotationHeaderId } : {}),
+                    },
+                  }}
+                  {...(bidFlag ? { location: { search: `?${bidDetailSearch}` } } : {})}
                   // location={{
                   //   search: `?${search}`,
                   // }}

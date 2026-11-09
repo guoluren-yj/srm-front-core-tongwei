@@ -29,6 +29,7 @@ export default class BargainRuleModal extends PureComponent {
     const {
       visible,
       sourceType = [],
+      defaultSourceType = 'ONLINE',
       hideBargainModal,
       openBargainModal,
       form: { getFieldDecorator },
@@ -53,7 +54,7 @@ export default class BargainRuleModal extends PureComponent {
               wrapperCol={{ span: 19 }}
             >
               {getFieldDecorator('sourceType', {
-                initialValue: 'ONLINE',
+                initialValue: defaultSourceType,
               })(
                 <Select style={{ width: '100px' }}>
                   {map(sourceType, (item) => (

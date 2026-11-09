@@ -462,6 +462,9 @@ class CheckPrice extends Component {
   // 当前 props 中的 itemLine 数据所属的单据 id（防止切换单据时用旧数据默认展开）
   itemLineLoadedRfxId = null;
 
+  // 是否已按业务规则设置过默认页签（只在首次加载头部后生效，避免保存/刷新时把用户当前页签重置）
+  defaultTabKeyApplied = false;
+
   componentDidMount() {
     const { remote } = this.props;
     const { routerParams } = this.state;
@@ -1200,12 +1203,22 @@ class CheckPrice extends Component {
 
       if (this.bidFlag) {
         // 招标：业务要求核价方式固定为「按数量」，不再读取 checkPriceWay 配置，页面也不提供「按比例/按数量」切换
-        // 整单中标时仍默认切到「供应商行」页签
+        // 通威二开 - 默认页签：
+        // sourceFrom === 'PROJECT' 默认物品明细页签（该场景内容为供应商清单，即「清单内容」）；
+        // 否则默认全部报价明细页签（业务界面标题为「中标确认明细」）。
+        // 只在首次加载头部时设置，避免保存/刷新后把用户当前页签重置。
+        // 整单中标时没有物品明细/全部报价明细页签，保持原有逻辑：始终默认供应商列表
+        const defaultActiveKey = res.sourceFrom === 'PROJECT' ? 'itemLine' : 'quoteLine';
         this.setState({
           checkAttachmentUuid: res.checkAttachmentUuid || uuidv4(),
           checkWay: 'quantity',
-          ...(onlyAllowAllWinBids ? { activeKey: 'supplierLine' } : {}),
+          ...(onlyAllowAllWinBids
+            ? { activeKey: 'supplierLine' }
+            : this.defaultTabKeyApplied
+            ? {}
+            : { activeKey: defaultActiveKey }),
         });
+        this.defaultTabKeyApplied = true;
         // 给全部报价明细ds设置checkWay
         this.quoteLineDs.setState('checkWay', 'quantity');
       } else {
@@ -2598,6 +2611,8 @@ class CheckPrice extends Component {
     const { onlineBargainVisible } = this.state;
     const modalProps = {
       sourceType,
+      // 通威二开：议价方式默认选中「线下议价」
+      defaultSourceType: 'OFFLINE',
       visible: onlineBargainVisible,
       onRef: this.handleGeneratorRef,
       hideBargainModal: this.hideBargainModal,

@@ -4,6 +4,7 @@ import querystring from 'querystring';
 
 import intl from 'utils/intl';
 import { getResponse, getCurrentOrganizationId } from 'utils/utils';
+import { openTab } from 'utils/menuTab';
 
 import { fetchOpenBargain } from '@/services/inquiryHallService';
 import { getSourceUrlConfig } from '../../BidEvaluationManagement/api';
@@ -37,6 +38,26 @@ const OpenBidList = (props) => {
     });
   };
 
+  // 跳转投标详情（与核价页/开标列表保持一致）
+  const handleJumpToBidDetail = (record) => {
+    const quotationHeaderId = record.get('quotationHeaderId');
+    if (!quotationHeaderId || !rfxHeaderId) return;
+    const path = `/ssrc/bid-supplier-reply/query/${quotationHeaderId}`;
+    openTab({
+      key: path,
+      path,
+      title: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+      action: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+      search: querystring.stringify({
+        rfxHeaderId,
+        noBackFlag: 1, // openTab 不需要返回
+        pageType: 'SUPPLIER_DETAIL_QUERY',
+        switchUrl: 2, // 采购方跳转标识
+      }),
+      closable: true,
+    });
+  };
+
   const getColumns = () => {
     return [
       {
@@ -55,10 +76,25 @@ const OpenBidList = (props) => {
       { name: 'priceBid' },
       { name: 'priceOpenTime' },
       {
+        // 与「商务谈判」一致：价格标已开启才展示「投标详情」入口
+        name: 'bidDetail',
+        renderer: ({ record }) => {
+          return record.get('priceBid') === '已开启' ? (
+            <Button funcType="link" wait={1200} onClick={() => handleJumpToBidDetail(record)}>
+              {intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情')}
+            </Button>
+          ) : null;
+        },
+      },
+      {
         name: 'businessBattle',
         renderer: ({ record }) => {
           return record.get('priceBid') === '已开启' ? (
-            <Button funcType="link" onClick={() => handleJumpToBusinessBattle(record)}>
+            <Button
+              funcType="link"
+              disabled={String(record.get('cuxNegotiationFlag')) !== '1'}
+              onClick={() => handleJumpToBusinessBattle(record)}
+            >
               {intl.get(`${prefix}.model.twnf.businessBattle`).d('商务谈判')}
             </Button>
           ) : null;

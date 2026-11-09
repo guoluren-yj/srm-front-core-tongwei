@@ -1,7 +1,9 @@
 import React from 'react';
 import intl from 'utils/intl';
 import { Tooltip } from 'choerodon-ui/pro';
+import { isNil } from 'lodash';
 import { getCurrentOrganizationId } from 'utils/utils';
+import { PRIVATE_BUCKET } from '_utils/config';
 import { Prefix, INQUIRY, getQuotationName, BID } from '@/utils/globalVariable';
 import {
   getUomName,
@@ -243,6 +245,30 @@ const allTableDS = ({ sourceKey = INQUIRY }) => {
               !dataSet.getState('bargainFlag') &&
               !eliminateFlag &&
               !InvalidOrNotApproved
+            );
+          },
+        },
+      },
+      // 通威二开：线下含税单价(currentQuotationPrice)被修改过时，附件字段 attributeLongtext7 必填。
+      // 注意：这里必须用 computedProps 而不是 dynamicProps。该表格经过 customizeTable 个性化处理，
+      // 个性化会重写字段的 dynamicProps.required（个性化未配置必填时会被置为 false），而 computedProps 优先级更高且不会被覆盖。
+      {
+        name: 'attributeLongtext7',
+        type: 'attachment',
+        bucketName: PRIVATE_BUCKET,
+        bucketDirectory: 'ssrc-rfx-quotationline',
+        computedProps: {
+          required({ record, dataSet }) {
+            // 线上议价没有该线下附件列，不做必填控制
+            if (dataSet.getState('bargainFlag')) return false;
+            const currentValue = record.get('currentQuotationPrice');
+            const pristineValue = record.getPristineValue('currentQuotationPrice');
+            if (isNil(currentValue) && isNil(pristineValue)) return false;
+            // 与加载时的原始值比较，改回原值后不再必填
+            return (
+              isNil(currentValue) ||
+              isNil(pristineValue) ||
+              Number(currentValue) !== Number(pristineValue)
             );
           },
         },

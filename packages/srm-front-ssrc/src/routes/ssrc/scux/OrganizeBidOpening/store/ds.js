@@ -97,6 +97,10 @@ export const openBidListDS = ({ rfxHeaderId }) => {
         type: 'dateTime',
       },
       {
+        label: intl.get('ssrc.inquiryHall.model.inquiryHall.bidDetail').d('投标详情'),
+        name: 'bidDetail',
+      },
+      {
         label: intl.get(`${prefix}.model.twnf.businessBattle`).d('商务谈判'),
         name: 'businessBattle',
       },

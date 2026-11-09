@@ -220,7 +220,8 @@ export default class OperateButtons extends Component {
         },
         child: intl.get('hzero.common.button.save').d('保存'),
       },
-      NewRFXFlag && {
+      // 通威二开：概算提交仅招标单需要
+      NewRFXFlag && bidFlag && {
         name: 'submit',
         btnType: 'c7n-pro',
         btnProps: {

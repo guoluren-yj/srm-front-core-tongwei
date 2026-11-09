@@ -3016,8 +3016,9 @@ class InquiryHall extends React.Component {
       case 'BARGAINING': // 议价中 bargainingStage    CHECK 核价阶段议价  SCORE 评分过程中议价
         if (
           !offlineWholeFlag &&
+          // 评分过程议价（SCORE）不限制当前用户是评分专家
           ((bargainingStage === 'CHECK' && Number(checkUserFlag) === 1) ||
-            (bargainingStage === 'SCORE' && Number(evaluateExpertFlag) === 1))
+            bargainingStage === 'SCORE')
         ) {
           mean.push(
             // <Popover content={workFlowStepRender(headerWorkFlows)} placement="bottomLeft">
@@ -3818,7 +3819,12 @@ class InquiryHall extends React.Component {
         mean = this.pushOtherNode(mean, record, onGoingStatus);
         break;
       case 'BARGAINING': // 议价中 bargainingStage    CHECK 核价阶段议价  SCORE 评分过程中议价
-        if (!offlineWholeFlag) {
+        // 与全部页签一致：核价阶段议价需要当前用户是核价人，评分过程议价不限制当前用户是评分专家
+        if (
+          !offlineWholeFlag &&
+          ((bargainingStage === 'CHECK' && Number(checkUserFlag) === 1) ||
+            bargainingStage === 'SCORE')
+        ) {
           mean.push(
             // <Popover content={workFlowStepRender(headerWorkFlows)} placement="bottomLeft">
             this.bargainingS(record)
