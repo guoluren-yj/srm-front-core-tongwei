@@ -8,7 +8,7 @@
 import React, { Fragment } from 'react';
 import { Rate, Icon, Popover, Steps, Tag, Text } from 'choerodon-ui';
 import { Button, Dropdown, Attachment, Tooltip } from 'choerodon-ui/pro';
-import { noop, isEmpty } from 'lodash';
+import { noop, isEmpty, isNil } from 'lodash';
 import { getCurrentOrganizationId } from 'utils/utils';
 import { PRIVATE_BUCKET } from '_utils/config';
 import ApproveRecordSimple from '_components/ApproveRecordSimple';
@@ -41,6 +41,64 @@ const renderStatusTag = (status, meaning) => {
 };
 
 /**
+ * 寻源准备阶段子流程配置
+ * attributeBigint11/12/13 分别对应 技术文件、招标清单、供应商入围 的状态码
+ */
+const prepareStepConfig = [
+  {
+    field: 'attributeBigint11',
+    label: intl.get(`${promptCode}.view.message.button.technicalDocument`).d('技术文件'),
+    finishedCode: 2, // 2-已完成
+  },
+  {
+    field: 'attributeBigint12',
+    label: intl.get(`${promptCode}.view.message.button.tenderList`).d('招标清单'),
+    finishedCode: 2, // 2-已完成
+  },
+  {
+    field: 'attributeBigint13',
+    label: intl.get(`${promptCode}.view.message.button.supplierEvaluation`).d('供应商入围'),
+    finishedCode: 5, // 5-已完成
+  },
+];
+
+/** 主状态对应的步骤条颜色 */
+const stepStatusMap = {
+  NEW: 'process', // 新建
+  CANCEL: 'wait', // 已取消
+  APPROVING: 'process', // 审批中
+  REFUSE: 'error', // 审批拒绝
+  APPROVED: 'process', // 待寻源
+  CHANGING: 'process', // 变更中
+  CHANGE_APPROVING: 'process', // 变更审批中
+  SOURCING: 'process', // 寻源中
+  FINISHED: 'finish', // 完成
+  CHANGE_REFUSE: 'error', // 变更审批拒绝
+  CLOSE_APPROVING: 'process', // 关闭审批中
+  CLOSE_REFUSE: 'error', // 关闭审批拒绝
+};
+
+/**
+ * 渲染寻源准备阶段子流程步骤（用于状态列气泡弹框）
+ */
+const renderPrepareSteps = (record) => {
+  const values = prepareStepConfig.map(({ field }) => record?.get(field));
+  // 三个字段都为空时不展示气泡
+  if (values.every((value) => isNil(value) || value === '')) {
+    return null;
+  }
+  return prepareStepConfig.map(({ field, label, finishedCode }) => {
+    const value = record?.get(field);
+    let stepStatus = 'wait';
+    if (!isNil(value) && value !== '') {
+      // 已完成显示绿色勾，其余显示进行中
+      stepStatus = Number(value) === finishedCode ? 'finish' : 'process';
+    }
+    return <Step key={field} status={stepStatus} title={label} />;
+  });
+};
+
+/**
  * 寻源项目工作台专用状态tag
  */
 const renderProjectSetupStatusTag = (status, record) => {
@@ -68,7 +126,7 @@ const renderProjectSetupStatusTag = (status, record) => {
   const statusFlag = status && ['APPROVED'].includes(status);
   // closedStatus=CLOSED 已关闭显示主状态，不显示二级状态
   const closeFlag = closedStatus && ['CLOSE_APPROVING', 'CLOSE_REFUSE'].includes(closedStatus);
-  return (
+  const statusTags = (
     <>
       <div>
         <Tag color={colorMap.get(status) || 'yellow'} border={false}>
@@ -83,6 +141,21 @@ const renderProjectSetupStatusTag = (status, record) => {
         </div>
       )}
     </>
+  );
+  // 寻源准备阶段：hover 状态列展示子流程步骤条，与招标大厅列表状态列保持一致
+  const prepareSteps = renderPrepareSteps(record);
+  return prepareSteps ? (
+    <Steps
+      type="popup"
+      size="small"
+      direction="vertical"
+      headerText={sourceProjectStatusMeaning}
+      status={stepStatusMap[status] || 'process'}
+    >
+      {prepareSteps}
+    </Steps>
+  ) : (
+    statusTags
   );
 };
 

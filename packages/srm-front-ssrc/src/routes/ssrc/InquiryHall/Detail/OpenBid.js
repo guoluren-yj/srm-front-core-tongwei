@@ -502,14 +502,25 @@ export default class OpenBid extends PureComponent {
   }
 
   renderCheckDrawList = () => {
-    const { customizeTable = () => { }, rfx = {}, header = {}, that, history } = this.props;
+    const {
+      customizeTable = () => { },
+      rfx = {},
+      header = {},
+      that,
+      history,
+      sourceHeaderId,
+    } = this.props;
     const { OpenBidCollapseKeys = [] } = this.state;
     const { unitCodeSymbol } = rfx;
     const { bidOpeningNewFlag } = this.state;
     if (!bidOpeningNewFlag) return null;
+    // CheckDraw 在 constructor 里用 data.rfxHeaderId 建 DataSet 并 autoQuery，
+    // 首次进入时 header 还没查回来（props.header 为空），会导致开标列表一直空白，刷新后才正常。
+    // 这里用路由上的 sourceHeaderId 兜底，并以 rfxHeaderId 作为 key，切换单据时重新挂载。
+    const rfxHeaderId = header?.rfxHeaderId || sourceHeaderId;
     const customizeTableCode = `SSRC.${unitCodeSymbol}_DETAIL.NEW_OPEN_BID_LIST.TABLE`;
     const listProps = {
-      data: header,
+      data: { ...header, rfxHeaderId },
       customizeTable,
       customizeTableCode,
       sourceKey: unitCodeSymbol,
@@ -537,7 +548,7 @@ export default class OpenBid extends PureComponent {
         }
         key="checkDraw"
       >
-        <CheckDraw {...listProps} />
+        {rfxHeaderId ? <CheckDraw key={rfxHeaderId} {...listProps} /> : null}
       </Panel>
     );
   }

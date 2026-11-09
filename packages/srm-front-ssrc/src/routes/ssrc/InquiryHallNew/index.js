@@ -296,6 +296,12 @@ class InquiryHall extends React.Component {
 
   activeTabKey = getActiveTabKey();
 
+  // 通威二开 - 自采招标等列表菜单的 tabKey 会带上列表路径（如 /ssrc/new-bid-hall/sourced-bidding/list），
+  // 直接拼接会得到不存在的路由（sourced-bidding/list/check-price/xxx），
+  // 这里统一截取到模块根路径（/ssrc/new-bid-hall）后再拼接跳转地址。
+  // 普通菜单的 tabKey（/ssrc/new-inquiry-hall、/ssrc/new-bid-hall）本身只有三段，截取前后完全一致，不影响原有跳转
+  getJumpRoutePrefix = () => getJumpRoutePrefixUrl(getActiveTabKey());
+
   sourcingResultDrawerRef = null;
 
   toBeReleasedRef = React.createRef();
@@ -1403,7 +1409,7 @@ class InquiryHall extends React.Component {
           const result = await createBeforeDirectControllerRF(params);
           if (result && !result.failed) {
             history.push({
-              pathname: `${getActiveTabKey()}/rf-detail-controller/${record.rfHeaderId}/${
+              pathname: `${this.getJumpRoutePrefix()}/rf-detail-controller/${record.rfHeaderId}/${
                 record.sourceCategory
               }/${result.adjustRecordId}`,
             });
@@ -1423,7 +1429,7 @@ class InquiryHall extends React.Component {
           onOk();
         } else if (res.validateResult === 'openAdjust') {
           history.push({
-            pathname: `${getActiveTabKey()}/rf-detail-controller/${record.rfHeaderId}/${
+            pathname: `${this.getJumpRoutePrefix()}/rf-detail-controller/${record.rfHeaderId}/${
               record.sourceCategory
             }/${res.adjustRecordId}`,
           });
@@ -3298,7 +3304,7 @@ class InquiryHall extends React.Component {
       return;
     }
     history.push({
-      pathname: `${getActiveTabKey()}/rf-update/RFP/${rfHeaderId}`,
+      pathname: `${this.getJumpRoutePrefix()}/rf-update/RFP/${rfHeaderId}`,
     });
   };
 
@@ -4088,7 +4094,7 @@ class InquiryHall extends React.Component {
   inquiryRFUpdate(record) {
     const { history } = this.props;
     history.push({
-      pathname: `${getActiveTabKey()}/rf-update/${record.get('sourceCategory')}/${record.get(
+      pathname: `${this.getJumpRoutePrefix()}/rf-update/${record.get('sourceCategory')}/${record.get(
         'rfHeaderId'
       )}`,
     });
@@ -4146,7 +4152,7 @@ class InquiryHall extends React.Component {
     });
 
     history.push({
-      pathname: `${getActiveTabKey()}/${rfHeaderId}/${expertUserId}/NONE/${expertSequenceNum}/${sourceCategory}/update`,
+      pathname: `${this.getJumpRoutePrefix()}/${rfHeaderId}/${expertUserId}/NONE/${expertSequenceNum}/${sourceCategory}/update`,
       search,
     });
   }
@@ -4231,7 +4237,7 @@ class InquiryHall extends React.Component {
     const search = this.getDirectScoreSearch(record);
 
     history.push({
-      pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${record.get('rfHeaderId')}`,
+      pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${record.get('rfHeaderId')}`,
       search,
     });
   }
@@ -4244,7 +4250,7 @@ class InquiryHall extends React.Component {
     const { history } = this.props;
     const search = this.getDirectScoreSearch(record);
     history.push({
-      pathname: `${getActiveTabKey()}/rfx-evaluation/${record.get('rfHeaderId')}`,
+      pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation/${record.get('rfHeaderId')}`,
       search,
     });
   }
@@ -4257,7 +4263,7 @@ class InquiryHall extends React.Component {
     const { history } = this.props;
     const search = this.getDirectScoreSearch(record);
     history.push({
-      pathname: `${getActiveTabKey()}/confirm-candidate/${record.get('rfHeaderId')}`,
+      pathname: `${this.getJumpRoutePrefix()}/confirm-candidate/${record.get('rfHeaderId')}`,
       search,
     });
   }
@@ -4325,7 +4331,7 @@ class InquiryHall extends React.Component {
       this.handleClose(record);
     } else if (result === 'checkSupplier') {
       history.push({
-        pathname: `${getActiveTabKey()}/rf-check/${sourceCategory}/${rfHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/rf-check/${sourceCategory}/${rfHeaderId}`,
       });
     } else if (result === 'timeAdjust') {
       this.directSourcingProcessControl(record.toData());
@@ -4349,7 +4355,7 @@ class InquiryHall extends React.Component {
   openPreliminary(record) {
     const { history } = this.props;
     history.push({
-      pathname: `${getActiveTabKey()}/Pretrial/${record.rfxHeaderId}`,
+      pathname: `${this.getJumpRoutePrefix()}/Pretrial/${record.rfxHeaderId}`,
     });
   }
 
@@ -4390,8 +4396,8 @@ class InquiryHall extends React.Component {
     });
 
     let pathname = '';
-    const ScoreRoundUrl = `${getActiveTabKey()}/rfx-evaluation-proc-manage/${record.rfxHeaderId}`;
-    const CheckRoundUrl = `${getActiveTabKey()}/round-quotation/${record.rfxHeaderId}`;
+    const ScoreRoundUrl = `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${record.rfxHeaderId}`;
+    const CheckRoundUrl = `${this.getJumpRoutePrefix()}/round-quotation/${record.rfxHeaderId}`;
 
     // 评审发起的多轮报价和核价发起的多轮报价
     if (roundQuotationRule === 'SCORE' || roundQuotationRule === 'AUTO_SCORE') {
@@ -4442,7 +4448,7 @@ class InquiryHall extends React.Component {
       projectLineSectionId,
     });
     history.push({
-      pathname: `${getActiveTabKey()}/${bargainNewFlag ? 'new-' : ''}rfx-bargain/${
+      pathname: `${this.getJumpRoutePrefix()}/${bargainNewFlag ? 'new-' : ''}rfx-bargain/${
         record.rfxHeaderId
       }`,
       search,
@@ -4452,7 +4458,7 @@ class InquiryHall extends React.Component {
   @Bind()
   directConfirmSupplier(record) {
     this.props.history.push({
-      pathname: `${getActiveTabKey()}/rf-check/${record.get('sourceCategory')}/${record.get(
+      pathname: `${this.getJumpRoutePrefix()}/rf-check/${record.get('sourceCategory')}/${record.get(
         'rfHeaderId'
       )}`,
     });
@@ -4486,7 +4492,7 @@ class InquiryHall extends React.Component {
 
     // 跳转到竞价大厅
     this.props.history.push({
-      pathname: `/pub${getActiveTabKey()}/bidding-hall/${rfxHeaderId}`,
+      pathname: `/pub${this.getJumpRoutePrefix()}/bidding-hall/${rfxHeaderId}`,
       search: strSearch,
     });
   }
@@ -4495,7 +4501,7 @@ class InquiryHall extends React.Component {
   @Bind()
   directOfflineReply(record) {
     this.props.history.push({
-      pathname: `${getActiveTabKey()}/offline-reply/${record.get('sourceCategory')}/${record.get(
+      pathname: `${this.getJumpRoutePrefix()}/offline-reply/${record.get('sourceCategory')}/${record.get(
         'rfHeaderId'
       )}`,
     });
@@ -4599,12 +4605,12 @@ class InquiryHall extends React.Component {
     } else if (rfHeaderId) {
       if (!this.bidFlag) {
         history.push({
-          pathname: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+          pathname: `${this.getJumpRoutePrefix()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
         });
       } else {
         openTab({
-          key: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
-          path: `${getActiveTabKey()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+          key: `${this.getJumpRoutePrefix()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
+          path: `${this.getJumpRoutePrefix()}/rf-detail/${sourceCategory}/${rfHeaderId}`,
           title: this.bidFlag
             ? 'ssrc.inquiryHall.view.message.title.bidHall'
             : 'ssrc.inquiryHall.view.message.title.inquiryHall',
@@ -4696,11 +4702,11 @@ class InquiryHall extends React.Component {
       } else if (sourceRequest === 'OFFLINE_ENTER') {
         // 申请转整单线下
         history.push({
-          pathname: `${getActiveTabKey()}/apply-to-offline/${sourceRequest}`,
+          pathname: `${this.getJumpRoutePrefix()}/apply-to-offline/${sourceRequest}`,
         });
       } else {
         history.push({
-          pathname: `${getActiveTabKey()}/apply-to-inquiry`,
+          pathname: `${this.getJumpRoutePrefix()}/apply-to-inquiry`,
         });
       }
     } catch (e) {
@@ -4936,7 +4942,7 @@ class InquiryHall extends React.Component {
       type,
     });
     history.push({
-      pathname: `${getActiveTabKey()}/rf-apply-to-inquiry`,
+      pathname: `${this.getJumpRoutePrefix()}/rf-apply-to-inquiry`,
       search,
     });
   }
@@ -4960,7 +4966,7 @@ class InquiryHall extends React.Component {
     // 路由跳转
     const routerSkip = () => {
       history.push({
-        pathname: `${getActiveTabKey()}/accept-rfx-notice${urlSymbol}/${rfxHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/accept-rfx-notice${urlSymbol}/${rfxHeaderId}`,
       });
     };
 
@@ -5000,7 +5006,7 @@ class InquiryHall extends React.Component {
         projectLineSectionId: record.projectLineSectionId,
       });
       history.push({
-        pathname: `${getActiveTabKey()}/check-price/${record.rfxHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/check-price/${record.rfxHeaderId}`,
         search,
       });
     };
@@ -5060,7 +5066,7 @@ class InquiryHall extends React.Component {
     // await this.handleUpdateFeedBackReadedFlag({ record });
 
     history.push({
-      pathname: `${getActiveTabKey()}/feedback-bargain${feedBackFlag ? '-new' : ''}/${
+      pathname: `${this.getJumpRoutePrefix()}/feedback-bargain${feedBackFlag ? '-new' : ''}/${
         record.rfxHeaderId
       }`,
     });
@@ -5113,12 +5119,12 @@ class InquiryHall extends React.Component {
     ) {
       // 符合性检查
       history.push({
-        pathname: `${getActiveTabKey()}/${rfxHeaderId}/${expertUserId}/${subjectMatterRule}/${expertSequenceNum}/RFX/initial-review`,
+        pathname: `${this.getJumpRoutePrefix()}/${rfxHeaderId}/${expertUserId}/${subjectMatterRule}/${expertSequenceNum}/RFX/initial-review`,
         search,
       });
     } else {
       history.push({
-        pathname: `${getActiveTabKey()}/${rfxHeaderId}/${userId}/${subjectMatterRule}/${expertSequenceNum}/RFX/update`,
+        pathname: `${this.getJumpRoutePrefix()}/${rfxHeaderId}/${userId}/${subjectMatterRule}/${expertSequenceNum}/RFX/update`,
         search,
       });
     }
@@ -5223,7 +5229,7 @@ class InquiryHall extends React.Component {
     }
     this.candelRoundQuotationModal();
     history.push({
-      pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${sourceHeaderId || rfxHeaderId}`,
+      pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${sourceHeaderId || rfxHeaderId}`,
       search,
     });
   }
@@ -5277,7 +5283,7 @@ class InquiryHall extends React.Component {
           projectLineSectionId,
         });
         history.push({
-          pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${
+          pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${
             sourceHeaderId || rfxHeaderId
           }`,
           search,
@@ -5297,7 +5303,7 @@ class InquiryHall extends React.Component {
         projectLineSectionId,
       });
       history.push({
-        pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${
+        pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${
           sourceHeaderId || rfxHeaderId
         }`,
         search,
@@ -5411,7 +5417,7 @@ class InquiryHall extends React.Component {
 
     if (FiniallyDirectEvaluationProcManageFlag) {
       history.push({
-        pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${rfxHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${rfxHeaderId}`,
         search,
       });
     } else {
@@ -5481,14 +5487,14 @@ class InquiryHall extends React.Component {
       if (['INITIAL_REVIEW_SCORING', 'SCORING', 'ROUND_QUOTATION'].includes(scoreStatus)) {
         // record.roundHeaderStatus === 'ROUND_SCORE'
         history.push({
-          pathname: `${getActiveTabKey()}/rfx-evaluation-proc-manage/${rfxHeaderId}`,
+          pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation-proc-manage/${rfxHeaderId}`,
           search,
         });
       }
 
       if (scoreStatus === 'RFX_EVALUATION_PENDING') {
         history.push({
-          pathname: `${getActiveTabKey()}/rfx-evaluation/${rfxHeaderId}`,
+          pathname: `${this.getJumpRoutePrefix()}/rfx-evaluation/${rfxHeaderId}`,
           search: querystring.stringify({
             ...querystring.parse(search),
             sourceStatus: scoreStatus,
@@ -5498,7 +5504,7 @@ class InquiryHall extends React.Component {
 
       if (scoreStatus === 'RFX_INITIAL_REVIEW_PENDING') {
         history.push({
-          pathname: `${getActiveTabKey()}/new-expert-scoring/rfx-evaluation/${rfxHeaderId}`,
+          pathname: `${this.getJumpRoutePrefix()}/new-expert-scoring/rfx-evaluation/${rfxHeaderId}`,
           search: querystring.stringify({
             ...querystring.parse(search),
             sourceStatus: scoreStatus,
@@ -5511,7 +5517,7 @@ class InquiryHall extends React.Component {
         scoreStatus === 'PRE_EVALUATION_PENDING'
       ) {
         history.push({
-          pathname: `${getActiveTabKey()}/confirm-candidate/${rfxHeaderId}`,
+          pathname: `${this.getJumpRoutePrefix()}/confirm-candidate/${rfxHeaderId}`,
           search,
         });
       }
@@ -5548,12 +5554,12 @@ class InquiryHall extends React.Component {
     if (isNil(prequalGroupHeaderId)) {
       // 非立项标段合并
       return history.push({
-        pathname: `${getActiveTabKey()}/new-qualification-examination/detail/${prequalHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/new-qualification-examination/detail/${prequalHeaderId}`,
         search,
       });
     }
     history.push({
-      pathname: `${getActiveTabKey()}/new-qualification-examination/section-detail/${prequalGroupHeaderId}`,
+      pathname: `${this.getJumpRoutePrefix()}/new-qualification-examination/section-detail/${prequalGroupHeaderId}`,
       search: `${search}&sourceProjectId=${sourceProjectId}`,
     });
   }
@@ -5565,7 +5571,7 @@ class InquiryHall extends React.Component {
   directQuestionAnswer(record) {
     const { history } = this.props;
     const { rfxHeaderId, rfxNum, companyId, sourceCategory } = record;
-    const url = `${getActiveTabKey()}/inter-question/${rfxHeaderId}/${rfxNum}/sourceTitle/${companyId}/1`;
+    const url = `${this.getJumpRoutePrefix()}/inter-question/${rfxHeaderId}/${rfxNum}/sourceTitle/${companyId}/1`;
     const search = querystring.stringify({
       createFlag: record.createFlag,
       sourceCategory,
@@ -5591,7 +5597,7 @@ class InquiryHall extends React.Component {
         'createFlag',
         'clarifyEndDate',
       ]) || {};
-    const url = `${getActiveTabKey()}/inter-question/${rfHeaderId}/${rfNum}/sourceTitle/${companyId}/1`;
+    const url = `${this.getJumpRoutePrefix()}/inter-question/${rfHeaderId}/${rfNum}/sourceTitle/${companyId}/1`;
     const search = querystring.stringify({
       createFlag,
       sourceCategory,
@@ -5611,11 +5617,10 @@ class InquiryHall extends React.Component {
   @Throttle(500)
   @Bind()
   async directControllerDetail(record) {
-    const { history, organizationId, location } = this.props;
+    const { history, organizationId } = this.props;
     const { rfxHeaderId, projectLineSectionId } = record || {};
-    // 通威二开 - 自采招标等列表菜单的 tabKey 会带上列表路径（如 /ssrc/new-bid-hall/sourced-bidding/list），
-    // 直接拼接会得到不存在的路由，这里截取到模块根路径（/ssrc/new-bid-hall）后再拼接
-    const routePrefix = getJumpRoutePrefixUrl(location?.pathname) || getActiveTabKey();
+    // 通威二开 - 自采招标等列表菜单的 tabKey 会带上列表路径，统一用 getJumpRoutePrefix 取模块根路径
+    const routePrefix = this.getJumpRoutePrefix();
 
     const searchObj = {};
     if (projectLineSectionId) {
@@ -5719,7 +5724,7 @@ class InquiryHall extends React.Component {
       rfxHeaderId: record.rfxHeaderId, // 针对于伊戈尔二开增加参数
     });
     history.push({
-      pathname: `${getActiveTabKey()}/quotation-monitor/${record.rfxHeaderId}`,
+      pathname: `${this.getJumpRoutePrefix()}/quotation-monitor/${record.rfxHeaderId}`,
       search,
       state: record.rfxHeaderId,
     });
@@ -7594,7 +7599,7 @@ class InquiryHall extends React.Component {
     });
     if (res && !res.failed) {
       history.push({
-        pathname: `${getActiveTabKey()}/rf-update/${currentType}/${res.rfHeaderId}`,
+        pathname: `${this.getJumpRoutePrefix()}/rf-update/${currentType}/${res.rfHeaderId}`,
       });
       return;
     }
@@ -8375,7 +8380,7 @@ class InquiryHall extends React.Component {
       return createRF({ sourceCategory: type, organizationId, templateId }).then((res) => {
         const result = getResponse(res);
         if (result && !result.failed) {
-          history.push({ pathname: `${getActiveTabKey()}/rf-update/${type}/${res.rfHeaderId}` });
+          history.push({ pathname: `${this.getJumpRoutePrefix()}/rf-update/${type}/${res.rfHeaderId}` });
         }
       });
     } else {

@@ -96,6 +96,15 @@ const BidManagementAttachment = (props) => {
       });
       return;
     }
+    // 电签前校验：未生成附件（cuxClickSignFlag 不为 1）不允许发起电签
+    if (action === 'sign' && String(record.get('cuxClickSignFlag')) !== '1') {
+      notification.error({
+        message: intl
+          .get('scux.bidAttachment.view.message.generateAttachmentFirst')
+          .d('请先生成附件后再进行电签！'),
+      });
+      return;
+    }
     const attachmentLine = { ...record.toData(), sourceId: quotationHeaderCurrentId };
     const rfxQuotationHeaderCurDTO = getRfxQuotationHeaderCurDTO
       ? getRfxQuotationHeaderCurDTO()
