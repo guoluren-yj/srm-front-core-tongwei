@@ -124,7 +124,11 @@ const SyncedCountDownGroup = ({ sysNow, items = [], numberStyle }) => {
     const second = remainSecond % 60;
 
     return (
-      <div key={key} className={Style['count-down-wrap']} style={style}>
+      <div
+        key={key}
+        className={Style['count-down-wrap']}
+        style={{ whiteSpace: 'nowrap', flexShrink: 0, ...style }}
+      >
         <span style={{ marginRight: '8px' }}>{label}</span>
         <span>
           <span style={{ fontSize: '24px', ...numberStyle }}>{day}</span>
@@ -2890,7 +2894,7 @@ const QuotationComponent = (props = {}) => {
     }
     const quotationEndDateHeader = current.get('quotationEndDate');
     // 通威二开：保证金缴纳截止时间（头字段 latestQuotationEndDate），仅未投标且有值时展示倒计时
-    const latestQuotationEndDate = current.get('latestQuotationEndDate');
+    const attributeDatetime3 = current.get('attributeDatetime3');
     const quotationStatus = current.get('quotationStatus');
 
     const { quotationEndDate, currentDateTime } = countDownTimer || {};
@@ -2921,8 +2925,8 @@ const QuotationComponent = (props = {}) => {
       : '';
 
     const baseTitle = rfxNum && rfxTitle ? `${rfxNum}—${rfxTitle}` : rfxNum || rfxTitle;
-    // 通威二开：展示保证金缴纳截止时间倒计时时，右侧区域变宽，左侧标题需让出空间
-    const showBidBondCountDown = quotationStatus === 'NEW' && !isNil(latestQuotationEndDate);
+    // 通威二开：未投标且保证金缴纳截止时间(attributeDatetime3)有值时展示
+    const showBidBondCountDown = quotationStatus === 'NEW' && !isNil(attributeDatetime3);
     const tagWidth =
       (secondarySourceCategoryMeaning ? 68 : 0) +
       (secondarySourceCategory === 'RFA' && quotationScope === 'ALL_QUOTATION'
@@ -2935,12 +2939,10 @@ const QuotationComponent = (props = {}) => {
       (currentBargainFlag && bargainTimes ? 72 : 0);
     return (
       <div className={Style['card-title-wrap']}>
+        {/* 通威二开：左侧标题弹性收缩（超出省略），右侧倒计时固定不换行，避免新增倒计时后小屏换行/挤压 */}
         <div
           className={Style['rfx-header-wrapper']}
-          style={{
-            maxWidth: `calc(100% - ${showBidBondCountDown ? 720 : 400}px)`,
-            minWidth: '580px',
-          }}
+          style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', paddingRight: '16px' }}
         >
           <span
             className={Style['card-title-rfx-info']}
@@ -3007,7 +3009,15 @@ const QuotationComponent = (props = {}) => {
             ''
           )} */}
         </div>
-        <div style={{ marginRight: '8px', display: 'flex', alignItems: 'baseline' }}>
+        <div
+          style={{
+            marginRight: '8px',
+            display: 'flex',
+            alignItems: 'baseline',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+          }}
+        >
           {cuxDomBeforePin}
           <PinFixed
             pinFixed={pinFixed}
@@ -3025,14 +3035,14 @@ const QuotationComponent = (props = {}) => {
                   .d('截止时间')}`,
                 endTime: countDownEndDate,
               },
-              // 通威二开：保证金缴纳截止时间，仅未投标(latestQuotationEndDate 有值)时展示倒计时
+              // 通威二开：保证金缴纳截止时间，仅未投标(attributeDatetime3 有值)时展示倒计时
               showBidBondCountDown
                 ? {
                     key: 'bidBondEndTime',
                     label: intl
                       .get('scux.ssrc.view.message.supQuo.bidBondCutOffTime')
                       .d('保证金缴纳截止时间'),
-                    endTime: latestQuotationEndDate,
+                    endTime: attributeDatetime3,
                     style: { marginLeft: '24px' },
                   }
                 : null,
