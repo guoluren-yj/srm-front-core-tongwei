@@ -862,9 +862,7 @@ export function statusRender(payload = {}, aggregation) {
     countDownDay,
     rfxStatus,
     currentDate = null,
-    quotationStartDate,
     secondarySourceCategory,
-    offlineWholeFlag,
     biddingFlag, // 竞价大厅-竞价单标识
     biddingNextStatusMeaning, // biddingNextStatus 下一状态（竞价大厅专用字段：竞价开始、签到开始、签到结束、试竞价开始、试竞价结束、竞价开始、竞价结束。后续与其他一样）
   } =
@@ -873,9 +871,7 @@ export function statusRender(payload = {}, aggregation) {
       'countDownDay',
       'rfxStatus',
       'currentDate',
-      'quotationStartDate',
       'secondarySourceCategory',
-      'offlineWholeFlag',
       'biddingFlag',
       'biddingNextStatusMeaning',
     ]) || {};
@@ -1053,34 +1049,8 @@ export function statusRender(payload = {}, aggregation) {
             )}
           </Popover>
         ) : (
-          rfxStatus === 'NOT_START' &&
-          !offlineWholeFlag &&
-          !quotationStartDate && (
-            <Popover
-              placement="rightBottom"
-              content={
-                secondarySourceCategory === 'NEW_BID'
-                  ? intl
-                      .get(
-                        'ssrc.inquiryHall.model.inquiryHall.tooltip.biddingProcessToAddBidStartTime'
-                      )
-                      .d('请通过招标过程控制补充投标开始时间')
-                  : intl
-                      .get(
-                        'ssrc.inquiryHall.model.inquiryHall.tooltip.inquiryProcessToAddQuotationStartTime'
-                      )
-                      .d('请通过寻源过程控制补充报价开始时间')
-              }
-            >
-              <Tag color="yellow" style={{ border: 'none' }}>
-                {intl
-                  .get(
-                    'ssrc.inquiryHall.model.inquiryHall.view.message.toBeSupplementedInformation'
-                  )
-                  .d('待补充信息')}
-              </Tag>
-            </Popover>
-          )
+          // 通威二开：状态为「未开始」时不再展示「待补充信息」标签
+          null
         ))}
       {aggregation && record.get('secondaryStatusMeaning') ? (
         <Tag className="yellow">{record.get('secondaryStatusMeaning')}</Tag>

@@ -28,7 +28,7 @@ const isFieldReadOnly = (record, name) =>
 const AttachmentCell = observer(({ record, name, edit, ...rest }) => {
   const readOnly = isFieldReadOnly(record, name);
   const count = readOnly ? record?.dataSet?.getField(name)?.getAttachmentCount(record) : undefined;
-  if(String(record.get('cuxSupplierCreateFlag')) === '1' && String(edit) === '1'){
+  if (String(record.get('cuxSupplierCreateFlag')) === '1' && String(edit) === '1') {
     return "-";
   }
   if (readOnly && (!record?.get(name) || count === 0)) {
@@ -139,11 +139,11 @@ const BidManagementAttachment = (props) => {
   const hasAttachLineContent = (record) =>
     Boolean(
       record?.get('attachmentUuid') ||
-        record?.get('attachmentType') ||
-        record?.get('fileManageId') ||
-        record?.get('attributeVarchar19') ||
-        record?.get('attributeLongtext1') ||
-        record?.get('remark')
+      record?.get('attachmentType') ||
+      record?.get('fileManageId') ||
+      record?.get('attributeVarchar19') ||
+      record?.get('attributeLongtext1') ||
+      record?.get('remark')
     );
 
   // 保存附件：仅提交变更行，成功后刷新当前附件列表
@@ -213,13 +213,14 @@ const BidManagementAttachment = (props) => {
 
   // 是否电签（attributeVarchar1）为「是」
   const isElectronicSign = (record) => !!record.get('fileManageId');
-
+  // 是否为供应商新建/上传的行
+  const isSupplierCreated = (record) => String(record.get('cuxSupplierCreateFlag')) === '1';
   // table columns
   const columns = [
     {
       name: 'attributeVarchar19',
       // cuxSupplierCreateFlag 为 1（供应商新建/上传的行）才允许编辑文件名称
-      editor: (record) => String(record.get('cuxSupplierCreateFlag')) === '1',
+      editor: (record) => isSupplierCreated(record),
     },
     {
       name: 'attachmentType',
@@ -241,9 +242,10 @@ const BidManagementAttachment = (props) => {
               disabled={!rfxHeaderId || rfxHeaderId === 'null'}
               onClick={() => handleGenerateAttachment(record)}
             >
+              {/* 通威二开：仅投标文件列表展示为「初始化」，逻辑不变 */}
               {intl
-                .get('ssrc.inquiryHall.model.fileTemplateAttachment.generateAttachment')
-                .d('生成附件')}
+                .get('scux.ssrc.view.button.bidSupAttachment.init')
+                .d('初始化')}
             </Button>
           );
         }
@@ -269,9 +271,12 @@ const BidManagementAttachment = (props) => {
     },
     {
       name: 'attachmentUuid',
-      renderer: ({ record }) => (
-        <AttachmentCell record={record} name="attachmentUuid" edit={1} beforeUpload={beforeUpload} />
-      ),
+      renderer: ({ record }) => {
+        if (!record.get('fileManageId')) {
+          return '-';
+        }
+        return <AttachmentCell record={record} name="attachmentUuid" edit={1} beforeUpload={beforeUpload} />;
+      },
     },
     {
       header: intl.get('scux.bidAttachment.model.inquiryHall.attachmentEditor').d('文件编辑'),
@@ -399,7 +404,7 @@ const BidManagementAttachment = (props) => {
 
   // 新增
   const handleAdd = () => {
-    bidAttachTableDs.create({cuxSupplierCreateFlag: "1"}, 0);
+    bidAttachTableDs.create({ cuxSupplierCreateFlag: "1" }, 0);
   };
 
   // 批量删除按钮、复制禁用逻辑

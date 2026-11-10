@@ -36,7 +36,7 @@ export default class DetailsTable extends React.Component {
         width: 80,
       },
       {
-        title: intl.get(`ssrc.question.view.question.clarificationType`).d('澄清类型'),
+        title: intl.get(`ssrc.question.view.question.clarificationType`).d('问题类型'),
         dataIndex: 'clarifyType',
         width: 150,
         render: (val) => valueMapMeaning(clarifyType, val),

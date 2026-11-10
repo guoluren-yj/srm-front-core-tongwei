@@ -567,7 +567,7 @@ class CheckPriceNewDetail extends PureComponent {
           <SuggestSupplierListDetail rfxHeaderId={rfxHeaderId} />
         </Panel>
       ),
-      showCuxSupplierListFlag && (
+      showCuxSupplierListFlag && header.sourceFrom === 'PROJECT' && (
         <Panel
           showArrow={false}
           header={

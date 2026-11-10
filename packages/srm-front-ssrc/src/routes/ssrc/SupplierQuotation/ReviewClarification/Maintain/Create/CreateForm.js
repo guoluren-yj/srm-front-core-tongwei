@@ -87,7 +87,7 @@ export default class CreateForm extends React.Component {
             </Row>
           </Col>
         </Row>
-        <Row>
+        {/* <Row>
           <Col span={20}>
             <FormItem
               {...formItemLayout}
@@ -119,7 +119,7 @@ export default class CreateForm extends React.Component {
               })(<TextArea rows={2} />)}
             </FormItem>
           </Col>
-        </Row>
+        </Row> */}
       </Form>
     );
   }

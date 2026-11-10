@@ -3883,6 +3883,8 @@ class InquiryHall extends React.Component {
       expertScoreType,
       offlineWholeFlag = 0,
       prequalViewFlag = 0,
+      checkUserFlag,
+      bargainingStage = null,
     } =
       record.get([
         'rfxStatus',
@@ -3899,6 +3901,8 @@ class InquiryHall extends React.Component {
         'expertScoreType',
         'offlineWholeFlag',
         'prequalViewFlag',
+        'checkUserFlag',
+        'bargainingStage',
       ]) || {};
     switch (rfxStatus) {
       case 'PENDING_PREQUAL': // 待预审审批
@@ -3907,8 +3911,21 @@ class InquiryHall extends React.Component {
       case 'PRETRIAL_PENDING': // 待初审
       case 'CHECK_PENDING': // 待核价
       case 'CHECK_REJECTED': // 核价审批拒绝
-      case 'BARGAINING': // 议价中
       case 'PAUSED': // 暂停
+        mean = this.pushOtherNode(mean, record, onGoingStatus);
+        break;
+      case 'BARGAINING': // 议价中 bargainingStage    CHECK 核价阶段议价  SCORE 评分过程中议价
+        // 通威二开：需要关注页签补充议价入口，与全部页签、处理中页签保持一致
+        if (
+          !offlineWholeFlag &&
+          ((bargainingStage === 'CHECK' && Number(checkUserFlag) === 1) ||
+            bargainingStage === 'SCORE')
+        ) {
+          mean.push(this.bargainingS(record));
+          if (bargainingStage === 'CHECK' && Number(checkUserFlag) === 1) {
+            mean.push(this.checkPriceNode(record));
+          }
+        }
         mean = this.pushOtherNode(mean, record, onGoingStatus);
         break;
       case 'ROUND_QUOTATION': // 多轮报价

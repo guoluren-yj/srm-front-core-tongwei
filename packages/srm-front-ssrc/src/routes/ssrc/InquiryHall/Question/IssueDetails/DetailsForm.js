@@ -59,7 +59,7 @@ export default class DetailsForm extends React.Component {
             </Row>
           </Col>
         </Row>
-        <Row className={styles['information-item']}>
+        {/* <Row className={styles['information-item']}>
           <Col span={24}>
             <Row>
               <Col span={3}>
@@ -76,7 +76,7 @@ export default class DetailsForm extends React.Component {
               <Col span={21}>{issueHeader.remark}</Col>
             </Row>
           </Col>
-        </Row>
+        </Row> */}
       </div>
     );
   }

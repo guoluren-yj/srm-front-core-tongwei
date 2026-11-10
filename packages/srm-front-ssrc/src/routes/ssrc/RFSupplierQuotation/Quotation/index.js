@@ -34,7 +34,6 @@ import { numberSeparatorRender } from '@/utils/renderer';
 import { idValidation } from '@/routes/components/Widget/dataVerification';
 import SectionPanel from '@/routes/components/SectionPanel';
 import CommonStyle from '@/routes/ssrc/InquiryHallNew/Update/index.less';
-import CountDown from '@/routes/ssrc/components/CountDown';
 import ValidationResultModal from '@/routes/ssrc/RFSupplierQuotation/Apply/Modals/ValidationResultModal.js';
 import { validationResultDS } from '@/routes/ssrc/RFSupplierQuotation/Apply/Stores/validationResultDS';
 import {
@@ -84,6 +83,60 @@ const ThirtySecondTimer = 30_000;
 const MAXTHREAD = 3;
 
 const QuotationSubmitFieldFlag = 'quotationSubmitChangeFlag'; // 竞价单提交，socket 推送标识
+
+const padCountNum = (num) => (Number(num) < 10 ? `0${num}` : `${num}`);
+
+/**
+ * 通威二开：多个倒计时共用一个时钟（报价页本地组件，不复用公用 CountDown）
+ * 公用 CountDown 内部各自 setInterval 计时，实例起始相位和累计漂移不同，结束时间相同时读秒也可能差 1 秒。
+ * 这里由父级统一时钟每秒推算服务端时间，所有倒计时从同一基准计算，保证读秒一致。
+ */
+const SyncedCountDownGroup = ({ sysNow, items = [], numberStyle }) => {
+  const [currentSysNow, setCurrentSysNow] = useState(sysNow);
+  const baseRef = useRef({ baseSysNow: sysNow, startAt: Date.now() });
+
+  useEffect(() => {
+    baseRef.current = { baseSysNow: sysNow, startAt: Date.now() };
+    setCurrentSysNow(sysNow);
+    if (!sysNow) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      const { baseSysNow, startAt } = baseRef.current;
+      if (!baseSysNow) {
+        return;
+      }
+      setCurrentSysNow(
+        moment(baseSysNow).add(Date.now() - startAt, 'ms').format(DEFAULT_DATETIME_FORMAT)
+      );
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [sysNow]);
+
+  return items.map(({ key, label, endTime, style }) => {
+    const remainSecond =
+      endTime && currentSysNow
+        ? Math.max(moment(endTime).diff(moment(currentSysNow), 'seconds'), 0)
+        : 0;
+    const day = Math.floor(remainSecond / 86400);
+    const hour = Math.floor((remainSecond % 86400) / 3600);
+    const minute = Math.floor((remainSecond % 3600) / 60);
+    const second = remainSecond % 60;
+
+    return (
+      <div key={key} className={Style['count-down-wrap']} style={style}>
+        <span style={{ marginRight: '8px' }}>{label}</span>
+        <span>
+          <span style={{ fontSize: '24px', ...numberStyle }}>{day}</span>
+          {intl.get('hzero.common.date.unit.day').d('天')}
+          <span style={{ fontSize: '24px', ...numberStyle }}>
+            {`${padCountNum(hour)}:${padCountNum(minute)}:${padCountNum(second)}`}
+          </span>
+        </span>
+      </div>
+    );
+  });
+};
 
 /**
  * 报价页面
@@ -2836,6 +2889,9 @@ const QuotationComponent = (props = {}) => {
       return '';
     }
     const quotationEndDateHeader = current.get('quotationEndDate');
+    // 通威二开：保证金缴纳截止时间（头字段 latestQuotationEndDate），仅未投标且有值时展示倒计时
+    const latestQuotationEndDate = current.get('latestQuotationEndDate');
+    const quotationStatus = current.get('quotationStatus');
 
     const { quotationEndDate, currentDateTime } = countDownTimer || {};
     const currentBargainFlag = bargainStatus === 'BARGAINING_ONLINE'; // 议价
@@ -2865,6 +2921,8 @@ const QuotationComponent = (props = {}) => {
       : '';
 
     const baseTitle = rfxNum && rfxTitle ? `${rfxNum}—${rfxTitle}` : rfxNum || rfxTitle;
+    // 通威二开：展示保证金缴纳截止时间倒计时时，右侧区域变宽，左侧标题需让出空间
+    const showBidBondCountDown = quotationStatus === 'NEW' && !isNil(latestQuotationEndDate);
     const tagWidth =
       (secondarySourceCategoryMeaning ? 68 : 0) +
       (secondarySourceCategory === 'RFA' && quotationScope === 'ALL_QUOTATION'
@@ -2879,7 +2937,10 @@ const QuotationComponent = (props = {}) => {
       <div className={Style['card-title-wrap']}>
         <div
           className={Style['rfx-header-wrapper']}
-          style={{ maxWidth: 'calc(100% - 400px)', minWidth: '580px' }}
+          style={{
+            maxWidth: `calc(100% - ${showBidBondCountDown ? 720 : 400}px)`,
+            minWidth: '580px',
+          }}
         >
           <span
             className={Style['card-title-rfx-info']}
@@ -2953,17 +3014,30 @@ const QuotationComponent = (props = {}) => {
             handleChangePin={handleChangePin}
             wrapStyle={{ marginRight: '16px' }}
           />
-          <div className={Style['count-down-wrap']}>
-            <span style={{ marginRight: '8px' }}>
-              {`${title}${intl.get('ssrc.supplierQuotation.view.supQuo.cutOffTime').d('截止时间')}`}
-            </span>
-            <CountDown
-              numberStyle={{ fontWeight: '500', fontSize: '24px', color: '#f05434' }}
-              sysNow={currentDateTime}
-              endTime={countDownEndDate}
-              type="day"
-            />
-          </div>
+          <SyncedCountDownGroup
+            sysNow={currentDateTime}
+            numberStyle={{ fontWeight: '500', fontSize: '24px', color: '#f05434' }}
+            items={[
+              {
+                key: 'quotationEndTime',
+                label: `${title}${intl
+                  .get('ssrc.supplierQuotation.view.supQuo.cutOffTime')
+                  .d('截止时间')}`,
+                endTime: countDownEndDate,
+              },
+              // 通威二开：保证金缴纳截止时间，仅未投标(latestQuotationEndDate 有值)时展示倒计时
+              showBidBondCountDown
+                ? {
+                    key: 'bidBondEndTime',
+                    label: intl
+                      .get('scux.ssrc.view.message.supQuo.bidBondCutOffTime')
+                      .d('保证金缴纳截止时间'),
+                    endTime: latestQuotationEndDate,
+                    style: { marginLeft: '24px' },
+                  }
+                : null,
+            ].filter(Boolean)}
+          />
         </div>
       </div>
     );
