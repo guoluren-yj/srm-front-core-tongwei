@@ -271,7 +271,12 @@ const getModel = (modelName = 'bargain') => ({
 
     // 保存当前table页数据 - 线下
     *handleSaveAllOffline({ payload }, { call }) {
-      const result = yield call(handleSaveAllOffline, payload);
+      // 通威二开 - silent: 静默保存标识，只保存不弹出保存结果提示
+      const { silent = false, ...restPayload } = payload || {};
+      const result = yield call(handleSaveAllOffline, restPayload);
+      if (silent) {
+        return getResponse(result);
+      }
       return operateResponseMessagePrompt({
         res: result,
       });

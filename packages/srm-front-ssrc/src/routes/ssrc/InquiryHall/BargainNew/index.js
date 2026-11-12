@@ -1065,7 +1065,8 @@ class Bargain extends Component {
   handleSavePage = async (options = {}) => {
     const { modelName = 'bargain' } = this.props;
     const { dispatch } = this.props;
-    const { otherData = {} } = options || {};
+    // 通威二开 - silent: 静默保存标识，只执行保存逻辑，不弹出保存结果提示
+    const { otherData = {}, silent = false } = options || {};
     const { bargainFlag } = this.state;
 
     const data = await this.integrationAllPageData({ tableValidateFlag: 0 });
@@ -1086,11 +1087,13 @@ class Bargain extends Component {
 
     this.toggleOperationLoading(true);
     const saveMethod = bargainFlag ? 'handleSaveAllOnline' : 'handleSaveAllOffline';
-    dispatch({
+    // 通威二开 - 返回保存请求的 Promise，供「生成附件」等需要先保存再继续的场景 await
+    return dispatch({
       type: `${modelName}/${saveMethod}`,
       payload: {
         ...data,
         amountList,
+        ...(silent ? { silent } : {}),
         ...(otherData || {}),
       },
     }).then((res) => {
@@ -1100,13 +1103,12 @@ class Bargain extends Component {
       }
 
       // 新/老议价公用model, 导致线上要做提示
-      if (bargainFlag) {
+      if (bargainFlag && !silent) {
         notification.success();
       }
       this.afterHandlePageSave();
+      return res;
     });
-
-    return true;
   };
 
   // 保存-分标段-线上-议价
@@ -4442,7 +4444,14 @@ class Bargain extends Component {
 
   // 通威二开 - 生成附件
   @Bind()
-  handleGenerateAttachment() {
+  async handleGenerateAttachment() {
+    // 通威二开 - 生成附件前先执行页面头部的保存逻辑，保证附件按最新数据生成；
+    // 保存失败（校验不通过或接口报错）时中断，不再生成附件
+    // 通威二开 - 传入 silent 走静默保存，不弹出保存结果提示，避免干扰附件生成
+    const saveRes = await this.handleSavePage({ silent: true });
+    if (!saveRes) {
+      return;
+    }
     const {
       match: { params },
     } = this.props;
@@ -4451,20 +4460,19 @@ class Bargain extends Component {
     this.setState({
       operationLoading: true,
     });
-    return cuxGenerateAttachment({
-      quotationHeaderId,
-      rfxHeaderId: params.rfxId,
-    })
-      .then((res) => {
-        if (getResponse(res)) {
-          this.fetchBargainHeader();
-        }
-      })
-      .finally(() => {
-        this.setState({
-          operationLoading: false,
-        });
+    try {
+      const res = await cuxGenerateAttachment({
+        quotationHeaderId,
+        rfxHeaderId: params.rfxId,
       });
+      if (getResponse(res)) {
+        this.fetchBargainHeader();
+      }
+    } finally {
+      this.setState({
+        operationLoading: false,
+      });
+    }
   }
 
   @Bind()

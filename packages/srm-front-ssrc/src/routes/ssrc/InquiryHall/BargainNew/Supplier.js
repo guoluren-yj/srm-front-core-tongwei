@@ -205,6 +205,11 @@ class SupplierComponnet extends Component {
           ]
         : '';
 
+    // 通威二开 - 供应商列表头部不再展示「已参与」标签，其他参与状态标签保持原样
+    const showFeedbackStatusTag =
+      feedbackStatusMeaning !==
+      intl.get(`ssrc.inquiryHall.model.inquiryHall.alreadyInvolved`).d('已参与');
+
     return (
       <Row>
         <Col span={1}>
@@ -259,7 +264,7 @@ class SupplierComponnet extends Component {
           )}
         </Col>
         <Col span={10} style={{ marginTop: '6px' }}>
-          {!japanDutchTotalBidding ? (
+          {!japanDutchTotalBidding && showFeedbackStatusTag ? (
             <Tooltip placement="topLeft" title={feedbackStatusMeaning}>
               <Tag
                 style={{ fontWeight: 'normal' }}
