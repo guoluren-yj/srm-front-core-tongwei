@@ -1004,11 +1004,11 @@ class AllQuoteLineTable extends PureComponent {
           }
         },
       },
-      {
-        name: 'prLineNum',
-        width: 150,
-        editor: true,
-      },
+      // {
+      //   name: 'prLineNum',
+      //   width: 150,
+      //   editor: true,
+      // },
       {
         name: 'currentAttachmentUuid',
         width: 200,

@@ -113,7 +113,8 @@ export default class TransferNewBidding extends Component {
   openModal = () => {
     const ds = new DataSet(
       templateModalDs(
-        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' },
+        // 通威二开 - 新建招标(新)的寻源模板改用自采招标模板值集
+        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SCUX_TWNF_SELF_BID_TEMPLATE' },
         { secondarySourceCategory: 'NEW_BID' }
       )
     );

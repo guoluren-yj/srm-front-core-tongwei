@@ -1793,7 +1793,8 @@ const Index = ({
     const ds = new DataSet(
       templateModalDs(
         // lovCode 与「新招标」专页签保持一致，否则会落到默认值集，和「新建寻源立项单」查出来的模板完全一样、区分不开
-        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SSRC.TEMPLATE_NAME' },
+        // 通威二开 - 「全部」页签的新建招标单(新) 与 newBidding 页签同一条链路，寻源模板统一改用自采招标模板值集
+        { config: 'RFX', sourceFrom: 'DEMAND_POOL', lovCode: 'SCUX_TWNF_SELF_BID_TEMPLATE' },
         { secondarySourceCategory: 'NEW_BID' }
       )
     );

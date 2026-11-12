@@ -898,12 +898,12 @@ const allQuotationDS = (configs = {}) => ({
       type: 'string',
       // disabled: true,
     },
-    {
-      label: intl.get(`${promptCode}.model.offlineEntry.requisitionLineNo`).d('采购申请行号'),
-      name: 'prLineNum',
-      type: 'number',
-      disabled: true,
-    },
+    // {
+    //   label: intl.get(`${promptCode}.model.offlineEntry.requisitionLineNo`).d('采购申请行号'),
+    //   name: 'prLineNum',
+    //   type: 'number',
+    //   disabled: true,
+    // },
     {
       label: intl.get(`ssrc.inquiryHall.model.inquiryHall.remark`).d('备注'),
       name: 'lineItemRemark',

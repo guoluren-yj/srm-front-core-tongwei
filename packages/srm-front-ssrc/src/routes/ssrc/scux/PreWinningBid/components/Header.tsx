@@ -134,6 +134,24 @@ const PageHeader: React.FC = observer(() => {
   }, [setStoreData]);
 
   const handleSubmit = async () => {
+    // 通威二开 - 提交前置校验：以 operationType=CHECK 调用与提交相同的接口和参数，
+    // 后端返回错误提示时由 getResponse 弹出并直接中断，无错误提示才继续走后续提交逻辑
+    syncFinalPrice();
+    const checkPageData = getPageData();
+    if (!checkPageData) return;
+    setPageLoading(true);
+    try {
+      const checkRes = await operatePreWinningBid({
+        ...checkPageData,
+        operationType: 'CHECK',
+      });
+      if (!getResponse(checkRes)) return;
+      // 校验接口会刷新后端数据版本，必须等页面数据重新拉取完成再继续，
+      // 否则后续提交仍带着旧的 objectVersionNumber，触发后端乐观锁「数据已过时」
+      await initData();
+    } finally {
+      setPageLoading(false);
+    }
     // 通威二开 - 已触发标后议价流程（attributeBigint2 === 1）时的弱校验提示：
     // 仅做二次确认，不阻断提交；取消关闭弹框，确定继续走原有提交逻辑
     if (Number(headerDs?.current?.get('attributeBigint2')) === 1) {
