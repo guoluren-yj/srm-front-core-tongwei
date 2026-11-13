@@ -4867,7 +4867,13 @@ class CheckPrice extends Component {
                       footer: (ok, onCancel) => (
                         <>
                           {onCancel}
-                          {(recommendStrategy.split(',') || []).map((item) => btnObj[item])}
+                          {/* 通威二开 - 招标页面提交后的提示框不展示「完成招标」「取消招标」按钮 */}
+                          {(recommendStrategy.split(',') || [])
+                            .filter(
+                              (item) =>
+                                !(this.bidFlag && ['CANCEL', 'RELEASE'].includes(item))
+                            )
+                            .map((item) => btnObj[item])}
                           {recommendStrategy.includes('RECOMMENDATION') && ok}
                         </>
                       ),

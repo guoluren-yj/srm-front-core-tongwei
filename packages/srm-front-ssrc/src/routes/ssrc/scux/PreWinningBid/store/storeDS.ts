@@ -273,7 +273,7 @@ function getCommonSupplierListFields() {
     // },
     // {
     //   name: 'sectionBidQtnTotalAmount',
-    //   label: intl.get(`${preWinningBidModel}sectionBidQtnTotalAmount`).d('标段投标价（元）'),
+    //   label: intl.get(`${preWinningBidModel}sectionBidQtnTotalAmount`).d('标段投标价'),
     //   type: FieldType.number,
     //   precision: 2,
     //   numberGrouping: true,
@@ -281,7 +281,7 @@ function getCommonSupplierListFields() {
     // },
     // {
     //   name: 'sectionQtnTotalAmount',
-    //   label: intl.get(`${preWinningBidModel}sectionQtnTotalAmount`).d('标段最终价（元）'),
+    //   label: intl.get(`${preWinningBidModel}sectionQtnTotalAmount`).d('标段最终价'),
     //   type: FieldType.number,
     //   precision: 2,
     //   numberGrouping: true,
@@ -297,7 +297,7 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'bidQtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标价（元）'),
+      label: intl.get(`${preWinningBidModel}bidQtnTotalAmount`).d('投标价'),
       type: FieldType.number,
       precision: 2, // 金额保留两位小数，提交时同样截断到两位
       numberGrouping: true, // 千分位分组显示
@@ -305,7 +305,7 @@ function getCommonSupplierListFields() {
     },
     {
       name: 'qtnTotalAmount',
-      label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('最终价（元）'),
+      label: intl.get(`${preWinningBidModel}qtnTotalAmount`).d('最终价'),
       type: FieldType.number,
       precision: 2, // 金额保留两位小数，提交时同样截断到两位
       numberGrouping: true, // 千分位分组显示
@@ -362,7 +362,7 @@ function getSectionListFields() {
     },
     {
       name: 'quotationAmount',
-      label: intl.get(`${preWinningBidModel}quotationAmount`).d('投标价格（元）'),
+      label: intl.get(`${preWinningBidModel}quotationAmount`).d('投标价'),
       type: FieldType.number,
       precision: 2,
       numberGrouping: true,
@@ -370,7 +370,7 @@ function getSectionListFields() {
     },
     {
       name: 'finalAmount',
-      label: intl.get(`${preWinningBidModel}finalAmount`).d('最终价（元）'),
+      label: intl.get(`${preWinningBidModel}finalAmount`).d('最终价'),
       type: FieldType.number,
       precision: 2,
       numberGrouping: true,
