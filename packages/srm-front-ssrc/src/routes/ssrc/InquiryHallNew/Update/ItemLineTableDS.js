@@ -1189,6 +1189,19 @@ const ItemLineTableDS = (RfxInfoDS, documentTypeName, otherDsProps = {}) => {
         if (!dataSet) {
           return;
         }
+
+        // 二开逻辑, 申请转寻源来的单子维护页面增加寻源模板lov参数
+        if (
+          dataSet.records?.length > 0 &&
+          RfxInfoDS?.current?.get('sourceFrom') === 'DEMAND_POOL' &&
+          dataSet.currentPage === 1
+        ) {
+          const firstCategory = dataSet.records[0]?.get('attributeVarchar28');
+          if (firstCategory && RfxInfoDS) {
+            RfxInfoDS.setState('firstCategory', firstCategory);
+          }
+        }
+
         const { getBatchUpdateFlag = noop } = otherDsProps || {};
         const { batchEditRfxLineItemDTO, allEditFlag, batchMaintainItemDS } =
           getBatchUpdateFlag() || {};

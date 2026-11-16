@@ -192,13 +192,15 @@ const RfxInfoDS = (options = {}) => {
         textField: 'templateName',
         valueField: 'templateId',
         dynamicProps: {
-          lovPara({ record }) {
+          lovPara({ record, dataSet }) {
             const { sourceFrom, sourceProjectId } = record.get(['sourceFrom', 'sourceProjectId']);
+            const firstCategory = dataSet.getState('firstCategory');
             return {
               sourceCategory: 'RFX',
               secondarySourceCategory: bidFlag ? 'NEW_BID' : null,
               sourceFrom,
               sourceProjectId,
+              firstCategory,
             };
           },
           help: ({ record }) => {

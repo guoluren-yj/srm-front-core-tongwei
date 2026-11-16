@@ -243,28 +243,51 @@ const lineInfoDS = ({ abnormalHeaderId }): DataSetProps => {
     forceValidate: true,
     fields: [
       {
+        name: 'lineItemNum',
+        label: intl.get(`${prefix}.model.twnf.lineItemNum`).d('序号'),
+      },
+      {
         name: 'prNum',
         label: intl.get(`${prefix}.model.twnf.prNum`).d('采购申请编号'),
       },
       {
-        name: 'itemName',
-        label: intl.get(`${prefix}.model.twnf.itemName`).d('标的名称'),
+        name: 'projectNum',
+        label: intl.get(`${prefix}.model.twnf.projectNum`).d('立项编号'),
+      },
+      {
+        name: 'prUserBy',
+        label: intl.get(`${prefix}.model.twnf.prUserBy`).d('申请人'),
       },
       {
         name: 'prUserName',
         label: intl.get(`${prefix}.model.twnf.prUserName`).d('申请人名称'),
       },
       {
-        name: 'attributeVarchar14',
-        label: intl.get(`${prefix}.model.twnf.attributeVarchar14`).d('部门名称'),
+        name: 'techLeaderName',
+        label: intl.get(`${prefix}.model.twnf.techLeaderName`).d('技术负责人'),
       },
       {
-        name: 'attributeVarchar13',
-        label: intl.get(`${prefix}.model.twnf.attributeVarchar13`).d('申请公司'),
+        name: 'purCompanyName',
+        label: intl.get(`${prefix}.model.twnf.purCompanyName`).d('申请公司'),
       },
       {
-        name: 'techUsers',
-        label: intl.get(`${prefix}.model.twnf.techUsers`).d('技术负责人'),
+        name: 'prUnitName',
+        label: intl.get(`${prefix}.model.twnf.prUnitName`).d('部门名称'),
+      },
+      {
+        name: 'lineAmount',
+        label: intl.get(`${prefix}.model.twnf.lineAmount`).d('申请行金额'),
+        type: FieldType.number,
+      },
+      {
+        name: 'estimatedAmount',
+        label: intl.get(`${prefix}.model.twnf.taxIncludedLineAmount`).d('含税申请行金额'),
+        type: FieldType.number,
+      },
+      {
+        name: 'netEstimatedAmount',
+        label: intl.get(`${prefix}.model.twnf.netLineAmount`).d('不含税申请行金额'),
+        type: FieldType.number,
       },
       {
         name: 'budgetAmount',
@@ -272,8 +295,8 @@ const lineInfoDS = ({ abnormalHeaderId }): DataSetProps => {
         type: FieldType.number,
       },
       {
-        name: 'prDisplayLineNum',
-        label: intl.get(`${prefix}.model.twnf.prDisplayLineNum`).d('行号'),
+        name: 'itemName',
+        label: intl.get(`${prefix}.model.twnf.itemName`).d('标的名称'),
       },
     ],
     transport: {
@@ -283,7 +306,7 @@ const lineInfoDS = ({ abnormalHeaderId }): DataSetProps => {
           method: 'GET',
           data: {
             abnormalHeaderId,
-            opreationType: 'PR',
+            opreationType: 'LINE',
           },
         };
       },

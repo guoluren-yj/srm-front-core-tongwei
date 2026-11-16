@@ -2102,8 +2102,6 @@ module.exports = [
       // 通威 - 拟中标
       {
         path: '/ssrc/new-bid-hall/scux-pre-winning-bid/:rfxHeaderId',
-        // 页面内「比价助手」依赖 priceComparison 模型，路由需声明后才会注册
-        models: [() => import('../models/priceComparison.js')],
         component: () => import('../routes/ssrc/scux/PreWinningBid'),
         FilterSupplier: true,
       },
