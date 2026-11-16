@@ -1,22 +1,19 @@
 import React, { useMemo } from "react";
 import { Table } from 'choerodon-ui/pro';
 import { ColumnProps } from 'choerodon-ui/pro/lib/table/Column.d';
-import { useObserver } from 'mobx-react-lite';
 
 import { useStore } from '../store/StoreProvider';
 
 const LineInfo: React.FC<any> = () => {
 
   const {
-    commonDs: { baseInfoDs, lineInfoDs } = {},
+    commonDs: { lineInfoDs } = {},
     history,
   } = useStore();
 
   if (!lineInfoDs) {
     return null;
   };
-
-  const benchmarkPriceType = useObserver(() => baseInfoDs?.current?.get('benchmarkPriceType'));
 
   // 跳转PR详情
   const handleJumpPrDetail = (record) => {
@@ -32,18 +29,7 @@ const LineInfo: React.FC<any> = () => {
     });
   };
 
-  // 跳转立项详情
-  const handleJumpProjectDetail = (record) => {
-    const sourceProjectId = record.get('sourceProjectId');
-    history.push({
-      pathname: `/ssrc/new-project-setup/detail/${sourceProjectId}`
-    });
-  };
-
   const columns: ColumnProps[] = useMemo(() => [
-    {
-      name: 'lineItemNum',
-    },
     {
       name: 'prNum',
       width: 160,
@@ -55,48 +41,27 @@ const LineInfo: React.FC<any> = () => {
       },
     },
     {
-      name: 'projectNum',
-      width: 160,
-      renderer: ({ value, record }) => {
-        if (value) {
-          return (<a target="_blank" onClick={() => handleJumpProjectDetail(record)}>{value}</a>)
-        };
-        return value;
-      },
-    },
-    {
-      name: 'prUserBy',
+      name: 'itemName',
     },
     {
       name: 'prUserName',
     },
     {
-      name: 'techLeaderName',
+      name: 'attributeVarchar14',
     },
     {
-      name: 'purCompanyName',
+      name: 'attributeVarchar13',
     },
     {
-      name: 'prUnitName',
-    },
-    {
-      name: 'lineAmount',
-    },
-    {
-      name: 'estimatedAmount',
-      hidden: !benchmarkPriceType || benchmarkPriceType === 'NET_PRICE',
-    },
-    {
-      name: 'netEstimatedAmount',
-      hidden: !benchmarkPriceType || benchmarkPriceType === 'TAX_INCLUDED_PRICE',
+      name: 'techUsers',
     },
     {
       name: 'budgetAmount',
     },
     {
-      name: 'itemName',
+      name: 'prDisplayLineNum',
     },
-  ], [benchmarkPriceType]);
+  ], []);
   return (
     <Table
       dataSet={lineInfoDs}
