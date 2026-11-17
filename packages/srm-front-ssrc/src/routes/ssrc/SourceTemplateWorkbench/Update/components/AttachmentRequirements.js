@@ -92,7 +92,7 @@ const AttachmentRequirements = (props) => {
           funcType="link"
           // multiple={false}
           labelLayout="float"
-          beforeUpload={beforeUpload}
+          // beforeUpload={beforeUpload}
           onAttachmentsChange={(file) => onAttachmentsChange(file, record)}
         />
       ),

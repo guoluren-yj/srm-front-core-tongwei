@@ -4595,7 +4595,9 @@ class InquiryHall extends React.Component {
         'offlineWholeFlag',
       ]) || {};
 
-    if (sourceCategory === 'RFQ' || sourceCategory === 'RFA') {
+    // 通威二开：招标单的 sourceCategory 可能是 NEW_BID（如立项转寻源），
+    // 这类单据只有 rfxHeaderId，需要和 RFQ/RFA 一样走 rfxHeaderId 分支，否则点击单号无反应
+    if (['RFQ', 'RFA', 'NEW_BID'].includes(sourceCategory)) {
       if (offlineWholeFlag === 1) {
         this.offlineWholeUpdate(record.toData(), 'detail');
         return;
