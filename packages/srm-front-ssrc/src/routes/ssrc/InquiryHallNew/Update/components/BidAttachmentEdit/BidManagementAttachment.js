@@ -231,8 +231,8 @@ const BidManagementAttachment = (props) => {
       name: 'fileEdit',
       help: "附件上传完成后，请先进行保存再编辑。",
       renderer: ({ record }) => {
-        const isNotSaved = record.status === 'add';
-        return getCommonDisabledFlag({ record, attachType }) || isNotSaved ? (
+        const isNotSaved = record.status === 'add' || !record.get('fileManageId');
+        return (getCommonDisabledFlag({ record, attachType }) || isNotSaved) ? (
           <Button funcType="link" disabled>
             {intl.get('hzero.common.button.edit').d('编辑')}
           </Button>
