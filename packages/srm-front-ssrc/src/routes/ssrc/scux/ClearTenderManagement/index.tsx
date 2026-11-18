@@ -39,6 +39,16 @@ const Index: React.FC<any> = (props) => {
       funcType: FuncType.link,
       wait: 500,
     };
+    // 供应商侧：待确认可进入确认页
+    if (supplierFlag) {
+      return [
+        qbStatus === 'UNCONFIRM' && (
+          <Button {...commonButtonsProps} onClick={() => handleJumpClearTender({ record, action: 'CONFIRM' })}>
+            {intl.get('hzero.common.view.button.confirm').d('确认')}
+          </Button>
+        ),
+      ].filter(Boolean);
+    };
     return [
       ['NEW', 'RETURN'].includes(qbStatus) && (
         <Button {...commonButtonsProps} onClick={() => handleJumpClearTender({ record, type: 'UPDATE' })}>
@@ -54,13 +64,15 @@ const Index: React.FC<any> = (props) => {
   };
 
   // 跳转到清标维护、明细页面
-  const handleJumpClearTender = (payload : { type?: string, record: Record | null | undefined }) => {
-    const { record, type } = payload;
+  // action 为空表示点击单号进入，仅查询不展示操作按钮
+  const handleJumpClearTender = (payload : { type?: string, action?: string, record: Record | null | undefined }) => {
+    const { record, type, action } = payload;
     if (!record) return;
     const qbHeaderId = record.get('qbHeaderId');
     if (!qbHeaderId) return;
     history.push({
       pathname: `/scux/ssrc/clear-tender-management/${supplierFlag ? 'sup' : 'pur'}/${type === 'UPDATE' ? 'update' : 'detail'}/${qbHeaderId}`,
+      search: action ? `?${querystring.stringify({ cuxAction: action })}` : '',
     });
   };
 

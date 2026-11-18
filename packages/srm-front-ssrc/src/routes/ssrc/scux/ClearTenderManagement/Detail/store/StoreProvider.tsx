@@ -69,7 +69,8 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
 
   // 解析 URL 查询参数（修复空字符串解析问题）
   const routerParams = search ? querystring.parse(search.substr(1)) : {};
-  const { sourceFrom = null } = routerParams as Record<string, string>;
+  // cuxAction 由列表操作按钮带入（CONFIRM/COMPLETE），点击单号进入时为空，表示仅查询
+  const { sourceFrom = null, cuxAction = null } = routerParams as Record<string, string>;
 
   // 供应商标志
   const supplierFlag = useMemo(() => {
@@ -86,16 +87,17 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
   const qbStatus = useObserver(() => baseInfoDs.current?.get('qbStatus'));
 
   // 页面编辑标识
+  // 供应商侧只有从列表【确认】按钮进入（cuxAction=CONFIRM）才展示操作按钮，点击单号进入仅查询
   const editorFlag = useMemo(() => {
     let flag = false;
     if (supplierFlag) {
-      flag = qbStatus === 'UNCONFIRM';
+      flag = qbStatus === 'UNCONFIRM' && cuxAction === 'CONFIRM';
     } else {
       flag = ['NEW', 'RETURN'].includes(qbStatus) && pathname.includes('/scux/ssrc/clear-tender-management/pur/update')
     };
     baseInfoDs.setState('editorFlag', flag);
     return flag;
-  }, [qbStatus, supplierFlag, baseInfoDs, pathname]);
+  }, [qbStatus, supplierFlag, baseInfoDs, pathname, cuxAction]);
 
   useEffect(() => {
     initData();
@@ -150,6 +152,7 @@ const StoreProvider: FunctionComponent<StoreProviderProps> = (props) => {
       pageLoading,
       setPageLoading,
       initData,
+      cuxAction,
       reactionStoreData.setStoreData,
       reactionStoreData.getStoreData,
       reactionStoreData.storeData,

@@ -237,6 +237,7 @@ const PageHeader: React.FC<any> = () => {
   const getButtons = () => {
     if (!editorFlag) {
       if (supplierFlag) {
+        // 供应商点击单号进入仅查询，不展示操作按钮
         return [];
       }
       return [
