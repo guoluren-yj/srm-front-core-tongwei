@@ -83,6 +83,7 @@ class CreateModalComponent extends Component {
     const params = {
       sourceCategory: 'RFX',
       secondarySourceCategory: bidFlag ? 'NEW_BID' : null,
+      lovCode: 'SCUX_TWNF_SELF_BID_TEMPLATE',
     };
     if (remote) {
       return remote.process('SSRC_APPLY_TO_INQUIRY_PROCESS_CREATE_MODAL_LOV_PARAMS', params, {
@@ -123,7 +124,7 @@ class CreateModalComponent extends Component {
           ],
         })(
           <Lov
-            code="SSRC.TEMPLATE_NAME"
+            code="SCUX_TWNF_SELF_BID_TEMPLATE"
             queryParams={this.getLovParams(bidFlag)}
             textField="templateName"
             onChange={(val, record) => this.changeTemplateId(val, record)}
