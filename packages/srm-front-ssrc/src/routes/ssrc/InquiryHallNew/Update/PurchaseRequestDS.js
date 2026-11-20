@@ -15,7 +15,11 @@ import { INQUIRY } from '@/utils/globalVariable';
 const organizationId = getCurrentOrganizationId();
 const prefix = `${SRM_SSRC}/v1`;
 
-const PurchaseRequestDS = (sourceKey = INQUIRY) => {
+const PurchaseRequestDS = (sourceKey = INQUIRY, options = {}) => {
+  // 通威二开 - 支持按场景覆盖个性化编码（默认沿用申请转招标/询价）
+  const {
+    customizeUnitCode = `SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE,SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_FORM`,
+  } = options;
   return {
     autoQuery: false,
     cacheSelection: true,
@@ -230,7 +234,7 @@ const PurchaseRequestDS = (sourceKey = INQUIRY) => {
           method: 'POST',
           params: {
             ...params,
-            customizeUnitCode: `SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE,SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_FORM`,
+            customizeUnitCode,
           },
           data: {
             ...data,

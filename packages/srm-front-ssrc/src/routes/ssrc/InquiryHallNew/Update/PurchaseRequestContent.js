@@ -322,7 +322,18 @@ export default class PurchaseRequestContent extends Component {
   }
 
   render() {
-    const { PurchaseRequestDS, customizeTable, sourceKey, tableStyle = {} } = this.props;
+    const {
+      PurchaseRequestDS,
+      customizeTable,
+      sourceKey,
+      tableStyle = {},
+      // 通威二开 - 支持按场景更换个性化编码
+      customizeUnitCode = {},
+    } = this.props;
+    const {
+      list: listCode = `SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE`,
+      filter: filterCode = `SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_FORM`,
+    } = customizeUnitCode;
 
     const tableStyleNew = {
       ...getTableFixSelfAdaptStyle()?.tableMaxHeight,
@@ -332,9 +343,9 @@ export default class PurchaseRequestContent extends Component {
     return (
       <React.Fragment>
         {customizeTable(
-          { code: `SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE` },
+          { code: listCode },
           <SearchBarTable
-            searchCode={`SSRC.${sourceKey}_HALL.NEW_EDIT.PURCHASEREQUEST_FORM`}
+            searchCode={filterCode}
             dataSet={PurchaseRequestDS}
             columns={this.getColumns()}
             style={tableStyleNew}

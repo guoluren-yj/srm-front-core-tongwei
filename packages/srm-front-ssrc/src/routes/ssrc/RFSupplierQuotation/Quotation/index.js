@@ -96,11 +96,13 @@ const SyncedCountDownGroup = ({ sysNow, items = [], numberStyle }) => {
   const baseRef = useRef({ baseSysNow: sysNow, startAt: Date.now() });
 
   useEffect(() => {
-    baseRef.current = { baseSysNow: sysNow, startAt: Date.now() };
-    setCurrentSysNow(sysNow);
+    // 通威二开：服务端时间被清空时保持上一次基准继续用本地时钟推算，
+    // 否则切后台再回来会因 sysNow 为空直接显示 00:00:00
     if (!sysNow) {
       return undefined;
     }
+    baseRef.current = { baseSysNow: sysNow, startAt: Date.now() };
+    setCurrentSysNow(sysNow);
     const timer = setInterval(() => {
       const { baseSysNow, startAt } = baseRef.current;
       if (!baseSysNow) {
@@ -335,7 +337,8 @@ const QuotationComponent = (props = {}) => {
       rollingFetchQuotationListInfo();
     } else {
       clearQuotationListTimer();
-      setCountDownTimer({});
+      // 通威二开：不能清空 countDownTimer，否则切后台再回来倒计时会显示 00:00:00
+      // （SyncedCountDownGroup 按 本地时钟+基准服务端时间 推算，后台期间计时不会丢失）
       quotationLineUpdateTimerCurrentDateTime();
     }
   };

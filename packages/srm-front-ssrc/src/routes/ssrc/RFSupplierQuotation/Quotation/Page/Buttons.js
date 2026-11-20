@@ -57,6 +57,7 @@ const Buttons = (props = {}) => {
     supplierStatus,
     needBidAnnouncement,
     attributeVarchar10,
+    bidBondFlag,
     // sourceCategory,
   } = basicFormDS.current
     ? basicFormDS.current.get([
@@ -67,6 +68,7 @@ const Buttons = (props = {}) => {
         'supplierStatus',
         'needBidAnnouncement',
         'attributeVarchar10',
+        'bidBondFlag',
         // 'sourceCategory',
       ])
     : {};
@@ -223,7 +225,8 @@ const Buttons = (props = {}) => {
         name: 'cuxDepositPayment',
         btnType: 'c7n-pro',
         child: intl.get(`scux.ssrc.view.button.quotation.twnf.depositPayment`).d('保证金缴纳'),
-        hidden: quotationStatus !== 'NEW' || !bidFlag,
+        // 通威二开：头部 bidBondFlag 为 0（不收取保证金）时不显示
+        hidden: quotationStatus !== 'NEW' || !bidFlag || !Number(bidBondFlag),
         btnProps: {
           onClick: handleCuxDepositPayment,
           loading,

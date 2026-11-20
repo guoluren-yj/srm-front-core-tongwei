@@ -26,6 +26,8 @@ import {
   Tooltip,
 } from 'choerodon-ui/pro';
 import { Popover, Icon, Badge, Tag } from 'choerodon-ui';
+import { LabelLayout } from 'choerodon-ui/pro/lib/form/enum';
+import { FieldType } from 'choerodon-ui/dataset/data-set/enum';
 import { Bind, Throttle, Debounce } from 'lodash-decorators';
 import { isEmpty, isNil, isFunction, noop, throttle, isArray } from 'lodash';
 import querystring from 'querystring';
@@ -178,6 +180,8 @@ import CloseInquiry from './RFClose';
 import { closeRfDS } from './RFClose/indexDS';
 import PurchaseRequestContent from './Update/PurchaseRequestContent.js';
 import PurchaseRequestDS from './Update/PurchaseRequestDS.js';
+// 通威二开 - 新建战略采购单弹窗（复用申请转招标弹窗，独立查询条件个性化）
+import StrategicPurchaseRequestContent from './StrategicPurchaseRequestContent';
 import OfflineWholeModal from './OfflineWholeModal';
 import { replySupplierDS, scoreRfDS } from './RFIDS';
 import RoundQuotationModals from './components/RoundQuotation';
@@ -753,6 +757,7 @@ class InquiryHall extends React.Component {
       `ssrc.new-inquiry-hall.check-price.-rfxId.button.priceclarification`, // 价格澄清
       `${prefix}bidnotice`, // 中标通知/公告按钮
       `${prefix}twostageopenbid`, // 二阶段开标
+      `${prefix}createstrategicpurchase`, // 通威二开 - 新建战略采购单
     ];
     const permissionList = remote
       ? remote.process('SSRC_INQUIRY_HALL_NEW_LIST_PROCESS_PERMISSION_LIST', permissionButtonList)
@@ -4737,6 +4742,188 @@ class InquiryHall extends React.Component {
     } catch (e) {
       throw e;
     }
+  }
+
+  /**
+   * 通威二开 - 新建战略采购单
+   * 复用大厅【申请转招标】的申请列表弹窗（/share/application-post）：
+   * 表格个性化与【申请转招标】共用 SSRC.BID_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE
+   * 查询条件个性化单独使用 SSRC.BID_HALL.NEW_EDIT.SCUX.STRATEGIC_PURCHASE_ORDER.FILTER
+   */
+  @Bind()
+  openStrategicPurchaseDrawer() {
+    const { doubleUnitFlag } = this.state;
+    const purchaseRequestDs = new DataSet(
+      PurchaseRequestDS('BID', {
+        customizeUnitCode:
+          'SSRC.BID_HALL.NEW_EDIT.SCUX.STRATEGIC_PURCHASE_ORDER.FILTER,SSRC.BID_HALL.NEW_EDIT.PURCHASEREQUEST_TABLE',
+      })
+    );
+    purchaseRequestDs.setState('doubleUnitFlag', doubleUnitFlag);
+    purchaseRequestDs.clearCachedSelected();
+    purchaseRequestDs.unSelectAll();
+    purchaseRequestDs.loadData();
+    Modal.open({
+      destroyOnClose: true,
+      key: Modal.key(),
+      drawer: true,
+      title: intl
+        .get('ssrc.inquiryHall.view.message.title.createStrategicPurchase')
+        .d('新建战略采购单'),
+      children: (
+        <StrategicPurchaseRequestContent
+          sourceKey="BID"
+          PurchaseRequestDS={purchaseRequestDs}
+          doubleUnitFlag={doubleUnitFlag}
+          executionLinkFlag={1}
+        />
+      ),
+      style: { width: 1090 },
+      onOk: () => {
+        if (!purchaseRequestDs.selected.length) {
+          notification.warning({
+            message: intl.get('hzero.common.validation.atLeast').d('请至少选择一条数据'),
+          });
+          return false;
+        }
+        return this.validateStrategicPurchase(purchaseRequestDs);
+      },
+      onClose: () => {
+        purchaseRequestDs.clearCachedSelected();
+        purchaseRequestDs.unSelectAll();
+      },
+    });
+  }
+
+  // 通威二开 - 新建战略采购单：校验申请行（与大厅【申请转招标】一致）
+  @Bind()
+  async validateStrategicPurchase(purchaseRequestDs) {
+    const { organizationId } = this.props;
+    const selectedRows = purchaseRequestDs.selected.map((item) => item.toData());
+    const prLineIdList = selectedRows.map((item) => item.prLineId);
+    const res = getResponse(
+      await newBatchValidatePurchase({
+        organizationId,
+        prLineIdList,
+        sourceFrom: 'DEMAND_POOL',
+        sourceDocumentType: 'NEW_BID',
+        configCenterCode: 'SITE.SSRC.RFX_PURCHASE_MERGE_RULE',
+      })
+    );
+    if (!res) {
+      return false;
+    }
+    const afterValidate = async () => {
+      if (res.secondaryUomInconsistentFlag === 1) {
+        applyToNotification(res.secondaryUomInconsistentMes);
+      }
+      await this.openStrategicPurchaseTemplateModal(selectedRows);
+    };
+    // 校验接口直接通过
+    if (res === true || isEmpty(res)) {
+      return afterValidate();
+    }
+    // 校验结果弹框（WARNING 二次确认 / ERROR 提示）
+    validatorConfirmModal({
+      response: res,
+      validatorType: 'highestValidatorType',
+      validatorArrName: 'validateResults',
+      onOk: throttle(async () => {
+        if (res?.returnDetail?.secondaryUomInconsistentFlag === 1) {
+          applyToNotification(res?.returnDetail?.secondaryUomInconsistentMes);
+        }
+        await afterValidate();
+      }, 1200),
+    });
+    // 校验不通过（ERROR 或后端返回 returnDetail），阻断弹窗关闭
+    if (res?.returnDetail || (res.highestValidatorType && res.highestValidatorType !== 'WARNING')) {
+      return false;
+    }
+    // WARNING：等待确认框回调继续
+    return undefined;
+  }
+
+  // 通威二开 - 新建战略采购单：选择寻源模板
+  @Bind()
+  async openStrategicPurchaseTemplateModal(selectedRows) {
+    const formDs = new DataSet({
+      autoCreate: true,
+      fields: [
+        {
+          name: 'templateId',
+          label: intl.get('ssrc.inquiryHall.model.inquiryHall.sourcingTemplate').d('寻源模板'),
+          lovCode: 'SCUX_TWNF_SELF_BID_TEMPLATE',
+          type: FieldType.object,
+          required: true,
+          lovPara: {
+            sourceCategory: 'RFX',
+            secondarySourceCategory: 'NEW_BID',
+          },
+        },
+      ],
+    });
+    return Modal.open({
+      destroyOnClose: true,
+      key: Modal.key(),
+      title: intl
+        .get('ssrc.inquiryHall.view.message.title.selectSourceTemplate')
+        .d('选择寻源模板'),
+      children: (
+        <Form dataSet={formDs} labelLayout={LabelLayout.float} columns={1}>
+          <Lov name="templateId" />
+        </Form>
+      ),
+      onOk: async () => {
+        if (!(await formDs.validate())) {
+          return false;
+        }
+        const templateId = formDs.current?.get('templateId')?.templateId;
+        if (!templateId) {
+          return false;
+        }
+        return this.createStrategicPurchase({ selectedRows, templateId });
+      },
+    });
+  }
+
+  // 通威二开 - 新建战略采购单：创建单据
+  // 说明：校验/创建参数沿用大厅【申请转招标】，
+  // 若战略采购单需要区分单据类型，请与后端确认 configCenterCode / sourceDocumentType 取值
+  @Bind()
+  async createStrategicPurchase({ selectedRows = [], templateId }) {
+    const { dispatch, organizationId } = this.props;
+    const res = await dispatch({
+      type: 'inquiryHall/createApplyToInquiry',
+      payload: {
+        organizationId,
+        prLineIdList: selectedRows.map((item) => item.prLineId),
+        prLineList: selectedRows,
+        templateId,
+        sourceFrom: 'DEMAND_POOL',
+        sourceDocumentType: 'NEW_BID',
+        configCenterCode: 'SITE.SSRC.RFX_PURCHASE_MERGE_RULE',
+      },
+    });
+    if (!res) {
+      return false;
+    }
+    notification.success();
+    const { rfxHeader = {} } = res;
+    const { rfxHeaderId, expertScoreType, sourceCategory, preQualificationFlag } = rfxHeader;
+    if (!rfxHeaderId) {
+      return undefined;
+    }
+    const searchProps = querystring.stringify({
+      expertScoreType,
+      sourceCategory,
+      preQualificationFlag,
+    });
+    return dispatch(
+      routerRedux.push({
+        pathname: this.distinguishUpdatePageUrl({ rfxHeaderId }),
+        search: searchProps,
+      })
+    );
   }
 
   @Bind()
@@ -8756,6 +8943,25 @@ class InquiryHall extends React.Component {
             btnProps: {
               onClick: () => this.projectToInquiryOpen({ sourceRequest: 'OFFLINE_ENTER' }),
             },
+          },
+          // 通威二开 - 新建战略采购单，仅【自采招标】列表且授权后展示
+          // 未授权时直接不渲染，避免下拉里出现空白占位
+          {
+            name: 'createStrategicPurchase',
+            btnType: 'c7n-pro',
+            hidden:
+              path !== '/ssrc/new-bid-hall/sourced-bidding/list' ||
+              !CheckPermissionObject?.createstrategicpurchase?.approve,
+            child: (fieldName = '') =>
+              customPermissionButton({
+                display:
+                  fieldName ||
+                  intl
+                    .get('ssrc.inquiryHall.view.message.button.createStrategicPurchase')
+                    .d('新建战略采购单'),
+                onClick: () => this.openStrategicPurchaseDrawer(),
+                ...CheckPermissionObject?.createstrategicpurchase,
+              }),
           },
         ],
         child: (fieldName = '') => (
