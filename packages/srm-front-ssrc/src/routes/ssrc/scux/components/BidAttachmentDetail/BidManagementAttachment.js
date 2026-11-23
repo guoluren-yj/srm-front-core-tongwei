@@ -90,7 +90,7 @@ const BidManagementAttachment = (props) => {
             name: 'attributeVarchar1',
             renderer: ({ value }) => (value ? yesOrNoRender(Number(value)) : value),
           },
-          { name: 'remark' },
+          // { name: 'remark' },
           {
             name: 'attributeLongtext10',
           },

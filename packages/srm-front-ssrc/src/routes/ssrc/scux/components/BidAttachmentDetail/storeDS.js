@@ -61,19 +61,19 @@ const attachmentDS = ({ actionFrom = '' }) => ({
       name: 'attributeLongtext1',
       label: intl
         .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.electronicSignatureAttachment')
-        .d('电签附件'),
+        .d('签章附件'),
       type: 'attachment',
       bucketName: PRIVATE_BUCKET,
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
       readOnly: true,
     },
-    {
-      name: 'remark',
-      label: intl
-        .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remark')
-        .d('模板描述'),
-    },
+    // {
+    //   name: 'remark',
+    //   label: intl
+    //     .get('scux.bidAttachment.model.fileTemplateAttachment.twnf.remark')
+    //     .d('模板描述'),
+    // },
   ],
   transport: {
     read: ({ dataSet }) => {

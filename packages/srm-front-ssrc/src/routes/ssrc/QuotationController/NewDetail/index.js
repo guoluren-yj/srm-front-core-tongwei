@@ -1680,11 +1680,13 @@ class DetailComponent extends Component {
                       <TopSection
                         title={
                           !newBiddingFlag
-                            ? intl
-                                .get('ssrc.inquiryHall.view.inquiryHall.commonRfxDeamnd', {
-                                  sourceCategoryName: this.sourceCategoryName,
-                                })
-                                .d('{sourceCategoryName}要求')
+                            ? header?.sourceFrom === 'PROJECT'
+                              ? intl
+                                  .get('ssrc.inquiryHall.view.inquiryHall.commonRfxDeamnd', {
+                                    sourceCategoryName: this.sourceCategoryName,
+                                  })
+                                  .d('{sourceCategoryName}要求')
+                              : intl.get('ssrc.common.view.rfxDemand').d('寻源要求')
                             : intl.get('ssrc.common.view.biddingRequest').d('竞价要求')
                         }
                         className={Style['rfx-control-top-section']}

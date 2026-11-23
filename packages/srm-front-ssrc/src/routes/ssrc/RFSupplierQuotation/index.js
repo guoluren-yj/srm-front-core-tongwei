@@ -542,9 +542,25 @@ class Supplierquotation extends Component {
         {moreList?.map((item) => (
           <Menu.Item>
             {item.operation === 'CLARIFY' ? (
-              remoteHoc ? (
-                remoteHoc.render(
-                  'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
+              // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
+              record.get('sourceProjectId') && (
+                remoteHoc ? (
+                  remoteHoc.render(
+                    'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
+                    <Badge
+                      count={record.get('unreadClarifyCount')}
+                      size="small"
+                      style={{ top: '-0.04rem' }}
+                    >
+                      <Button funcType="link" onClick={() => this.toReviewClarification(record)}>
+                        {intl.get(`ssrc.supplierQuotation.model.supQuo.clearAnswer`).d('澄清答疑')}
+                      </Button>
+                    </Badge>,
+                    {
+                      bidFlag: this.bidFlag,
+                    }
+                  )
+                ) : (
                   <Badge
                     count={record.get('unreadClarifyCount')}
                     size="small"
@@ -553,21 +569,8 @@ class Supplierquotation extends Component {
                     <Button funcType="link" onClick={() => this.toReviewClarification(record)}>
                       {intl.get(`ssrc.supplierQuotation.model.supQuo.clearAnswer`).d('澄清答疑')}
                     </Button>
-                  </Badge>,
-                  {
-                    bidFlag: this.bidFlag,
-                  }
+                  </Badge>
                 )
-              ) : (
-                <Badge
-                  count={record.get('unreadClarifyCount')}
-                  size="small"
-                  style={{ top: '-0.04rem' }}
-                >
-                  <Button funcType="link" onClick={() => this.toReviewClarification(record)}>
-                    {intl.get(`ssrc.supplierQuotation.model.supQuo.clearAnswer`).d('澄清答疑')}
-                  </Button>
-                </Badge>
               )
             ) : remoteHoc ? (
               remoteHoc.render(
@@ -648,7 +651,9 @@ class Supplierquotation extends Component {
                 return (
                   <div className="action">
                     {item.operation === 'CLARIFY' ? (
-                      remoteHoc ? (
+                      // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
+                      record.get('sourceProjectId') &&
+                      (remoteHoc ? (
                         remoteHoc.render(
                           'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
                           <Badge count={record.get('unreadClarifyCount')} size="small">
@@ -676,7 +681,7 @@ class Supplierquotation extends Component {
                               .d('澄清答疑')}
                           </Button>
                         </Badge>
-                      )
+                      ))
                     ) : remoteHoc ? (
                       remoteHoc.render(
                         'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_MAIN_OPERATION_NODE',
@@ -728,7 +733,9 @@ class Supplierquotation extends Component {
                 return (
                   <div className="action">
                     {item.operation === 'CLARIFY' ? (
-                      remoteHoc ? (
+                      // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
+                      record.get('sourceProjectId') &&
+                      (remoteHoc ? (
                         remoteHoc.render(
                           'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
                           <Badge count={record.get('unreadClarifyCount')} size="small">
@@ -756,7 +763,7 @@ class Supplierquotation extends Component {
                               .d('澄清答疑')}
                           </Button>
                         </Badge>
-                      )
+                      ))
                     ) : remoteHoc ? (
                       remoteHoc.render(
                         'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_MAIN_OPERATION_NODE',
