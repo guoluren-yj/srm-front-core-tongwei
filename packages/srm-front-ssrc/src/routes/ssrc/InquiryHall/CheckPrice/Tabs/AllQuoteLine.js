@@ -620,7 +620,8 @@ const AllQuoteLine = (props) => {
         width: 100,
         align: 'right',
         renderer: ({ value, record }) => {
-          if (record.get('redField') === 'validQuotationPrice') {
+          // 通威二开 - 招标去掉单价(含税)的红色标记，询价保留
+          if (!bidFlag && record.get('redField') === 'validQuotationPrice') {
             return <span style={{ color: colorRemote }}>{numberSeparatorRender(value)}</span>;
           } else {
             return numberSeparatorRender(value);

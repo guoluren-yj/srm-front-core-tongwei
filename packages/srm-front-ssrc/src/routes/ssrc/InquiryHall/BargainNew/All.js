@@ -133,6 +133,7 @@ class All extends PureComponent {
       getAllTabTableCommonFields = () => {},
       organizationId,
       dynamicChangePrice = noop,
+      bidFlag,
     } = this.props;
     const colorRemote = remote
       ? remote?.process('SSRC_BARGAIN_NEW_PROCESS_BARGAIN_ALL_TABLE_COLOR', 'red')
@@ -257,8 +258,9 @@ class All extends PureComponent {
               );
             },
             renderer: ({ record, value, name }) => {
+              // 通威二开 - 招标去掉修改后的红色标记，询价保留
               const highlightField = record.get('highlightField');
-              const redFlag = highlightField === name;
+              const redFlag = !bidFlag && highlightField === name;
 
               return (
                 <span style={{ color: !redFlag ? '' : colorRemote }}>

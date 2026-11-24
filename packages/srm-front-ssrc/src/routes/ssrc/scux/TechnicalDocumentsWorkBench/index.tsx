@@ -163,9 +163,6 @@ const Index: React.FC<any> = (props) => {
         width: 130,
         hidden: tabKey === 'toBeProcessed',
         renderer: ({ value, record }) => {
-          if(record?.get('sourceProjectNumLinkFlag') !== '1'){
-            return value;
-          }
           return (
             <a onClick={() => handleJumpTechFileDetail(record)}>
               {value}

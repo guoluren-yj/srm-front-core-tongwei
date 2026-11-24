@@ -175,6 +175,8 @@ const PrSplitModal = props => {
         { name: 'attributeVarchar17Lov', editor: (record) => canOperate(record) },
         { name: 'quantity', editor: (record) => canOperate(record) },
         { name: 'taxIncludedUnitPrice', editor: (record) => canOperate(record) },
+        // 通威二开 - 含税单价后新增可编辑备注
+        { name: 'remark', editor: (record) => canOperate(record) },
         // 通威二开 - 以下三个字段均为只读：预算单价（含税）= 含税单价，人民币行金额 = 含税金额 × 人民币汇率
         { name: 'taxIncludedBudgetUnitPrice' },
         { name: 'taxIncludedLineAmount' },

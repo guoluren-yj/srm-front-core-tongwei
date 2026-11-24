@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { DataSet, Spin, Tooltip } from 'choerodon-ui/pro';
-import { Tag, Card } from 'choerodon-ui';
+import { Tag, Card, Collapse } from 'choerodon-ui';
 import querystring from 'querystring';
 import { noop, compose, isNil } from 'lodash';
 import { observer } from 'mobx-react';
@@ -48,6 +48,8 @@ import Attachments from './Page/Attachments';
 
 import { formDS } from './Stores/formDS';
 import { quotationLineDataSet } from './Stores/quotationLineDataSet';
+
+const { Panel } = Collapse;
 
 /**
  * 文档请查看 /src/routes/document/ssrc/pageDocument.md
@@ -666,7 +668,8 @@ const SupplierQueryNew = (props = {}) => {
   ]);
 
   const commonCardTitleStyle = useCallback(({ title }) => {
-    return <span style={{ fontWeight: 600 }}>{title}</span>;
+    // 通威二开 - 标题放入 Collapse header 后字号会继承正文，这里保持与卡片标题一致
+    return <span style={{ fontWeight: 600, fontSize: '16px' }}>{title}</span>;
   }, []);
 
   // common props
@@ -723,14 +726,22 @@ const SupplierQueryNew = (props = {}) => {
             </Spin>
           </Card>
           {basicFormDS?.current?.get('preQualificationFlag') === 1 ? (
-            <Card
-              id="rfxPrequalBasicInfo"
-              title={commonCardTitleStyle({
-                title: intl.get('ssrc.common.prequalBasicInfo').d('资格预审信息'),
-              })}
-              bordered={false}
-            >
-              <PrequalForm {...FormProps} />
+            <Card id="rfxPrequalBasicInfo" title={null} bordered={false}>
+              {/* 通威二开 - 可折叠，默认展开 */}
+              <Collapse
+                defaultActiveKey={['rfxPrequalBasicInfo']}
+                expandIconPosition="text-right"
+                ghost
+              >
+                <Panel
+                  key="rfxPrequalBasicInfo"
+                  header={commonCardTitleStyle({
+                    title: intl.get('ssrc.common.prequalBasicInfo').d('资格预审信息'),
+                  })}
+                >
+                  <PrequalForm {...FormProps} />
+                </Panel>
+              </Collapse>
             </Card>
           ) : null}
           <Card
@@ -743,45 +754,71 @@ const SupplierQueryNew = (props = {}) => {
             <QuotationLineTable {...quotationLineProps} />
           </Card>
           {!bidFlag && (
-            <Card
-              id="rfxAttachment"
-              title={commonCardTitleStyle({ title: intl.get('ssrc.common.attachment').d('附件') })}
-              bordered={false}
-            >
-              <Attachments {...FormProps} />
+            <Card id="rfxAttachment" title={null} bordered={false}>
+              {/* 通威二开 - 可折叠，默认展开 */}
+              <Collapse defaultActiveKey={['rfxAttachment']} expandIconPosition="text-right" ghost>
+                <Panel
+                  key="rfxAttachment"
+                  header={commonCardTitleStyle({
+                    title: intl.get('ssrc.common.attachment').d('附件'),
+                  })}
+                >
+                  <Attachments {...FormProps} />
+                </Panel>
+              </Collapse>
             </Card>
           )}
           {!!bidFlag && (
             <>
-              <Card
-                id="cuxPurBidManagementAttachment"
-                title={intl
-                  .get('scux.ssrc.view.message.twnf.bidPurManagementAttachment')
-                  .d('招标文件')}
-                bordered={false}
-              >
-                <CuxPurBidManagementAttachment
-                  attachType="PUR"
-                  queryParams={{
-                    rfxHeaderId,
-                    // quotationHeaderRecordId,
-                  }}
-                />
+              <Card id="cuxPurBidManagementAttachment" title={null} bordered={false}>
+                {/* 通威二开 - 招标文件可折叠，默认折叠 */}
+                <Collapse defaultActiveKey={[]} expandIconPosition="text-right" ghost>
+                  <Panel
+                    key="cuxPurBidManagementAttachment"
+                    header={
+                      <span style={{ fontWeight: 600, fontSize: '16px' }}>
+                        {intl
+                          .get('scux.ssrc.view.message.twnf.bidPurManagementAttachment')
+                          .d('招标文件')}
+                      </span>
+                    }
+                  >
+                    <CuxPurBidManagementAttachment
+                      attachType="PUR"
+                      queryParams={{
+                        rfxHeaderId,
+                        // quotationHeaderRecordId,
+                      }}
+                    />
+                  </Panel>
+                </Collapse>
               </Card>
-              <Card
-                id="cuxSupBidManagementAttachment"
-                title={intl
-                  .get('scux.ssrc.view.message.twnf.bidSupManagementAttachment')
-                  .d('投标文件')}
-                bordered={false}
-              >
-                <CuxPurBidManagementAttachment
-                  attachType="SUP"
-                  queryParams={{
-                    quotationHeaderId,
-                    quotationHeaderRecordId,
-                  }}
-                />
+              <Card id="cuxSupBidManagementAttachment" title={null} bordered={false}>
+                {/* 通威二开 - 可折叠，默认展开 */}
+                <Collapse
+                  defaultActiveKey={['cuxSupBidManagementAttachment']}
+                  expandIconPosition="text-right"
+                  ghost
+                >
+                  <Panel
+                    key="cuxSupBidManagementAttachment"
+                    header={
+                      <span style={{ fontWeight: 600, fontSize: '16px' }}>
+                        {intl
+                          .get('scux.ssrc.view.message.twnf.bidSupManagementAttachment')
+                          .d('投标文件')}
+                      </span>
+                    }
+                  >
+                    <CuxPurBidManagementAttachment
+                      attachType="SUP"
+                      queryParams={{
+                        quotationHeaderId,
+                        quotationHeaderRecordId,
+                      }}
+                    />
+                  </Panel>
+                </Collapse>
               </Card>
             </>
           )}

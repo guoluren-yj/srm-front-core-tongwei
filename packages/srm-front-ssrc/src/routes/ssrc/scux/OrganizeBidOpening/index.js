@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDataSet, Modal } from 'choerodon-ui/pro';
-import { Card } from 'choerodon-ui';
+import { Card, Collapse } from 'choerodon-ui';
 import { useObserver, observer } from 'mobx-react-lite';
 
 import formatterCollections from 'utils/intl/formatterCollections';
@@ -20,6 +20,8 @@ import CheckIn from '../../InquiryHall/Detail/CheckIn';
 import CheckInSupplier from '../../InquiryHall/Detail/CheckInSupplier';
 import CommonLevel from '../components/SecLevelTitle/CommonLevel';
 import Style from './index.less';
+
+const { Panel } = Collapse;
 
 // 组织开标/开标
 const OrganizeBidOpening = (props) => {
@@ -44,8 +46,15 @@ const OrganizeBidOpening = (props) => {
     openBidListDs.query();
   };
 
-  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType } = useObserver(
-    () => baseInfoDs?.current?.get(['attributeVarchar20', 'bidOpenFlag', 'bargainOfflineFlag', 'sourceType']) || {}
+  const { attributeVarchar20, bidOpenFlag, bargainOfflineFlag, sourceType, sourceFrom } = useObserver(
+    () =>
+      baseInfoDs?.current?.get([
+        'attributeVarchar20',
+        'bidOpenFlag',
+        'bargainOfflineFlag',
+        'sourceType',
+        'sourceFrom',
+      ]) || {}
   );
 
   // 内部签到\供应商签到
@@ -91,7 +100,7 @@ const OrganizeBidOpening = (props) => {
     const rfxTitle = baseInfoDs?.current?.get('rfxTitle');
     Modal.confirm({
       key: 'scux-ssrc-back-to-check-supplier-modal',
-      title: `招标单号：${rfxNum}-${rfxTitle}`,
+      title: `${rfxNum}-${rfxTitle}`,
       children: intl.get(`${prefix}.model.checkDrawLotsTips`).d('请确认是否进行开标顺序抽签'),
       okText: intl.get('hzero.common.button.ok').d('是'),
       cancelText: intl.get('hzero.common.button.cancel').d('否'),
@@ -221,9 +230,10 @@ const OrganizeBidOpening = (props) => {
       history,
       bargainOfflineFlag,
       sourceType,
+      sourceFrom,
       docType,
     };
-  }, [rfxHeaderId, bargainOfflineFlag, sourceType, docType]);
+  }, [rfxHeaderId, bargainOfflineFlag, sourceType, sourceFrom, docType]);
 
   // 头标题
   const headerTitle = useMemo(() => {
@@ -242,42 +252,64 @@ const OrganizeBidOpening = (props) => {
         <Card title={null} id="cuxBasicInfo" bordered={false}>
           <BaseInfo {...commonProps} baseInfoDs={baseInfoDs} />
         </Card>
-        <Card
-          title={
-            <CommonLevel
-              title={intl
-                .get('ssrc.inquiryHall.view.message.modal.openingCheckIn.list')
-                .d('内部签到')}
-            />
-          }
-          id="cuxInternalCheckInList"
-          bordered={false}
-        >
-          <CheckIn data={{ rfxHeaderId }} />
+        <Card title={null} id="cuxInternalCheckInList" bordered={false}>
+          {/* 通威二开 - 内部签到区块默认折叠 */}
+          <Collapse defaultActiveKey={[]} expandIconPosition="text-right" ghost>
+            <Panel
+              key="cuxInternalCheckInList"
+              header={
+                <CommonLevel
+                  // 与卡片标题字号保持一致
+                  style={{ fontSize: '0.16rem', fontWeight: 500 }}
+                  title={intl
+                    .get('ssrc.inquiryHall.view.message.modal.openingCheckIn.list')
+                    .d('内部签到')}
+                />
+              }
+            >
+              <CheckIn data={{ rfxHeaderId }} />
+            </Panel>
+          </Collapse>
         </Card>
-        <Card
-          title={
-            <CommonLevel
-              title={intl
-                .get('ssrc.inquiryHall.view.message.modal.openingSupplierCheckIn.list')
-                .d('供应商签到')}
-            />
-          }
-          id="cuxSupplierCheckInList"
-          bordered={false}
-        >
-          <CheckInSupplier data={{ rfxHeaderId }} />
+        <Card title={null} id="cuxSupplierCheckInList" bordered={false}>
+          {/* 通威二开 - 供应商签到区块默认折叠 */}
+          <Collapse defaultActiveKey={[]} expandIconPosition="text-right" ghost>
+            <Panel
+              key="cuxSupplierCheckInList"
+              header={
+                <CommonLevel
+                  // 与卡片标题字号保持一致
+                  style={{ fontSize: '0.16rem', fontWeight: 500 }}
+                  title={intl
+                    .get('ssrc.inquiryHall.view.message.modal.openingSupplierCheckIn.list')
+                    .d('供应商签到')}
+                />
+              }
+            >
+              <CheckInSupplier data={{ rfxHeaderId }} />
+            </Panel>
+          </Collapse>
         </Card>
-        <Card
-          title={
-            <CommonLevel
-              title={intl.get(`${prefix}.view.card.title.openBidListInfo`).d('开标列表')}
-            />
-          }
-          id="cuxOpenBidListInfo"
-          bordered={false}
-        >
-          <OpenBidList {...commonProps} openBidListDs={openBidListDs} />
+        <Card title={null} id="cuxOpenBidListInfo" bordered={false}>
+          {/* 通威二开 - 开标列表可折叠，默认展开 */}
+          <Collapse
+            defaultActiveKey={['cuxOpenBidListInfo']}
+            expandIconPosition="text-right"
+            ghost
+          >
+            <Panel
+              key="cuxOpenBidListInfo"
+              header={
+                <CommonLevel
+                  // 与卡片标题字号保持一致
+                  style={{ fontSize: '0.16rem', fontWeight: 500 }}
+                  title={intl.get(`${prefix}.view.card.title.openBidListInfo`).d('开标列表')}
+                />
+              }
+            >
+              <OpenBidList {...commonProps} openBidListDs={openBidListDs} />
+            </Panel>
+          </Collapse>
         </Card>
       </Content>
     </>

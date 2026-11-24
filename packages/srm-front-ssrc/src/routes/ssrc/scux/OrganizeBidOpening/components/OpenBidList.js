@@ -12,7 +12,15 @@ import { getSourceUrlConfig } from '../../BidEvaluationManagement/api';
 import { prefix } from '../store/ds';
 
 const OpenBidList = (props) => {
-  const { openBidListDs, history, rfxHeaderId, bargainOfflineFlag, sourceType, docType } = props;
+  const {
+    openBidListDs,
+    history,
+    rfxHeaderId,
+    bargainOfflineFlag,
+    sourceType,
+    docType,
+    sourceFrom,
+  } = props;
 
   // 跳转到商务谈判
   const handleJumpToBusinessBattle = async (record) => {
@@ -89,6 +97,10 @@ const OpenBidList = (props) => {
       {
         name: 'businessBattle',
         renderer: ({ record }) => {
+          // 通威二开 - 头接口 sourceFrom 非 PROJECT 时，商务谈判显示 -
+          if (sourceFrom !== 'PROJECT') {
+            return null;
+          }
           return record.get('priceBid') === '已开启' ? (
             <Button
               funcType="link"

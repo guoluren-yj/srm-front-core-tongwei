@@ -18,12 +18,12 @@ const formDataSet = (): DataSetProps => {
       },
       {
         name: 'rfxTitle',
-        label: intl.get('scux.confirmationOfBiddingStatus.model.twnf.rfxTitle').d('招标名称'),
+        label: intl.get('scux.confirmationOfBiddingStatus.model.twnf.rfxTitleProject').d('项目名称'),
       },
-      {
-        name: 'createdByName',
-        label: intl.get('scux.confirmationOfBiddingStatus.model.twnf.createdByName').d('招标经理'),
-      },
+      // {
+      //   name: 'createdByName',
+      //   label: intl.get('scux.confirmationOfBiddingStatus.model.twnf.createdByName').d('招标经理'),
+      // },
     ],
     transport: {
       read: ({ dataSet }) => {

@@ -117,6 +117,9 @@ const SupplierEvaluationList = ({ history, location }: any) => {
     const renderSourceProjectNum = ({ value, record }: any) => {
       // 列表接口未返回 sourceProjectNum 时，用跳转带入的查询值兜底展示
       const displayValue = value || tableDS?.getQueryParameter?.('sourceProjectNum');
+      if(record?.get('sourceProjectNumLinkFlag') !== '1'){
+        return value;
+      }
       return (
         <a
           onClick={() => handleToTenderDetail(history, record)}

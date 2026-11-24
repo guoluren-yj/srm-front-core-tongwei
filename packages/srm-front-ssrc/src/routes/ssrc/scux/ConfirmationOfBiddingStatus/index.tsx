@@ -163,7 +163,7 @@ const Index: React.FC<any> = (props = {}) => {
                   >
                     <Output name="companyName" />
                     <Output name="rfxTitle" />
-                    <Output name="createdByName" />
+                    {/* <Output name="createdByName" /> */}
                   </Form>
                 </Collapse.Panel>
               </Collapse>

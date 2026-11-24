@@ -158,6 +158,9 @@ export default class CheckIn extends Component {
 
     // 价格标已开启才展示「商务谈判」入口；cuxNegotiationFlag = 1 才允许点击，否则禁用
     renderBusinessBattle = ({ record }) => {
+        const { data = {} } = this.props;
+        // 通威二开 - 头接口 sourceFrom 非 PROJECT 时，不展示「商务谈判」
+        if (data.sourceFrom !== 'PROJECT') return null;
         if (record.get('priceBid') !== '已开启') return null;
         return (
           <Button
@@ -261,7 +264,6 @@ export default class CheckIn extends Component {
 
 
     render() {
-
         return (
             <Table
                 bordered

@@ -53,7 +53,7 @@ export default class CheckIn extends Component {
                 {
                     label: '入职时间',
                     name: 'entryTime',
-                    type: 'dateTime',
+                    type: 'date',
                 },
                 {
                     label: '签到时间',

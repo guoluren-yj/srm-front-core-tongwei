@@ -176,6 +176,11 @@ const tableDataSet = (): DataSetProps => {
         min: 0,
       },
       {
+        name: 'remark',
+        type: FieldType.string,
+        label: intl.get(`${intlPrompt}.item.remark`).d('备注'),
+      },
+      {
         name: 'taxIncludedLineAmount',
         type: FieldType.number,
         label: intl.get(`${intlPrompt}.item.taxIncludedLineAmount`).d('含税金额'),
