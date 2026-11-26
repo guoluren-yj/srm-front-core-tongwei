@@ -1745,10 +1745,32 @@ class InquiryHall extends React.Component {
       return;
     }
 
+    // 通威二开 - 招标：定标按钮只对核价人展示
+    // cuxCheckPriceLov 为核价人集合，当前登录人 userId 必须在集合中，否则不显示
+    if (this.bidFlag) {
+      const checkPriceUsers = record.get('cuxCheckPriceLov') || [];
+      const currentUserId = String(getCurrentUserId());
+      // cuxCheckPriceLov 是 MobX ObservableArray，统一用 Array.from 转成普通数组再比对
+      const checkPriceUserIds = Array.from(checkPriceUsers).map((item) => String(item?.userId));
+      // eslint-disable-next-line no-console
+      console.log(
+        '[通威二开-调试] 核价人ID集合 vs 当前登录人ID',
+        JSON.stringify(checkPriceUserIds),
+        currentUserId
+      );
+      const isCheckPriceUser = checkPriceUserIds.includes(currentUserId);
+      if (!isCheckPriceUser) {
+        return;
+      }
+    }
+
     return (
       <div>
         <a onClick={() => this.onOperateBidModel(record.toData())}>
-          {intl.get(`ssrc.inquiryHall.view.message.button.operating`).d('操作')}
+          {/* 通威二开 - 招标已开标时按钮展示「定标」，询价保持「操作」 */}
+          {this.bidFlag
+            ? intl.get('ssrc.common.view.message.target').d('定标')
+            : intl.get(`ssrc.inquiryHall.view.message.button.operating`).d('操作')}
         </a>
       </div>
     );
@@ -5245,6 +5267,19 @@ class InquiryHall extends React.Component {
     }
   }
 
+  /**
+   * 通威二开 - 招标：开始定标后直接进入「中标确认」页面
+   */
+  goToBidConfirmation = (rfxHeaderId, projectLineSectionId) => {
+    if (!rfxHeaderId) return;
+    this.props.history.push({
+      pathname: `${this.getJumpRoutePrefix()}/check-price/${rfxHeaderId}`,
+      search: projectLineSectionId
+        ? querystring.stringify({ projectLineSectionId })
+        : '',
+    });
+  };
+
   // // 还比价更新已读
   // handleUpdateFeedBackReadedFlag = async ({ record }) => {
   //   const { organizationId } = this.props;
@@ -6626,6 +6661,11 @@ class InquiryHall extends React.Component {
       sourceCategory = 'RFQ',
     } = record;
 
+    // 通威二开 - 招标已开标的操作弹框标题展示「定标」，询价保持「开标」
+    const operateBidTitle = this.bidFlag
+      ? intl.get('ssrc.common.view.message.target').d('定标')
+      : intl.get(`ssrc.inquiryHall.view.message.title.openingBid`).d('开标');
+
     // 新开标功能开启
     if (bidOpeningNewFlag) {
       return this.handleNewBidOpening(record);
@@ -6660,10 +6700,10 @@ class InquiryHall extends React.Component {
         title: remote
           ? remote.process(
               'SSRC_INQUIRY_HALL_NEW_LIST_PROCESS_SOURCEING_RESULT_TITLE',
-              intl.get(`ssrc.inquiryHall.view.message.title.openingBid`).d('开标'),
+              operateBidTitle,
               { rfxStatus, documentTypeName: this.documentTypeName }
             )
-          : intl.get(`ssrc.inquiryHall.view.message.title.openingBid`).d('开标'),
+          : operateBidTitle,
         children: this.bidFlag ? (
           <BidSourcingResultDrawer {...sourcingResDrawerProps} />
         ) : (
@@ -6678,6 +6718,12 @@ class InquiryHall extends React.Component {
               this.sourcingResultDrawerRef?.handleSubmit &&
               isFunction(this.sourcingResultDrawerRef.handleSubmit)
             ) {
+              // 提交前先缓存当前标段信息，Modal.destroyAll 后 ref 状态可能被清理
+              const {
+                rfxHeaderId: sectionRfxHeaderId,
+                activateSectionKey,
+                sectionTagMap = {},
+              } = this.sourcingResultDrawerRef.state || {};
               this.setState({
                 quoFeedBackLackSubmitLoading: true,
               });
@@ -6685,7 +6731,15 @@ class InquiryHall extends React.Component {
                 await this.sourcingResultDrawerRef.handleSubmit();
                 notification.success();
                 Modal.destroyAll();
-                this.allSearch();
+                // 通威二开 - 招标：选择「开始定标」后直接进入「中标确认」页面，不返回列表
+                if (this.bidFlag && Object.values(sectionTagMap).includes('CHECK_PENDING')) {
+                  this.goToBidConfirmation(
+                    sectionRfxHeaderId || rfxHeaderId,
+                    activateSectionKey || projectLineSectionId
+                  );
+                } else {
+                  this.allSearch();
+                }
               } catch {
                 return false;
               } finally {
@@ -6735,6 +6789,7 @@ class InquiryHall extends React.Component {
       serviceChargeFlag,
       remote,
       inquiryCheckPrice: this.inquiryCheckPrice,
+      goToBidConfirmation: this.goToBidConfirmation,
     };
 
     Modal.open({
@@ -6742,10 +6797,10 @@ class InquiryHall extends React.Component {
       title: remote
         ? remote.process(
             'SSRC_INQUIRY_HALL_NEW_LIST_PROCESS_SOURCEING_RESULT_TITLE',
-            intl.get(`ssrc.inquiryHall.view.message.title.openingBid`).d('开标'),
+            operateBidTitle,
             { rfxStatus, documentTypeName: this.documentTypeName }
           )
-        : intl.get(`ssrc.inquiryHall.view.message.title.openingBid`).d('开标'),
+        : operateBidTitle,
       children: this.renderOperateBid(operationBidProps),
       closable: true,
       drawer: true,

@@ -542,8 +542,8 @@ class Supplierquotation extends Component {
         {moreList?.map((item) => (
           <Menu.Item>
             {item.operation === 'CLARIFY' ? (
-              // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
-              record.get('sourceProjectId') && (
+              // 通威二开 - 澄清答疑：报价一直显示；投标仅立项来源（sourceProjectId 有值）时显示
+              (!this.bidFlag || record.get('sourceProjectId')) && (
                 remoteHoc ? (
                   remoteHoc.render(
                     'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
@@ -651,8 +651,8 @@ class Supplierquotation extends Component {
                 return (
                   <div className="action">
                     {item.operation === 'CLARIFY' ? (
-                      // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
-                      record.get('sourceProjectId') &&
+                      // 通威二开 - 澄清答疑：报价一直显示；投标仅立项来源（sourceProjectId 有值）时显示
+                      (!this.bidFlag || record.get('sourceProjectId')) &&
                       (remoteHoc ? (
                         remoteHoc.render(
                           'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',
@@ -733,8 +733,8 @@ class Supplierquotation extends Component {
                 return (
                   <div className="action">
                     {item.operation === 'CLARIFY' ? (
-                      // 通威二开 - 澄清答疑：仅立项来源（sourceProjectId 有值）时显示
-                      record.get('sourceProjectId') &&
+                      // 通威二开 - 澄清答疑：报价一直显示；投标仅立项来源（sourceProjectId 有值）时显示
+                      (!this.bidFlag || record.get('sourceProjectId')) &&
                       (remoteHoc ? (
                         remoteHoc.render(
                           'SSRC_RFSUPPLIER_QUOTATION_NEW_LIST_RENDER_CLARIFY_BUTTON',

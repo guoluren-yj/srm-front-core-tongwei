@@ -181,7 +181,14 @@ class SupplierRecord extends Component {
    */
   @Bind()
   async afterAction() {
-    const { allQuery, record, inquiryCheckPrice, sourcingResultRemote, sourceKey } = this.props;
+    const {
+      allQuery,
+      record,
+      inquiryCheckPrice,
+      sourcingResultRemote,
+      sourceKey,
+      goToBidConfirmation,
+    } = this.props;
     const { currentSelStatus } = this.state;
     const { checkUserFlag } = record;
     const { expandNodeRef } = this.cacheExpendNodeRef || {};
@@ -191,6 +198,18 @@ class SupplierRecord extends Component {
         bidFlag: sourceKey === 'BID',
         expandNodeRef,
       });
+    }
+
+    // 通威二开 - 招标：开始定标后直接进入「中标确认」页面，不返回列表
+    if (
+      sourceKey === 'BID' &&
+      currentSelStatus === 'CHECK_PENDING' &&
+      isFunction(goToBidConfirmation)
+    ) {
+      notification.success();
+      Modal.destroyAll();
+      goToBidConfirmation(record.rfxHeaderId, record.projectLineSectionId);
+      return;
     }
 
     notification.success();
@@ -335,9 +354,11 @@ class SupplierRecord extends Component {
   filterSourcingResultByOpenedBid() {
     const {
       record: { pretrialFlag, expertScoreType },
+      sourceKey,
     } = this.props;
     const { sourcingResultMap = {}, permissionBtnMap = {} } = this.state;
-    const defaultStatus = ['CLOSED']; // 默认都有的状态
+    // 通威二开 - 招标已开标：去掉「文件中止」（CLOSED）选项，询价保留
+    const defaultStatus = sourceKey === 'BID' ? [] : ['CLOSED']; // 默认都有的状态
     // 需要额外处理权限按钮状态
     const newStatus = [];
     defaultStatus.forEach((r) => {

@@ -486,6 +486,7 @@ class SourcingResult extends PureComponent {
    * 在开始初审、开始核价、专家评分、点击“应用至全部”，只标记有对应操作的标段
    */
   filterSourcingResultByOpenedBid() {
+    const { bidFlag } = this.props;
     const {
       pretrialFlag,
       expertScoreType,
@@ -495,7 +496,8 @@ class SourcingResult extends PureComponent {
       projectLineSectionList,
       onlySingleProjectLineSection = {},
     } = this.state;
-    const defaultStatus = ['CLOSED']; // 默认都有的状态
+    // 通威二开 - 招标已开标：去掉「文件中止」（CLOSED）选项，询价保留
+    const defaultStatus = bidFlag ? [] : ['CLOSED']; // 默认都有的状态
     // 需要额外处理权限按钮状态
     const newStatus = [];
     defaultStatus.forEach((r) => {

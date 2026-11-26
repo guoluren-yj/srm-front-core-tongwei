@@ -49,7 +49,12 @@ const attachmentDS = () => ({
       bucketDirectory: 'ssrc-template-requirement',
       ...(ChunkUploadProps || {}),
       dynamicProps: {
-        readOnly: ({ record }) => !!record.get('fileManageId'),
+        // 通威二开：模板行（fileManageId 有值）可编辑；非模板行（fileManageId 为空）只读
+        readOnly: ({ record }) => !record.get('fileManageId'),
+        // 通威二开：只读查看（非模板行）时不限制附件数量。
+        // C7N Attachment 的 isDisabled() 在 count >= max 时返回 true，
+        // 会把只读状态下「查看附件」按钮（以及整个单元格）渲染成禁用灰色，导致有附件也点不了
+        max: ({ record }) => (record.get('fileManageId') ? undefined : Number.MAX_SAFE_INTEGER),
       },
       max: 1,
       help: intl

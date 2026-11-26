@@ -22,7 +22,7 @@ const isFieldReadOnly = (record, name) =>
 
 // 附件单元格：附件列 attachmentUuid、签章附件列 attributeLongtext1
 // 只读（查看）状态下字段有 uuid 不代表真有文件，数量为 0 时展示置灰不可点的「查看附件」占位；
-// 确有附件、以及可编辑状态，都保持原有 Attachment 逻辑。
+// 确有附件、以及可编辑状态，都保持原有 Attachment 逻辑（只读状态下 Attachment 传 readOnly，只能查看）。
 // 附件数量由 Attachment 自身获取（内部调 field.fetchAttachmentCount，数量缓存在 record 上），
 // 拿到数量后这里会自动重渲染
 const AttachmentCell = observer(({ record, name, edit, ...rest }) => {
@@ -31,6 +31,7 @@ const AttachmentCell = observer(({ record, name, edit, ...rest }) => {
   if (String(record.get('cuxSupplierCreateFlag')) === '1' && String(edit) === '1') {
     return "-";
   }
+  // 通威二开：只读且没有附件（无 uuid 或数量为 0）时展示置灰占位；确有附件时正常展示（只读）以便查看
   if (readOnly && (!record?.get(name) || count === 0)) {
     return (
       <Button funcType="link" icon="attach_file" disabled>
@@ -44,6 +45,8 @@ const AttachmentCell = observer(({ record, name, edit, ...rest }) => {
       name={name}
       viewMode="popup"
       funcType="link"
+      // 通威二开：只读状态由字段 readOnly 控制（非模板行只读，模板行可编辑）
+      readOnly={readOnly}
       {...rest}
     />
   );
@@ -272,10 +275,20 @@ const BidManagementAttachment = (props) => {
     {
       name: 'attachmentUuid',
       renderer: ({ record }) => {
-        if (!record.get('fileManageId')) {
+        const fileManageId = record.get('fileManageId');
+        // 通威二开：非模板行（无 fileManageId）且没有附件时展示 -；其余情况都要能查看附件
+        // 只读还是可编辑由字段 readOnly 控制：非模板行只读，模板行（fileManageId 有值）可编辑
+        if (!fileManageId && !record.get('attachmentUuid')) {
           return '-';
         }
-        return <AttachmentCell record={record} name="attachmentUuid" edit={1} beforeUpload={beforeUpload} />;
+        return (
+          <AttachmentCell
+            record={record}
+            name="attachmentUuid"
+            edit={fileManageId ? 1 : undefined}
+            beforeUpload={beforeUpload}
+          />
+        );
       },
     },
     {

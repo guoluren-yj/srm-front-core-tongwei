@@ -270,6 +270,7 @@ const BidOpen = observer((props) => {
     modal,
     bidFlag,
     remote,
+    history,
     // callback,
     sourceKey,
     documentTypeName,
@@ -554,7 +555,7 @@ const BidOpen = observer((props) => {
     }
   };
 
-  // 开始核价
+  // 开始核价 / 开始定标
   const handleCheck = async () => {
     const result = getResponse(
       await startNextRfxStatus({
@@ -566,11 +567,19 @@ const BidOpen = observer((props) => {
     if (result && !result.failed) {
       notification.success();
       Modal.destroyAll();
-      allQuery();
-      // 跳转核价
       const search = querystring.stringify({
         projectLineSectionId,
       });
+      // 通威二开 - 招标：点击「开始定标」后直接进入「中标确认」页面，不返回列表
+      if (bidFlag) {
+        history.push({
+          pathname: `${getActiveTabKey()}/check-price/${rfxHeaderId}`,
+          search,
+        });
+        return;
+      }
+      allQuery();
+      // 跳转核价
       if (Number(checkUserFlag) === 1) {
         history.push({
           pathname: `${getActiveTabKey()}/check-price/${rfxHeaderId}`,
@@ -610,8 +619,8 @@ const BidOpen = observer((props) => {
     const showSecOpenBidFlag =
       rfxStatus === 'OPEN_BID_PENDING' && firstAllOpened === 1 && currentOpenerSecondOpened === 0;
     const showOpenBidFlag = showFirstOpenBidFlag || showSecOpenBidFlag;
-    // 关闭询价单：默认展示
-    const showCloseRfxFlag = true;
+    // 关闭询价单：默认展示；通威二开 - 招标不展示「文件中止」（关闭招标书）按钮
+    const showCloseRfxFlag = !bidFlag;
     // 专家评分: 询价单状态=已开标 && 单据包含专家评分节点 && 所有开标员均已执行开标确认
     const showStartScoreFlag =
       rfxStatus === 'OPENED' && expertScoreType === 'ONLINE' && allOpenBiderExecutionFlag;
@@ -800,7 +809,10 @@ const BidOpen = observer((props) => {
 // 开标情况：开标前 ｜ 自己执行开标后，但有其他开标员未开标 ｜ 自己执行开标后，且全部开标员均已开标
 const openNewBidModal = async (props) => {
   const modal = Modal.open({
-    title: intl.get(`ssrc.inquiryHall.view.message.button.openingBid`).d('开标'),
+    // 通威二开 - 招标展示「定标」，询价保持「开标」
+    title: props?.bidFlag
+      ? intl.get('ssrc.common.view.message.target').d('定标')
+      : intl.get(`ssrc.inquiryHall.view.message.button.openingBid`).d('开标'),
     closable: true,
     style: { width: 749 },
     drawer: true,
