@@ -215,30 +215,32 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
         resultDs?.current?.get('nominationHeaderId') || nominationHeaderId;
       const resultNominationSupLineId =
         resultDs?.current?.get('nominationSupLineId') || nominationSupLineId;
-      console.log(resultNominationHeaderId, resultNominationSupLineId);
-      const financeReviewLineList = hasLastNomination
-        ? infoDs.toData().map((line: any) => {
-            const { financeReviewLineId, ...rest } = line;
-            // 行本身没有 nominationHeaderId/nominationSupLineId 视为新建数据，不需要替换，保持为空
-            if (!(line?.nominationHeaderId && line?.nominationSupLineId)) {
-              return rest;
-            }
-            // 由上次提名带入的行，替换为财务入围评审结果所属的 id
-            return {
-              ...rest,
-              ...(resultNominationHeaderId ? { nominationHeaderId: resultNominationHeaderId } : {}),
-              ...(resultNominationSupLineId
-                ? { nominationSupLineId: resultNominationSupLineId }
-                : {}),
-            };
-          })
-        : infoDs.toData();
+      // 通威二开：每一行都必须带上当前的提名头/入围行 id。前端新增行没有这两个归属字段，
+      // 后端不会把行落到当前提名下，保存后重新查询查不到、提交时还会被当成新增重复生成。
+      // 同时「存在上次提名」时去掉 financeReviewLineId，其余场景保留（刷新回来的行已有新 id）。
+      const financeReviewLineList = infoDs.toData().map((line: any) => {
+        const rest = hasLastNomination
+          ? (({ financeReviewLineId, ...others }: any) => others)(line)
+          : line;
+        return {
+          ...rest,
+          ...(resultNominationHeaderId ? { nominationHeaderId: resultNominationHeaderId } : {}),
+          ...(resultNominationSupLineId
+            ? { nominationSupLineId: resultNominationSupLineId }
+            : {}),
+        };
+      });
       const res = await supplierEvaluationDetailPostApi({ financeReviewInfo: { ...resultDs.current?.toJSONData(), nominationHeaderId: resultNominationHeaderId, nominationSupLineId: resultNominationSupLineId, financeReviewLineList, children: null } }, submitFlag ? 'FIN_REVIEW_SUBMIT' : 'FIN_REVIEW_SAVE');
-      if (getResponse(res)) {
+      // getResponse 只在 failed 时返回 undefined（并弹错误提示），接口成功但没有响应体时同样返回 undefined，
+      // 全新数据保存就是这种场景：不能用 getResponse 的真假判断成功与否，否则会跳过下面的明细刷新
+      const requestFailed = !!res && res.failed === true;
+      getResponse(res);
+      if (!requestFailed) {
         notification.success({});
         if(!submitFlag) {
-          // 保存成功后，使用接口返回的 nominationHeaderId/nominationSupLineId 重新查询评审信息行
-          // 优先使用接口返回的新 nomination id；拿不到时退回当前结果中的 id
+          // 通威二开：保存成功后必须重新请求明细行接口，把后端落库生成的 financeReviewLineId 带回；
+          // 否则紧接着点提交时，这些没有 id 的行会被后端当成新增数据再创建一次，详情里出现两条
+          // 查询参数必须与保存请求实际使用的 id 保持一致（res 没返回时用保存时传的 id 兜底）
           const savedNominationHeaderId = res?.nominationHeaderId || resultNominationHeaderId;
           const savedNominationSupLineId = res?.nominationSupLineId || resultNominationSupLineId;
           // 原来是 setTimeout 后不等待，改成等这一段跑完再放 loading：刷新回来前按钮一直是 loading，
@@ -250,8 +252,31 @@ export const openFinanceReviewModal = async (record: any, type?: string, dataSet
           if (savedNominationSupLineId) {
             infoDs.setQueryParameter('nominationSupLineId', savedNominationSupLineId);
           }
-          await Promise.all([infoDs.query(), resultDs.query()]);
-          // 保存并刷新完成后，明细行已归属当前提名，后续保存/提交都要带 financeReviewLineId
+          // 先刷新评审结果头（同步后端重算的均值，同时让全新数据的结果头落库）
+          await resultDs.query();
+          // 刷新明细行期间临时解除父子关系：全新数据时结果头是 autoCreate 的新行（isNew=true），
+          // C7N 的 checkReadable 会因父级当前行是新增而直接跳过子 DataSet 的查询，
+          // 明细刷新请求根本不会发出（表现为第一次保存查不到行、再点一次才正常）
+          infoDs.parent = undefined;
+          try {
+            // 行保存后重新请求行接口（FINANCE_LINE_REVIEW），刷新出带 financeReviewLineId 的最新明细
+            // 显式再传一次查询参数，避免 queryParameter 未生效时查询条件缺失
+            await infoDs.query(undefined, {
+              nominationHeaderId: savedNominationHeaderId,
+              nominationSupLineId: savedNominationSupLineId,
+            });
+            // 后端落库存在延迟时可能查回来的行还没有 financeReviewLineId，多查一次兜底
+            const hasLineWithoutId = () =>
+              infoDs.records.some((line: any) => !line.get('financeReviewLineId'));
+            if (infoDs.length > 0 && hasLineWithoutId()) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              await infoDs.query();
+            }
+          } finally {
+            // 恢复父子关系（联动均值回写依赖 dataSet.parent）
+            infoDs.parent = resultDs;
+          }
+          // 刷新完成后明细已归属当前提名，后续提交必须带 financeReviewLineId
           hasLastNomination = false;
         } else if(modal) {
           await dataSet.query();

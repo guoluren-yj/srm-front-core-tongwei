@@ -666,7 +666,7 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
   primaryKey: 'financeReviewLineId',
   fields: [
     { name: 'financeReviewLineId', type: FieldType.string, readOnly: true },
-    { name: 'year', type: FieldType.string, label: intl.get(`${prefix}.field.year`).d('年度'), required: true },
+    { name: 'year', type: FieldType.number, label: intl.get(`${prefix}.field.year`).d('年度'), required: true },
     { name: 'operatingRevenue', type: FieldType.number, label: intl.get(`${prefix}.field.operatingRevenue`).d('营业收入（万元）'), required: true, precision: 2, numberGrouping: true },
     { name: 'netProfit', type: FieldType.number, label: intl.get(`${prefix}.field.netProfit`).d('净利润（万元）'), required: true, precision: 2, numberGrouping: true },
     { name: 'totalAssets', type: FieldType.number, label: intl.get(`${prefix}.field.totalAssets`).d('总资产（万元）'), required: true, precision: 2, numberGrouping: true },
@@ -702,6 +702,18 @@ export const financeReviewInfoDS = (nominationHeaderId, nominationSupLineId): Da
   events: {
     update: ({ name, record, dataSet }) => {
       const resultDs = dataSet.parent;
+      // 通威二开：总负债 = 总资产 - 净资产，修改总资产/净资产时自动重算总负债（总负债仍允许手工调整）
+      if (name === 'totalAssets' || name === 'netAssets') {
+        const totalAssets = record.get('totalAssets');
+        const netAssets = record.get('netAssets');
+        const hasValue = (value: any) => value !== null && value !== undefined && value !== '';
+        record.set(
+          'totalLiabilities',
+          hasValue(totalAssets) && hasValue(netAssets)
+            ? Number(math.minus(totalAssets, netAssets))
+            : null
+        );
+      }
       if(name === 'totalAssets' || name === 'totalLiabilities') {
         record.set('assetLiabilityRatio', record.get('totalAssets') > 0 ? math.toFixed(math.multipliedBy(math.div(record.get('totalLiabilities'), record.get('totalAssets')), 100), 2) : null);
         if(resultDs) {
