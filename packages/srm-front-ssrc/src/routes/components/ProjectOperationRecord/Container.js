@@ -169,18 +169,30 @@ export default function Container(props) {
       ) {
         // 将页面渲染那一套特殊逻辑拿到这里，若改这里需要将页面渲染那里也改掉
         const { processSystemCode, processOperation, loginName } = operation;
-        const realNameTitle = `${operation.realName ?? ''}${
-          operation.loginName ? `（${operation.loginName}）` : ''
-        }`;
+        // 通威二开：招标（cuxDoctype 有值）且 OA 外部系统审批时，名字位置展示「外部系统」
+        const realNameTitle =
+          processSystemCode === 'OA' && operation.cuxDoctype
+            ? '外部系统'
+            : `${operation.realName ?? ''}${
+                operation.loginName ? `（${operation.loginName}）` : ''
+              }`;
         const status = ['APPROVE', 'EXTERNAL_APPROVE'].includes(processOperation)
           ? 'approved'
           : 'rejected';
+        // 通威二开：cuxDoctype 有值（招标）展示「审批了」，没值保持原逻辑「最终审批了」
+        const approveText = operation.cuxDoctype
+          ? '审批了'
+          : intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了');
         newOperationDescArr = renderApproveNode(
           processSystemCode,
           realNameTitle,
-          `【${intl.get('ssrc.common.view.message.rfx').d('询价单')}】`,
+          // 通威二开：优先取接口字段 cuxDoctype，没值保持原逻辑展示「询价单」
+          `【${
+            operation.cuxDoctype || intl.get('ssrc.common.view.message.rfx').d('询价单')
+          }】`,
           status,
-          loginName || ''
+          loginName || '',
+          approveText
         )
           .filter(Boolean)
           .join('');

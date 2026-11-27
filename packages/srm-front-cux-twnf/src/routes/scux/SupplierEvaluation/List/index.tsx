@@ -32,12 +32,17 @@ const handleToDetail = (history: any, search: any) => {
 
 // 入围单编号需要新开页签查看详情
 const handleToSupplierEntryDetail = (record: any, type: string) => {
+  const nominationHeaderId = record?.get('nominationHeaderId');
+  // 通威二开：hzero 以 pathname 作为页签唯一标识（query 会被剥离），
+  // 原来固定 path 导致所有入围单共用一个「入围单查看」页签；
+  // 这里把入围单 id + 时间戳拼进 pathname，保证每次点击都打开一个新页签
+  const detailPath = `/scux/supplier-evaluation/detail/${nominationHeaderId}-${Date.now()}`;
   openTab({
-    key: '/scux/supplier-evaluation/detail',
-    path: '/scux/supplier-evaluation/detail',
+    key: detailPath,
+    path: detailPath,
     title: intl.get(`${prefix}.view.viewTitle`).d('入围单查看'),
     search: stringify({
-      nominationHeaderId: record?.get('nominationHeaderId'),
+      nominationHeaderId,
       type,
     }),
   });

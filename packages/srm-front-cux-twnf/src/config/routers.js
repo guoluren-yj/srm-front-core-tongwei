@@ -91,6 +91,12 @@ module.exports = [
         path: '/scux/supplier-evaluation/detail',
         component: () => import('../routes/scux/SupplierEvaluation/Detail'),
       },
+      {
+        // 通威二开：列表「入围单编号」每次点击新开页签用（pathname 带唯一段区分页签），
+        // 页面参数仍从 query 读取，该路由与上面的 detail 指向同一组件
+        path: '/scux/supplier-evaluation/detail/:uniqueKey',
+        component: () => import('../routes/scux/SupplierEvaluation/Detail'),
+      },
     ],
   },
   // 采购方式变更查询

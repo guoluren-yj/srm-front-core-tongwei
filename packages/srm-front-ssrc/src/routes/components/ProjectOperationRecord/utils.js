@@ -55,7 +55,9 @@ const renderApproveNode = (
   realNameTitle,
   rfxTitle,
   status = 'approved',
-  loginName = ''
+  loginName = '',
+  // 通威二开：审批动作文案由调用方决定（招标取 cuxDoctype 判断，询价保持原逻辑）
+  approveText = intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')
 ) => {
   if (!processSystemCode) {
     if (status === 'approved') {
@@ -81,7 +83,7 @@ const renderApproveNode = (
       } else {
         return [
           realNameTitle,
-          `${intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}`,
+          approveText,
           rfxTitle,
           `，${intl.get('ssrc.common.view.message.resultApproved').d('审批结果为')}:`,
           `【${result}】`,
@@ -90,7 +92,7 @@ const renderApproveNode = (
     default:
       return [
         realNameTitle,
-        `${intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}`,
+        approveText,
         rfxTitle,
         `，${intl.get('ssrc.common.view.message.resultApproved').d('审批结果为')}:`,
         `【${result}】`,

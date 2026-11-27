@@ -55,9 +55,30 @@ const OperationRecordItem = (props) => {
           </span>
         ) : item.realName ? (
           <>
-            <span>{`${item?.realName}（${item?.loginName}）`}</span>
-            <span>{intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}</span>
-            <span>{`【${intl.get('ssrc.common.view.message.rfx').d('询价单')}】`}</span>
+            {/* 通威二开：招标（cuxDoctype 有值）且 OA 外部系统审批时，名字位置展示「外部系统」 */}
+            <span>
+              {item?.cuxDoctype && item?.processSystemCode === 'OA'
+                ? '外部系统'
+                : `${item?.realName}（${item?.loginName}）`}
+            </span>
+            {/* 通威二开：cuxDoctype 有值（招标）展示「审批了」并加间距、灰色与其他文字一致；没值保持原逻辑 */}
+            <span
+              style={
+                item?.cuxDoctype
+                  ? { marginLeft: '4px', color: 'rgba(35, 32, 32, 0.65)' }
+                  : undefined
+              }
+            >
+              {item?.cuxDoctype
+                ? '审批了'
+                : intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}
+            </span>
+            {/* 通威二开：优先取接口字段 cuxDoctype，没值保持原逻辑展示「询价单」 */}
+            <span>
+              {`【${
+                item?.cuxDoctype || intl.get('ssrc.common.view.message.rfx').d('询价单')
+              }】`}
+            </span>
             <span>
               {`，${intl.get('ssrc.common.view.message.resultApproved').d('审批结果为')}:`}
             </span>
@@ -88,9 +109,30 @@ const OperationRecordItem = (props) => {
           </span>
         ) : item?.realName ? (
           <>
-            <span>{`${item?.realName}（${item?.loginName}）`}</span>
-            <span>{intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}</span>
-            <span>{`【${intl.get('ssrc.common.view.message.rfx').d('询价单')}】`}</span>
+            {/* 通威二开：招标（cuxDoctype 有值）且 OA 外部系统审批时，名字位置展示「外部系统」 */}
+            <span>
+              {item?.cuxDoctype && item?.processSystemCode === 'OA'
+                ? '外部系统'
+                : `${item?.realName}（${item?.loginName}）`}
+            </span>
+            {/* 通威二开：cuxDoctype 有值（招标）展示「审批了」并加间距、灰色与其他文字一致；没值保持原逻辑 */}
+            <span
+              style={
+                item?.cuxDoctype
+                  ? { marginLeft: '4px', color: 'rgba(35, 32, 32, 0.65)' }
+                  : undefined
+              }
+            >
+              {item?.cuxDoctype
+                ? '审批了'
+                : intl.get('ssrc.common.view.message.finallyApproved').d('最终审批了')}
+            </span>
+            {/* 通威二开：优先取接口字段 cuxDoctype，没值保持原逻辑展示「询价单」 */}
+            <span>
+              {`【${
+                item?.cuxDoctype || intl.get('ssrc.common.view.message.rfx').d('询价单')
+              }】`}
+            </span>
             <span>
               {`，${intl.get('ssrc.common.view.message.resultApproved').d('审批结果为')}:`}
             </span>
